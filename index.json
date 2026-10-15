@@ -1,0 +1,13 @@
+{
+ "decks": [
+  {
+   "id": "hsc0003",
+   "name": "HSC 0003 Intro to Health Care",
+   "file": "hsc0003.json",
+   "version": 1,
+   "count": 586,
+   "desc": "Midterm question bank + math practice",
+   "auto": true
+  }
+ ]
+}

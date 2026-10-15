@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mastery">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#eef3f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1614" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Mastery quiz app for your classes.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<title>Mastery Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one phone-width column. Sticky top bar with a back button, then the current screen (subjects, one subject, study card, or add material). */
+:root {
+  --bg: #eef3f1; --surface: #ffffff; --ink: #15211d; --muted: #5b6b65; --line: #d3ddd9;
+  --accent: #0d6b5b; --accent-soft: #d6ebe5;
+  --ok: #1f7a3d; --ok-soft: #e1f2e6; --bad: #b3361f; --bad-soft: #fbe7e2; --warn: #9a6200; --warn-soft: #fbefd6; --new: #c4d2cd;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 12px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1614; --surface: #17211e; --ink: #e4ece9; --muted: #95a8a1; --line: #2a3833;
+  --accent: #4fc2a9; --accent-soft: #173a33; --ok: #5cc77f; --ok-soft: #16301f; --bad: #f08a72; --bad-soft: #3a1c16; --warn: #e6b45a; --warn-soft: #3a2c12; --new: #33433e;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f1614; --surface: #17211e; --ink: #e4ece9; --muted: #95a8a1; --line: #2a3833;
+  --accent: #4fc2a9; --accent-soft: #173a33; --ok: #5cc77f; --ok-soft: #16301f; --bad: #f08a72; --bad-soft: #3a1c16; --warn: #e6b45a; --warn-soft: #3a2c12; --new: #33433e;
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top .in { max-width: 680px; margin: 0 auto; padding-inline: 16px; padding-block: 10px; display: flex; align-items: center; gap: 10px; min-height: 52px; }
+.back { background: none; border: 0; color: var(--accent); font-weight: 700; padding: 8px 4px; cursor: pointer; font-size: .95rem; white-space: nowrap; max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
+.top h1 { font-family: var(--f-display); font-weight: 800; font-size: 1.12rem; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.sync { font-size: .72rem; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-s="cloud"]::before { background: var(--ok); } .sync[data-s="local"]::before { background: var(--warn); }
+
+main { max-width: 680px; margin: 0 auto; padding-inline: 16px; padding-block: 16px calc(48px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.02rem; margin: 0; }
+.muted { color: var(--muted); } .small { font-size: .84rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+
+.bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--new); }
+.bar > span { display: block; height: 100%; transition: width .4s ease; }
+.bar .m { background: var(--accent); } .bar .l { background: var(--warn); }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .82rem; color: var(--muted); }
+.stats b { font-family: var(--f-mono); font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.key { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; }
+
+.btn { font-weight: 700; border-radius: var(--r); padding: 11px 18px; border: 1.5px solid var(--accent); background: var(--accent); color: var(--surface); cursor: pointer; min-height: 44px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.danger { background: var(--bad); border-color: var(--bad); }
+.btn.big { width: 100%; font-size: 1.05rem; padding: 14px; }
+.btn.small { font-size: .84rem; padding: 6px 12px; min-height: 36px; }
+.btn:focus-visible, .linkbtn:focus-visible, .chipbtn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.linkbtn { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 6px 2px; text-decoration: underline; text-underline-offset: 3px; font-size: .84rem; }
+.chipbtn { font-size: .84rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1.5px solid transparent; border-radius: 99px; padding: 6px 12px; cursor: pointer; min-height: 36px; }
+.chipbtn:disabled { opacity: .55; cursor: progress; }
+input[type=text], textarea, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-size: 16px; }
+input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+
+/* subjects */
+.subj { text-align: left; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 8px; cursor: pointer; }
+.subj:hover { border-color: var(--accent); }
+.subj .name { font-family: var(--f-display); font-weight: 800; font-size: 1.1rem; }
+.sec { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 8px; }
+.sec:first-of-type { border-top: 0; padding-top: 0; }
+.sec .head { display: flex; gap: 10px; align-items: flex-start; }
+.sec .head label { display: flex; gap: 10px; align-items: flex-start; flex: 1; min-width: 0; cursor: pointer; }
+.sec .nm { font-weight: 700; line-height: 1.3; }
+.sec .num { font-family: var(--f-mono); font-size: .74rem; color: var(--muted); white-space: nowrap; }
+.sec .acts { display: flex; gap: 8px; flex-wrap: wrap; padding-left: 30px; }
+.sec .bar { margin-left: 30px; height: 6px; }
+.sec.off .nm, .sec.off .bar { opacity: .45; }
+.more { border: 1px dashed var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 10px; margin-left: 30px; }
+.src { display: flex; gap: 8px; align-items: center; font-size: .84rem; }
+.confirm { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: .88rem; background: var(--bad-soft); padding: 10px 12px; border-radius: 10px; }
+
+/* study card */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.navrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: -4px; }
+.navbtn { font-size: .86rem; font-weight: 700; color: var(--accent); background: none; border: 0; padding: 6px 0; cursor: pointer; }
+.navbtn:disabled { color: var(--muted); opacity: .5; cursor: default; }
+.navinfo { font-size: .8rem; color: var(--muted); }
+.navrow .btn.small { margin-left: auto; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; font-size: .78rem; }
+.chip { font-family: var(--f-mono); font-weight: 500; letter-spacing: .04em; text-transform: uppercase; font-size: .66rem; padding: 3px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.chip.retry { background: var(--bad-soft); color: var(--bad); } .chip.review { background: var(--warn-soft); color: var(--warn); }
+.chip.fmt { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+.chip.orig { background: var(--ink); color: var(--surface); }
+.chip.ai { background: var(--warn-soft); color: var(--warn); }
+.topic { color: var(--muted); font-size: .78rem; min-width: 0; flex-basis: 100%; }
+.dots { display: inline-flex; gap: 4px; margin-left: auto; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--accent); display: inline-block; }
+.dots i.on { background: var(--accent); }
+.scenario { border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: .88rem; color: var(--muted); }
+.scenario b { color: var(--ink); font-family: var(--f-display); font-weight: 600; display: block; }
+.stem { font-size: 1.1rem; font-weight: 700; margin: 0; text-wrap: pretty; }
+.hint { font-size: .82rem; color: var(--muted); margin-top: -6px; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; grid-template-columns: 26px 1fr; gap: 10px; cursor: pointer; min-height: 48px; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.opt .k { font-family: var(--f-mono); font-size: .8rem; width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--line); display: grid; place-items: center; color: var(--muted); }
+.opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+.opt.sel .k { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.opt:disabled { cursor: default; }
+.opt .body { min-width: 0; }
+.opt .why { display: block; font-size: .84rem; margin-top: 4px; line-height: 1.4; }
+.opt.right { border-color: var(--ok); background: var(--ok-soft); } .opt.right .k { background: var(--ok); border-color: var(--ok); color: var(--surface); } .opt.right .why { color: var(--ok); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); } .opt.wrong .k { background: var(--bad); border-color: var(--bad); color: var(--surface); } .opt.wrong .why { color: var(--bad); }
+.opt.missed { border-color: var(--ok); border-style: dashed; } .opt.missed .why { color: var(--ok); }
+.opt.dim { opacity: .55; } .opt.other .why { color: var(--muted); }
+.tag { font-family: var(--f-mono); font-size: .62rem; letter-spacing: .05em; text-transform: uppercase; margin-left: 6px; }
+.quote { font-size: .84rem; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict { font-weight: 800; font-family: var(--f-display); font-size: 1.05rem; }
+.verdict.ok { color: var(--ok); } .verdict.bad { color: var(--bad); }
+.note { font-size: .85rem; color: var(--muted); }
+.actions .btn { margin-left: auto; }
+.flagrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+.addbox { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.addmsg { font-size: .8rem; color: var(--muted); }
+.fbform { border: 1.5px solid var(--warn); background: var(--warn-soft); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; }
+.reasons { display: flex; flex-wrap: wrap; gap: 6px; }
+.reason { position: relative; }
+.reason input { position: absolute; opacity: 0; pointer-events: none; }
+.reason span { display: inline-block; font-size: .84rem; padding: 6px 11px; border-radius: 99px; border: 1.5px solid var(--line); background: var(--surface); cursor: pointer; }
+.reason input:checked + span { border-color: var(--warn); background: var(--warn); color: var(--surface); }
+.reason input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+.fbmsg { font-size: .86rem; color: var(--warn); font-weight: 700; }
+.fbitem { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; font-size: .86rem; }
+.fbitem .q { font-weight: 700; }
+.done { text-align: center; padding: 24px 6px; display: grid; gap: 10px; justify-items: center; }
+
+/* import */
+.drop { border: 2px dashed var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+.pickrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pick { position: relative; display: grid; place-items: center; text-align: center; gap: 2px; padding: 14px 8px; border-radius: 12px; border: 1.5px solid var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 700; cursor: pointer; min-height: 64px; }
+.pick small { font-weight: 400; color: var(--muted); font-size: .74rem; }
+.pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.pick:focus-within { outline: 3px solid var(--ink); outline-offset: 2px; }
+.pastebox { min-height: 92px; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); overflow-wrap: anywhere; max-height: 220px; overflow-y: auto; }
+.pastebox:empty::before { content: attr(data-ph); color: var(--muted); }
+.pastebox:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mats { display: grid; gap: 6px; }
+.mat { display: flex; gap: 8px; align-items: center; font-size: .86rem; border: 1px solid var(--line); border-radius: 10px; padding: 6px 6px 6px 10px; }
+.mat .k { font-family: var(--f-mono); font-size: .64rem; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 5px; }
+.mat .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mat button { background: none; border: 0; color: var(--muted); font-size: 1.2rem; padding: 2px 8px; cursor: pointer; }
+.progress { display: grid; gap: 6px; }
+.prev { display: grid; gap: 8px; }
+.pq { display: grid; grid-template-columns: auto 1fr; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: .88rem; align-items: start; }
+.pq .q { font-weight: 700; }
+.pq .a { color: var(--ok); }
+.pq .meta { margin-top: 4px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-size: .88rem; max-width: calc(100% - 32px); z-index: 20; box-shadow: 0 4px 18px rgb(0 0 0 / .2); }
+.qzhead { display: flex; align-items: center; gap: 12px; }
+.qzpos { font-family: var(--f-display); font-weight: 800; font-size: 1.05rem; flex: 1; }
+.qztime { font-family: var(--f-mono); font-size: 1.05rem; font-variant-numeric: tabular-nums; color: var(--ink); background: var(--accent-soft); padding: 4px 10px; border-radius: 8px; }
+.qzact { justify-content: space-between; }
+.qzact .btn { margin-left: 0; min-width: 110px; }
+.qzscore { align-items: center; text-align: center; }
+.qzscore .big { font-family: var(--f-display); font-weight: 800; font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.qzscore .big.ok { color: var(--ok); } .qzscore .big.bad { color: var(--bad); }
+.qzscore .pct { font-family: var(--f-mono); color: var(--muted); }
+.qzscore .stats, .qzscore .row { justify-content: center; }
+.qzsec { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: .88rem; }
+.qzsec .bar { grid-column: 1 / -1; height: 6px; }
+.qzsec .num { font-family: var(--f-mono); font-size: .78rem; color: var(--muted); }
+.qzrev { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
+.qzrev.miss { border-color: var(--bad); }
+.qzrev .stem { font-size: 1rem; }
+.qzhist { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+.qzhist b { font-family: var(--f-mono); font-weight: 500; }
+.empty { text-align: center; padding: 28px 10px; display: grid; gap: 8px; justify-items: center; }
+.kbd { font-family: var(--f-mono); font-size: .7rem; color: var(--muted); }
+@media (hover: none) { .kbd { display: none; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+html { -webkit-tap-highlight-color: transparent; }
+body { margin: 0; padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); overscroll-behavior-y: none; }
+.sync { display: none; }
+.install { border-color: var(--accent); }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: .92rem; }
+.librow { display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; }
+.librow .nm { font-weight: 700; }
+#reportcopy { font-family: var(--f-mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<header class="top"><div class="in" id="topbar"></div></header>
+<main id="main"></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+// ---------- Math generators: new numbers every time ----------
+const MATH_SEC = "Math, Measurement, and Calculations";
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const rnd = (x, p = 4) => Math.round(x * Math.pow(10, p)) / Math.pow(10, p);
+const fmt = (x, p = 4) => { const v = rnd(x, p); return (Object.is(v, -0) ? 0 : v).toLocaleString("en-US", { maximumFractionDigits: p, useGrouping: false }); };
+const pad2 = (n) => String(n).padStart(2, "0");
+function gcd(a, b) { return b ? gcd(b, a % b) : Math.abs(a); }
+
+// Build an MC from answer + candidate wrongs [[text, why]...]; keeps 3 unique ones != answer.
+function mc(stem, ans, ex, cands, st) {
+  const seen = new Set([String(ans)]); const w = [];
+  for (const c of cands) { if (c && c[0] != null && !seen.has(String(c[0])) && w.length < 3) { seen.add(String(c[0])); w.push([String(c[0]), c[1]]); } }
+  const mm = String(ans).match(/^(\d+(?:\.\d+)?)(.*)$/);
+  if (w.length < 3 && mm) {
+    const x = +mm[1], dp = (mm[1].split(".")[1] || "").length;
+    for (const y of [x * 2, x / 2, x + 1, x - 1, x + 10, x * 10]) {
+      const t = (dp ? y.toFixed(dp) : fmt(y, 2)) + mm[2];
+      if (y > 0 && !seen.has(t) && w.length < 3) { seen.add(t); w.push([t, "Recheck the calculation step by step."]); }
+    }
+  }
+  return { kind: "mc", stem, a: String(ans), ex, w, st };
+}
+
+const std = (h, m) => `${h % 12 === 0 ? 12 : h % 12}:${pad2(m)} ${h < 12 ? "AM" : "PM"}`;
+const mil = (h, m) => pad2(((h % 24) + 24) % 24) + pad2(m);
+
+function toRoman(n) {
+  const t = [[100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let s = ""; for (const [v, r] of t) while (n >= v) { s += r; n -= v; } return s;
+}
+function additiveRoman(n) {
+  const t = [[100, "C"], [50, "L"], [10, "X"], [5, "V"], [1, "I"]];
+  let s = ""; for (const [v, r] of t) while (n >= v) { s += r; n -= v; } return s;
+}
+const ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+function words(n) {
+  if (n < 20) return ONES[n];
+  if (n < 100) return TENS[Math.floor(n / 10)] + (n % 10 ? "-" + ONES[n % 10] : "");
+  return ONES[Math.floor(n / 100)] + " hundred" + (n % 100 ? " " + words(n % 100) : "");
+}
+const PCT = [[25, 1, 4], [50, 1, 2], [75, 3, 4], [20, 1, 5], [40, 2, 5], [60, 3, 5], [80, 4, 5], [10, 1, 10], [30, 3, 10], [70, 7, 10], [90, 9, 10], [5, 1, 20], [15, 3, 20], [35, 7, 20], [45, 9, 20], [12.5, 1, 8], [37.5, 3, 8], [62.5, 5, 8]];
+const HH = { tsp: [5, "teaspoon", "teaspoons"], tbsp: [15, "tablespoon", "tablespoons"], oz: [30, "ounce", "ounces"], cup: [240, "cup", "cups"] };
+const unit = (n, u) => `${fmt(n)} ${n === 1 ? HH[u][1] : HH[u][2]}`;
+
+const GENS = [
+  // ---- From the question bank (numbers change every time) ----
+  { id: "b146", label: "Ounces and milliliters", from: 146, make() {
+    const n = pick([1, 1.5, 2, 2.5, 3, 4, 5, 6, 8]);
+    if (Math.random() < 0.6) return mc(`How many milliliters (mL) are in ${unit(n, "oz")}?`, `${fmt(n * 30)} mL`,
+      `1 oz = 30 mL, so ${fmt(n)} × 30 = ${fmt(n * 30)} mL.`,
+      [[`${fmt(n * 15)} mL`, "15 mL is 1 tablespoon, not 1 ounce."], [`${fmt(n * 5)} mL`, "5 mL is 1 teaspoon, not 1 ounce."], [`${fmt(n * 240)} mL`, "240 mL is 1 cup (8 oz), not 1 ounce."], [`${fmt(n * 10)} mL`, "1 oz is 30 mL, not 10."]],
+      (v) => `${unit(n, "oz")} equals ${v}.`);
+    const ml = n * 30;
+    return mc(`A patient drinks ${fmt(ml)} mL of juice. How many ounces is that?`, `${fmt(n)} oz`,
+      `Divide by 30 (1 oz = 30 mL): ${fmt(ml)} ÷ 30 = ${fmt(n)} oz.`,
+      [[`${fmt(ml / 15)} oz`, "Dividing by 15 gives tablespoons, not ounces."], [`${fmt(ml / 5)} oz`, "Dividing by 5 gives teaspoons, not ounces."], [`${fmt(ml / 10)} oz`, "1 oz is 30 mL, so divide by 30, not 10."]],
+      (v) => `${fmt(ml)} mL equals ${v}.`);
+  } },
+  { id: "b147", label: "Decimals and percentages", from: 147, make() {
+    const d = rnd(R(1, 999) / 1000, 3);
+    if (Math.random() < 0.6) return mc(`Convert ${fmt(d)} into a percentage.`, `${fmt(d * 100)}%`,
+      `Multiply by 100 (move the decimal 2 places right): ${fmt(d)} → ${fmt(d * 100)}%.`,
+      [[`${fmt(d * 10)}%`, "That moves the decimal only 1 place; move it 2."], [`${fmt(d * 1000)}%`, "That moves the decimal 3 places; move it 2."], [`${fmt(d)}%`, "Adding a % sign alone doesn't convert; multiply by 100."]],
+      (v) => `${fmt(d)} written as a percentage is ${v}.`);
+    const p = d * 100;
+    return mc(`Convert ${fmt(p)}% into a decimal.`, fmt(d),
+      `Divide by 100 (move the decimal 2 places left): ${fmt(p)}% → ${fmt(d)}.`,
+      [[fmt(p / 10), "That moves the decimal only 1 place; move it 2."], [fmt(p / 1000), "That moves the decimal 3 places; move it 2."], [fmt(p), "Dropping the % sign doesn't convert; divide by 100."]],
+      (v) => `${fmt(p)}% written as a decimal is ${v}.`);
+  } },
+  { id: "b148", label: "Military time → standard", from: 148, make() {
+    const h = R(0, 23), m = R(0, 59), ans = std(h, m);
+    const cands = [
+      [std((h + 12) % 24, m), h < 12 ? "Hours 00–11 are AM in military time." : "Hours 12–23 are PM in military time."],
+      h > 12 ? [`${h - 10}:${pad2(m)} PM`, "Subtract 12 from hours over 12, not 10."] : null,
+      h === 0 ? [`12:${pad2(m)} PM`, "00 is midnight hour, so it's AM."] : null,
+      h === 12 ? [`12:${pad2(m)} AM`, "12 is the noon hour, so it's PM."] : null,
+      [std((h + 1) % 24, m), "The hour is off by one; read the first two digits as the hour."],
+      [std((h + 23) % 24, m), "The hour is off by one; read the first two digits as the hour."],
+    ];
+    return mc(`What is ${mil(h, m)} in standard (traditional) time?`, ans,
+      h >= 13 ? `Subtract 12 from hours 13–23: ${pad2(h)} − 12 = ${h - 12}, so ${ans}.` : h === 0 ? `Hour 00 is the midnight hour: ${ans}.` : h === 12 ? `Hour 12 is the noon hour: ${ans}.` : `Hours 01–11 are AM with no change: ${ans}.`,
+      cands, (v) => `${mil(h, m)} in standard time is ${v}.`);
+  } },
+  { id: "b163", label: "Standard time → military", from: 163, make() {
+    const h = R(0, 23), m = pick([0, 0, 15, 30, 45, R(1, 59)]), s = std(h, m), ans = mil(h, m);
+    const cands = [
+      h > 12 ? [mil(h - 12, m), "PM hours after noon need 12 added."] : null,
+      h > 12 ? [mil(h - 2, m), "Add 12 to PM hours, not 10."] : null,
+      h === 0 ? ["1200", "1200 is noon; midnight hour is 00."] : null,
+      h === 12 ? ["0000", "0000 is midnight; noon is 1200."] : null,
+      h < 12 && h > 0 ? [mil(h + 12, m), "AM hours stay the same; only PM hours get +12."] : null,
+      [mil(h + 1, m), "The hour is off by one."], [mil(h + 23, m), "The hour is off by one."],
+    ];
+    return mc(`What is ${s} in military time?`, ans,
+      h >= 13 ? `PM after noon: add 12 → ${h - 12} + 12 = ${h}, so ${ans}.` : h === 0 ? `12 AM (midnight hour) is 00 → ${ans}.` : h === 12 ? `12 PM (noon hour) stays 12 → ${ans}.` : `AM hours keep their number with a leading zero → ${ans}.`,
+      cands, (v) => `${s} in military time is ${v}.`);
+  } },
+  { id: "b150", label: "Percent → ratio", from: 150, make() {
+    const [p, n, d] = pick(PCT);
+    return mc(`${fmt(p)}% written as a ratio (reduced) is _____.`, `${n}:${d}`,
+      `${fmt(p)}% = ${fmt(p)}/100, which reduces to ${n}/${d}, written ${n}:${d}.`,
+      [[`${d}:${n}`, "That's inverted; the part comes first, then the whole."], [`${fmt(p)}:100`, "Right idea, but not reduced to lowest terms."], [`1:${fmt(p)}`, "Percent means per 100, not 1 per that number."], [`${n}:${d + n}`, "The second term is the whole, not part + whole."]],
+      (v) => `${fmt(p)}% written as a ratio is ${v}.`);
+  } },
+  { id: "b151", label: "Inches → centimeters", from: 151, make() {
+    const n = pick([0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6]);
+    return mc(`A health care professional is told to apply ${fmt(n)} ${n === 1 ? "inch" : "inches"} of Nitro paste. How many centimeters is that?`, `${fmt(n * 2.5)} cm`,
+      `1 inch = 2.5 cm, so ${fmt(n)} × 2.5 = ${fmt(n * 2.5)} cm.`,
+      [[`${fmt(n * 2)} cm`, "1 inch is 2.5 cm, not 2 cm."], [`${fmt(n / 2.5)} cm`, "Going inches → cm, multiply by 2.5; don't divide."], [`${fmt(n * 12)} cm`, "12 is inches per foot, not cm per inch."], [`${fmt(n * 10)} cm`, "10 converts cm to mm, not inches to cm."]],
+      (v) => `${fmt(n)} ${n === 1 ? "inch" : "inches"} equals ${v}.`);
+  } },
+  { id: "b159", label: "Adding and subtracting decimals", from: 159, make() {
+    const a = rnd(R(11, 99) / 10, 1), b = rnd(R(101, 999) / 100, 2);
+    if (Math.random() < 0.65) {
+      const mis = rnd(a / 10 + b, 3);
+      return mc(`Adding the decimals ${fmt(a)} and ${fmt(b)} equals _____.`, fmt(a + b),
+        `Line up the decimal points: ${fmt(a)}0 + ${fmt(b)} = ${fmt(a + b)}.`,
+        [[fmt(mis), "The decimal points weren't lined up before adding."], [fmt(a + b + 0.1), "A carrying error in the tenths place."], [fmt(a + b - 1), "A carrying error in the ones place."], [fmt(a + b * 10), "Line up the decimal points first."]],
+        (v) => `${fmt(a)} + ${fmt(b)} = ${v}.`);
+    }
+    const big = Math.max(a, b) + 2, small = Math.min(a, b);
+    const B = rnd(big, 2), S = rnd(small, 2);
+    return mc(`Subtracting ${fmt(S)} from ${fmt(B)} equals _____.`, fmt(B - S),
+      `Line up the decimal points and subtract: ${fmt(B)} − ${fmt(S)} = ${fmt(B - S)}.`,
+      [[fmt(B + S), "That's addition; the question asks to subtract."], [fmt(B - S + 0.1), "A borrowing error in the tenths place."], [fmt(B - S - 1), "A borrowing error in the ones place."], [fmt(B - S / 10), "Line up the decimal points first."]],
+      (v) => `${fmt(B)} − ${fmt(S)} = ${v}.`);
+  } },
+  { id: "b162", label: "Percent equals fraction (T/F)", from: 162, make() {
+    const [p, n, d] = pick(PCT); const truth = Math.random() < 0.5;
+    let fn = n, fd = d, why = "";
+    if (!truth) { const alt = pick([[d, n, "That fraction is upside down."], [n, d + 1, `${n}/${d + 1} isn't ${fmt(p)}/100 reduced.`], [n + 1, d, `${n + 1}/${d} isn't ${fmt(p)}/100 reduced.`]]); [fn, fd, why] = alt; }
+    return { kind: "tf", stem: `${fmt(p)}% is the same as ${fn}/${fd}.`, a: truth ? "True" : "False",
+      ex: truth ? `${fmt(p)}% = ${fmt(p)}/100 = ${n}/${d}.` : `${why} ${fmt(p)}% = ${n}/${d}.`,
+      ww: truth ? `${fmt(p)}/100 reduces exactly to ${n}/${d}.` : `${fmt(p)}% actually equals ${n}/${d}.` };
+  } },
+  { id: "b166", label: "Household liquid measures (T/F)", from: 166, make() {
+    const n = pick([1, 2, 3, 4, 6, 8]); const opts = [
+      [`To give ${unit(n, "oz")} of liquid, you would give ${2 * n} tablespoons.`, true],
+      [`To give ${unit(n, "oz")} of liquid, you would give ${n} tablespoon${n > 1 ? "s" : ""}.`, false],
+      [`${unit(n, "oz")} of liquid equals ${n * 30} mL.`, true],
+      [`${unit(n, "oz")} of liquid equals ${n * 15} mL.`, false],
+      [`${unit(n, "oz")} of liquid equals ${n * 6} teaspoons.`, true],
+      [`${unit(n, "oz")} of liquid equals ${n * 3} teaspoons.`, false]];
+    const [s, t] = pick(opts);
+    return { kind: "tf", stem: s, a: t ? "True" : "False",
+      ex: `1 oz = 2 tbsp = 6 tsp = 30 mL, so ${unit(n, "oz")} = ${2 * n} tbsp = ${6 * n} tsp = ${30 * n} mL.`,
+      ww: t ? "This matches 1 oz = 2 tbsp = 6 tsp = 30 mL." : "1 oz = 2 tbsp = 6 tsp = 30 mL, so the numbers don't match." };
+  } },
+  { id: "b169", label: "Roman numerals", from: 169, make() {
+    const n = Math.random() < 0.7 ? pick([4, 9, 14, 19, 24, 29, 34, 39, 40, 44, 45, 49, 54, 59, 64, 69, 74, 79, 84, 89, 90, 94, 99]) : R(1, 100);
+    const ans = toRoman(n);
+    if (Math.random() < 0.6) {
+      const cands = [];
+      const add = additiveRoman(n); if (add !== ans) cands.push([add, "A numeral can't repeat more than 3 times; use subtraction (IV, IX, XL, XC)."]);
+      for (const k of [1, -1, 10, -10, 5, -5]) { const m = n + k; if (m > 0 && m <= 110) cands.push([toRoman(m), `That equals ${m}, not ${n}.`]); }
+      if (n === 49) cands.unshift(["IL", "I can only be subtracted from V and X; 49 is XLIX."]);
+      if (n === 99) cands.unshift(["IC", "I can only be subtracted from V and X; 99 is XCIX."]);
+      return mc(`Which Roman numeral equals ${n}?`, ans, `Break it into place values: ${n} → ${ans}.`, cands.sort(() => Math.random() - 0.5), (v) => `${n} in Roman numerals is ${v}.`);
+    }
+    const cands = [n + 1, n - 1, n + 10, n - 10, n + 2].filter((m) => m > 0).map((m) => [String(m), `${toRoman(m)} would be ${m}.`]);
+    return mc(`What number does the Roman numeral ${ans} represent?`, String(n), `Read left to right; a smaller numeral before a larger one is subtracted: ${ans} = ${n}.`, cands.sort(() => Math.random() - 0.5), (v) => `${ans} equals ${v}.`);
+  } },
+  { id: "b171", label: "Reading decimals (T/F)", from: 171, make() {
+    const w = R(1, 9), places = pick([1, 2, 2, 3]), frac = places === 1 ? R(1, 9) : places === 2 ? R(11, 99) : R(101, 999);
+    const num = `${w}.${String(frac).padStart(places, "0")}`;
+    const names = ["", "tenths", "hundredths", "thousandths"];
+    const truth = Math.random() < 0.5; const said = truth ? places : pick([1, 2, 3].filter((x) => x !== places));
+    return { kind: "tf", stem: `The number ${num} would be read as "${words(w)} and ${words(frac)} ${names[said]}."`, a: truth ? "True" : "False",
+      ex: `${places} digit${places > 1 ? "s" : ""} after the decimal = ${names[places]}, so it's "${words(w)} and ${words(frac)} ${names[places]}."`,
+      ww: truth ? `The last digit sits in the ${names[places].replace(/s$/, "")} place, so the name is right.` : `The last digit is in the ${names[places].replace(/s$/, "")} place, not ${names[said].replace(/s$/, "")}.` };
+  } },
+  { id: "b172", label: "Rounding", from: 172, make() {
+    const mode = pick(["100", "10", "tenth", "whole"]);
+    if (mode === "100" || mode === "10") {
+      const p = +mode; const n = R(101, 9899); const up = Math.round(n / p) * p, down = Math.floor(n / p) * p, upw = Math.ceil(n / p) * p;
+      const other = up === down ? upw : down;
+      return mc(`Which number correctly rounds ${n} to the nearest ${p}?`, String(up),
+        `Look at the digit right of the ${p === 100 ? "hundreds" : "tens"} place: ${p === 100 ? Math.floor(n / 10) % 10 : n % 10} is ${(p === 100 ? Math.floor(n / 10) % 10 : n % 10) >= 5 ? "5 or more, so round up" : "under 5, so round down"} → ${up}.`,
+        [[String(other), "Check the digit to the right: 5 or more rounds up, under 5 rounds down."], [String(Math.round(n / (p === 100 ? 10 : 100)) * (p === 100 ? 10 : 100)), `That rounds to the nearest ${p === 100 ? 10 : 100}, not ${p}.`], [String(up + p), "That's one step too far."], [String(n - (n % p) - p), "That's one step too low."]],
+        (v) => `${n} rounded to the nearest ${p} is ${v}.`);
+    }
+    if (mode === "tenth") {
+      const n = rnd(R(1001, 99999) / 1000, 3); const ans = rnd(n, 1); const alt = rnd(Math.floor(n * 10) / 10 === ans ? ans + 0.1 : ans - 0.1, 1);
+      return mc(`Round ${fmt(n, 3)} mL to the nearest tenth.`, `${ans.toFixed(1)} mL`,
+        `Look at the hundredths digit (${Math.floor(n * 100) % 10}): ${Math.floor(n * 100) % 10 >= 5 ? "5 or more rounds up" : "under 5 rounds down"} → ${ans.toFixed(1)}.`,
+        [[`${alt.toFixed(1)} mL`, "Check the hundredths digit: 5 or more rounds up."], [`${rnd(n, 2).toFixed(2)} mL`, "That's the nearest hundredth, not tenth."], [`${Math.round(n)} mL`, "That's the nearest whole number, not tenth."]],
+        (v) => `${fmt(n, 3)} rounded to the nearest tenth is ${v}.`);
+    }
+    const n = rnd(R(1001, 9999) / 100, 2); const ans = Math.round(n); const alt = Math.floor(n) === ans ? ans + 1 : ans - 1;
+    return mc(`Round ${fmt(n, 2)} kg to the nearest whole number.`, `${ans} kg`,
+      `Look at the tenths digit (${Math.floor(n * 10) % 10}): ${Math.floor(n * 10) % 10 >= 5 ? "5 or more rounds up" : "under 5 rounds down"} → ${ans}.`,
+      [[`${alt} kg`, "Check the tenths digit: 5 or more rounds up."], [`${rnd(n, 1).toFixed(1)} kg`, "That's the nearest tenth, not a whole number."], [`${Math.round(n / 10) * 10} kg`, "That's the nearest ten."]],
+      (v) => `${fmt(n, 2)} rounded to the nearest whole number is ${v}.`);
+  } },
+
+  // ---- Extra practice on the professor's focus areas ----
+  { id: "m-mgkg", label: "Dosage: mg/kg", make() {
+    const kg = Math.random() < 0.5 ? R(4, 40) : R(41, 95), dose = pick([0.5, 1, 2, 2.5, 4, 5, 10, 15, 20]);
+    return mc(`The order is ${fmt(dose)} mg/kg. The patient weighs ${kg} kg. How many mg should the patient receive?`, `${fmt(kg * dose)} mg`,
+      `mg/kg × kg = mg: ${fmt(dose)} × ${kg} = ${fmt(kg * dose)} mg.`,
+      [[`${fmt(kg * dose * 2.2)} mg`, "The weight is already in kg; don't multiply by 2.2."], [`${fmt(kg / dose, 1)} mg`, "Multiply mg/kg by the weight; don't divide."], [`${fmt(kg * dose / 10)} mg`, "Decimal slipped one place; recheck the multiplication."], [`${fmt(kg * dose * 10)} mg`, "Decimal slipped one place; recheck the multiplication."]],
+      (v) => `At ${fmt(dose)} mg/kg, a ${kg} kg patient receives ${v}.`);
+  } },
+  { id: "m-lbkg", label: "Weight: pounds ↔ kilograms", make() {
+    const kg = R(4, 110);
+    const lb = rnd(kg * 2.2, 1);
+    if (Math.random() < 0.6) return mc(`A patient weighs ${fmt(lb)} lb. What is the weight in kilograms?`, `${kg} kg`,
+      `1 kg = 2.2 lb, so divide: ${fmt(lb)} ÷ 2.2 = ${kg} kg.`,
+      [[`${fmt(lb * 2.2, 1)} kg`, "Going lb → kg, divide by 2.2; don't multiply."], [`${fmt(lb / 2, 1)} kg`, "Use 2.2, not 2, as the conversion factor."], [`${fmt(lb / 1000, 3)} kg`, "1,000 converts grams to kg, not pounds."]],
+      (v) => `${fmt(lb)} lb equals ${v}.`);
+    return mc(`A patient weighs ${kg} kg. What is the weight in pounds?`, `${fmt(lb)} lb`,
+      `1 kg = 2.2 lb, so multiply: ${kg} × 2.2 = ${fmt(lb)} lb.`,
+      [[`${fmt(kg / 2.2, 1)} lb`, "Going kg → lb, multiply by 2.2; don't divide."], [`${kg * 2} lb`, "Use 2.2, not 2, as the conversion factor."], [`${kg * 1000} lb`, "1,000 converts kg to grams, not pounds."]],
+      (v) => `${kg} kg equals ${v}.`);
+  } },
+  { id: "m-mgkg-lb", label: "Dosage: mg/kg with weight in pounds", make() {
+    const kg = R(5, 60), lb = rnd(kg * 2.2, 1), dose = pick([1, 2, 2.5, 4, 5, 10, 15]);
+    return mc(`Order: ${fmt(dose)} mg/kg. The child weighs ${fmt(lb)} lb. How many mg should be given?`, `${fmt(kg * dose)} mg`,
+      `First lb → kg: ${fmt(lb)} ÷ 2.2 = ${kg} kg. Then ${kg} × ${fmt(dose)} = ${fmt(kg * dose)} mg.`,
+      [[`${fmt(lb * dose, 1)} mg`, "You used pounds; convert to kg (÷ 2.2) first."], [`${fmt(lb * 2.2 * dose, 1)} mg`, "lb → kg means divide by 2.2, not multiply."], [`${fmt(kg / dose, 1)} mg`, "Multiply mg/kg by kg; don't divide."]],
+      (v) => `At ${fmt(dose)} mg/kg, a ${fmt(lb)} lb child receives ${v}.`);
+  } },
+  { id: "m-liquid", label: "Dosage: liquid (D/H × Q)", make() {
+    const Q = pick([5, 5, 1, 2, 10]), H = pick([125, 250, 100, 50, 20, 40, 80]), k = pick([0.5, 1, 1.5, 2, 2.5, 3]), D = H * k, ans = rnd(D / H * Q, 2);
+    return mc(`Ordered: ${fmt(D)} mg. On hand: ${H} mg per ${Q} mL. How many mL do you give?`, `${fmt(ans)} mL`,
+      `Desired ÷ Have × Quantity: ${fmt(D)} ÷ ${H} × ${Q} = ${fmt(ans)} mL.`,
+      [[`${fmt(H / D * Q, 2)} mL`, "That's Have ÷ Desired; put the ordered dose on top."], [`${fmt(D / H, 2)} mL`, `You forgot to multiply by the ${Q} mL quantity.`], [`${fmt(D * Q / 10, 2)} mL`, "Use the formula D/H × Q."], [`${fmt(D / Q, 2)} mL`, "Divide by the strength on hand (H), then × Q."]],
+      (v) => `To give ${fmt(D)} mg from ${H} mg/${Q} mL, you give ${v}.`);
+  } },
+  { id: "m-tabs", label: "Dosage: tablets", make() {
+    const S = pick([25, 50, 100, 125, 250, 500]), k = pick([0.5, 1, 1.5, 2, 3]), D = S * k;
+    return mc(`Ordered: ${fmt(D)} mg. Tablets on hand are ${S} mg each. How many tablets do you give?`, `${fmt(k)} tablet${k === 1 ? "" : "s"}`,
+      `Desired ÷ Have: ${fmt(D)} ÷ ${S} = ${fmt(k)}.`,
+      [[`${fmt(S / D, 2)} tablet${S / D === 1 ? "" : "s"}`, "That's Have ÷ Desired; put the ordered dose on top."], [`${fmt(k * 2)} tablets`, "Double-check: Desired ÷ Have."], [`${fmt(k + 1)} tablets`, "Double-check: Desired ÷ Have."], [`${fmt(k / 2)} tablet`, "Double-check: Desired ÷ Have."]],
+      (v) => `To give ${fmt(D)} mg using ${S} mg tablets, you give ${v}.`);
+  } },
+  { id: "m-ftoc", label: "Temperature: °F → °C", make() {
+    const C = pick([35, 35.5, 36, 36.5, 37, 37.5, 38, 38.5, 39, 39.5, 40, 40.5, 41]); const F = rnd(C * 1.8 + 32, 1);
+    return mc(`A patient's temperature is ${F.toFixed(1)}°F. What is it in Celsius?`, `${C.toFixed(1)}°C`,
+      `°C = (°F − 32) × 5/9: (${F.toFixed(1)} − 32) × 5/9 = ${C.toFixed(1)}°C.`,
+      [[`${rnd((F - 32) * 1.8, 1).toFixed(1)}°C`, "×9/5 is for °C → °F; use ×5/9 here."], [`${rnd(F * 5 / 9, 1).toFixed(1)}°C`, "Subtract 32 first, then multiply by 5/9."], [`${rnd(F / 1.8 - 32, 1).toFixed(1)}°C`, "Order matters: subtract 32 before multiplying."], [`${rnd((F + 32) * 5 / 9, 1).toFixed(1)}°C`, "Subtract 32; don't add it."]],
+      (v) => `${F.toFixed(1)}°F equals ${v}.`);
+  } },
+  { id: "m-ctof", label: "Temperature: °C → °F", make() {
+    const C = pick([35, 35.5, 36, 36.5, 37, 37.5, 38, 38.5, 39, 39.5, 40, 40.5]); const F = rnd(C * 1.8 + 32, 1);
+    return mc(`A patient's temperature is ${C.toFixed(1)}°C. What is it in Fahrenheit?`, `${F.toFixed(1)}°F`,
+      `°F = (°C × 9/5) + 32: ${C.toFixed(1)} × 1.8 + 32 = ${F.toFixed(1)}°F.`,
+      [[`${rnd(C * 1.8, 1).toFixed(1)}°F`, "You forgot to add 32."], [`${rnd(C * 5 / 9 + 32, 1).toFixed(1)}°F`, "×5/9 is for °F → °C; use ×9/5 here."], [`${rnd((C + 32) * 1.8, 1).toFixed(1)}°F`, "Multiply by 9/5 first, then add 32."]],
+      (v) => `${C.toFixed(1)}°C equals ${v}.`);
+  } },
+  { id: "m-metric", label: "Metric conversions", make() {
+    const t = pick([["g", "mg", 1000], ["mg", "mcg", 1000], ["L", "mL", 1000], ["kg", "g", 1000], ["mg", "g", 0.001], ["mL", "L", 0.001], ["mcg", "mg", 0.001]]);
+    const [from, to, f] = t; const big = f > 1;
+    const v = big ? pick([0.05, 0.1, 0.25, 0.5, 0.75, 1.5, 2, 2.5, 3, 0.125]) : pick([50, 100, 250, 500, 750, 1500, 2000, 125, 25]);
+    const ans = v * f;
+    return mc(`Convert ${fmt(v)} ${from} to ${to}.`, `${fmt(ans, 5)} ${to}`,
+      big ? `Larger → smaller unit: multiply by 1,000 (move the decimal 3 places right) = ${fmt(ans, 5)} ${to}.` : `Smaller → larger unit: divide by 1,000 (move the decimal 3 places left) = ${fmt(ans, 5)} ${to}.`,
+      [[`${fmt(big ? v / 1000 : v * 1000, 6)} ${to}`, big ? "Going to a smaller unit, multiply by 1,000; don't divide." : "Going to a larger unit, divide by 1,000; don't multiply."], [`${fmt(big ? v * 100 : v / 100, 5)} ${to}`, "Metric steps between these units are 1,000, not 100."], [`${fmt(big ? v * 10 : v / 10, 5)} ${to}`, "Metric steps between these units are 1,000, not 10."]],
+      (x) => `${fmt(v)} ${from} equals ${x}.`);
+  } },
+  { id: "m-household", label: "Household ↔ metric (tsp, tbsp, oz, cup)", make() {
+    const u = pick(["tsp", "tbsp", "oz", "cup"]), n = u === "cup" ? pick([0.5, 1, 1.5, 2]) : pick([1, 2, 3, 4, 1.5]); const ml = n * HH[u][0];
+    const others = Object.keys(HH).filter((x) => x !== u);
+    if (Math.random() < 0.6) return mc(`How many mL are in ${unit(n, u)}?`, `${fmt(ml)} mL`,
+      `1 ${HH[u][1]} = ${HH[u][0]} mL, so ${fmt(n)} × ${HH[u][0]} = ${fmt(ml)} mL.`,
+      others.map((o) => [`${fmt(n * HH[o][0])} mL`, `${HH[o][0]} mL is 1 ${HH[o][1]}, not 1 ${HH[u][1]}.`]).sort(() => Math.random() - 0.5),
+      (v) => `${unit(n, u)} equals ${v}.`);
+    return mc(`A medicine cup holds ${fmt(ml)} mL. How many ${HH[u][2]} is that?`, `${fmt(n)} ${n === 1 ? HH[u][1] : HH[u][2]}`,
+      `1 ${HH[u][1]} = ${HH[u][0]} mL, so ${fmt(ml)} ÷ ${HH[u][0]} = ${fmt(n)}.`,
+      others.map((o) => [`${fmt(ml / HH[o][0], 2)} ${HH[u][2]}`, `Dividing by ${HH[o][0]} gives ${HH[o][2]}, not ${HH[u][2]}.`]).sort(() => Math.random() - 0.5),
+      (v) => `${fmt(ml)} mL equals ${v}.`);
+  } },
+  { id: "m-intake", label: "Intake and output totals", make() {
+    const items = [["coffee", "oz", pick([4, 6, 8])], ["orange juice", "oz", pick([4, 6])], ["broth", "cup", pick([0.5, 1])], ["water", "mL", pick([120, 180, 240, 360])], ["gelatin", "oz", pick([3, 4])], ["milk", "cup", pick([0.5, 1])]].sort(() => Math.random() - 0.5).slice(0, 3);
+    const toMl = ([, u, n]) => (u === "mL" ? n : n * HH[u][0]);
+    const total = items.reduce((s, it) => s + toMl(it), 0);
+    const desc = items.map(([w, u, n]) => (u === "mL" ? `${n} mL of ${w}` : `${unit(n, u)} of ${w}`)).join(", ");
+    const ozItem = items.find((it) => it[1] === "oz");
+    const noconv = items.reduce((s, it) => s + (it[1] === "mL" ? it[2] : it[2]), 0);
+    return mc(`For I&O, a patient had ${desc}. What is the total intake in mL?`, `${fmt(total)} mL`,
+      `Convert each to mL (1 oz = 30 mL, 1 cup = 240 mL) and add: ${items.map(toMl).join(" + ")} = ${fmt(total)} mL.`,
+      [[`${fmt(noconv)} mL`, "Convert ounces and cups to mL before adding."], ozItem ? [`${fmt(total - ozItem[2] * 15)} mL`, "1 oz is 30 mL, not 15 mL."] : null, [`${fmt(total - 30)} mL`, "Recheck each conversion and the addition."], [`${fmt(total + 60)} mL`, "Recheck each conversion and the addition."]],
+      (v) => `The total intake is ${v}.`);
+  } },
+  { id: "m-reduce", label: "Reducing fractions", make() {
+    let a, b; do { a = R(1, 9); b = R(a + 1, 16); } while (gcd(a, b) !== 1);
+    const k = pick([2, 3, 4, 5, 6, 8]), N = a * k, D = b * k;
+    let part = k % 2 === 0 && k > 2 ? [`${N / 2}/${D / 2}`, "Divided once but not fully reduced; keep going until no common factor."] : [`${a + 1}/${b}`, `Divide top and bottom by the same number (${k}).`];
+    return mc(`Reduce ${N}/${D} to lowest terms.`, `${a}/${b}`,
+      `The greatest common factor is ${k}: ${N} ÷ ${k} = ${a}, ${D} ÷ ${k} = ${b}.`,
+      [part, [`${b}/${a}`, "The fraction is upside down."], [`${a}/${b + 1}`, `Divide top and bottom by the same number (${k}).`], [`${N - k}/${D - k}`, "Reducing divides; it doesn't subtract."]],
+      (v) => `${N}/${D} reduced to lowest terms is ${v}.`);
+  } },
+  { id: "m-fracdec", label: "Fractions → decimals and percents", make() {
+    const pool = [[1, 2], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5], [1, 8], [3, 8], [5, 8], [7, 8], [1, 10], [3, 10], [7, 10], [9, 10], [1, 20], [3, 20], [1, 25], [4, 25]];
+    const [n, d] = pick(pool), dec = n / d;
+    if (Math.random() < 0.5) return mc(`Write ${n}/${d} as a decimal.`, fmt(dec),
+      `Divide the numerator by the denominator: ${n} ÷ ${d} = ${fmt(dec)}.`,
+      [[fmt(d / n, 3), "Divide the top by the bottom, not bottom by top."], [fmt(dec * 10), "The decimal is one place off."], [fmt(dec / 10), "The decimal is one place off."]],
+      (v) => `${n}/${d} as a decimal is ${v}.`);
+    return mc(`Write ${n}/${d} as a percent.`, `${fmt(dec * 100)}%`,
+      `${n} ÷ ${d} = ${fmt(dec)}, then × 100 = ${fmt(dec * 100)}%.`,
+      [[`${fmt(dec)}%`, "Multiply the decimal by 100 to get a percent."], [`${fmt(dec * 10)}%`, "Move the decimal 2 places, not 1."], [`${fmt(d / n * 100, 1)}%`, "Divide the top by the bottom, not bottom by top."]],
+      (v) => `${n}/${d} as a percent is ${v}.`);
+  } },
+  { id: "m-equiv", label: "Equivalent fractions, decimals, percents, ratios", make() {
+    const [p, n, d] = pick(PCT), dec = p / 100;
+    const opts = [[`${fmt(dec)}`, 1, `${fmt(p)}% ÷ 100 = ${fmt(dec)}.`], [`${n}/${d}`, 1, `${fmt(p)}/100 reduces to ${n}/${d}.`], [`${n}:${d}`, 1, `A ratio of part to whole: ${n}:${d}.`],
+      [`${fmt(dec * 10)}`, 0, "The decimal is one place off."], [`${d}/${n}`, 0, "The fraction is upside down."], [`${fmt(p / 10)}%`, 0, "That's a different percent."]];
+    return { kind: "ms", stem: `Which of the following are equal to ${fmt(p)}%? (Select all that apply)`, opts: opts.sort(() => Math.random() - 0.5) };
+  } },
+  { id: "m-miladd", label: "Military time: next dose", make() {
+    const q = pick([4, 6, 8, 12]), h = R(0, 23), m = pick([0, 0, 30, 15, 45]); const nh = (h + q) % 24;
+    return mc(`A medication is given at ${mil(h, m)} and is ordered every ${q} hours (q${q}h). When is the next dose due, in military time?`, mil(nh, m),
+      h + q >= 24 ? `${pad2(h)} + ${q} = ${h + q}, which passes midnight, so subtract 24 → ${mil(nh, m)}.` : `Add ${q} hours: ${pad2(h)} + ${q} = ${pad2(nh)} → ${mil(nh, m)}.`,
+      [h + q >= 24 ? [`${h + q}${pad2(m)}`, "Military time stops at 2359; subtract 24 after midnight."] : null, [mil(nh + 12, m), "The hour is 12 off; add only the ordered interval."], [mil(nh - 1, m), "Count the hours again."], [mil(nh + 1, m), "Count the hours again."], [mil(h + q * 2, m), "That's two doses later, not the next dose."]],
+      (v) => `Given at ${mil(h, m)} q${q}h, the next dose is due at ${v}.`);
+  } },
+  { id: "m-parts", label: "Parts of a whole (meal and fluid %)", make() {
+    if (Math.random() < 0.5) {
+      const tot = pick([240, 180, 360, 120, 480]), [n, d] = pick([[1, 2], [1, 4], [3, 4], [1, 3], [2, 3]]), ans = tot * n / d;
+      return mc(`A patient drank ${n}/${d} of a ${tot} mL container. How many mL did they drink?`, `${fmt(ans)} mL`,
+        `Multiply the whole by the fraction: ${tot} × ${n}/${d} = ${fmt(ans)} mL.`,
+        [[`${fmt(tot - ans)} mL`, "That's the amount left over, not the amount drunk."], [`${fmt(tot * d / n)} mL`, "Multiply by the fraction, not its reciprocal."], [`${fmt(tot / d)} mL`, `That's 1/${d}; multiply by ${n} too.`]],
+        (v) => `${n}/${d} of ${tot} mL is ${v}.`);
+    }
+    const tot = pick([4, 5, 8, 10, 20]), part = R(1, tot - 1), pct = part / tot * 100;
+    return mc(`A meal tray had ${tot} equal portions and the patient ate ${part}. What percent of the meal was eaten?`, `${fmt(pct, 1)}%`,
+      `Part ÷ whole × 100: ${part} ÷ ${tot} × 100 = ${fmt(pct, 1)}%.`,
+      [[`${fmt(100 - pct, 1)}%`, "That's the percent left on the tray."], [`${fmt(tot / part * 100, 1)}%`, "Divide the part by the whole, not whole by part."], [`${fmt(part / tot, 2)}%`, "Multiply the decimal by 100 to get a percent."]],
+      (v) => `Eating ${part} of ${tot} portions is ${v} of the meal.`);
+  } },
+];
+
+
+</script>
+<script>
+(() => {
+"use strict";
+const MAX = 3, RETRY = 30, GAP_MIN = 15, GAP_MAX = 75;
+const GEN = Object.fromEntries(GENS.map((g) => [g.id, g]));
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const btn = (cls, txt, fn) => { const b = el("button", cls, txt); b.type = "button"; if (fn) b.addEventListener("click", fn); return b; };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const uidGen = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let toastT; function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 3200); }
+
+// ================= Store (everything lives on this phone) =================
+const IDB = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => { const r = indexedDB.open("mastery-deck", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+  const run = async (mode, fn) => { const d = await open(); return new Promise((res, rej) => { const t = d.transaction("kv", mode); const req = fn(t.objectStore("kv")); t.oncomplete = () => res(req ? req.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }); };
+  return { get: (k) => run("readonly", (s) => s.get(k)), set: (k, v) => run("readwrite", (s) => s.put(v, k)), del: (k) => run("readwrite", (s) => s.delete(k)) };
+})();
+let subjects = lsGet("md-subjects", {});          // sid -> {name, sections:[{id,name}], count, at, ver, lib}
+const packs = {};                                  // sid -> [{id, sec, src, items}]
+let syncState = ["", ""];
+function setSync() {}
+function cacheSubjects() { lsSet("md-subjects", subjects); }
+async function loadPacks(sid) {
+  if (!packs[sid]) { try { packs[sid] = (await IDB.get("packs-" + sid)) || lsGet("md-packs-" + sid, []); } catch (e) { packs[sid] = lsGet("md-packs-" + sid, []); } }
+  return packs[sid];
+}
+async function savePacks(sid, list) {
+  packs[sid] = list;
+  try { await IDB.set("packs-" + sid, list); } catch (e) { lsSet("md-packs-" + sid, list); }
+}
+function validDeck(d) { return d && d.format === "mastery-deck" && typeof d.name === "string" && Array.isArray(d.sections) && d.sections.every((s) => s && s.id && Array.isArray(s.items)); }
+async function installDeck(deck) {
+  if (!validDeck(deck)) throw new Error("not a question set");
+  const sid = String(deck.id || uidGen("s"));
+  const list = deck.sections.map((s) => ({ id: sid + "-" + s.id, sec: s.id, src: deck.name, items: s.items }));
+  await savePacks(sid, list);
+  const old = subjects[sid] || {};
+  subjects[sid] = { name: old.renamed ? old.name : deck.name, renamed: old.renamed, sections: deck.sections.map((s) => ({ id: s.id, name: s.name })), count: list.reduce((n, p) => n + p.items.length, 0), at: old.at || Date.now(), order: old.order || Date.now(), ver: deck.version || 1, lib: !!deck.lib };
+  cacheSubjects();
+  if (SID === sid) { SID = null; S = null; cur = null; }
+  return sid;
+}
+async function removeSubject(sid) {
+  try { await IDB.del("packs-" + sid); } catch (e) {}
+  delete packs[sid]; delete subjects[sid]; cacheSubjects();
+  ["md-packs-", "md-p-", "md-h-", "md-quiz-"].forEach((k) => { try { localStorage.removeItem(k + sid); } catch (e) {} });
+  reports = reports.filter((r) => r.sid !== sid); lsSet("md-reports", reports);
+  if (SID === sid) { SID = null; S = null; cur = null; }
+}
+
+// ---- Library: question sets published next to the app ----
+let library = null, libraryState = "idle"; // idle | loading | ok | offline
+async function loadLibrary() {
+  libraryState = "loading";
+  try { const r = await fetch("decks/index.json", { cache: "no-cache" }); if (!r.ok) throw 0; library = (await r.json()).decks || []; libraryState = "ok"; }
+  catch (e) { libraryState = library ? "ok" : "offline"; }
+  return library;
+}
+async function fetchDeck(entry) { const r = await fetch("decks/" + entry.file, { cache: "no-cache" }); if (!r.ok) throw new Error("download"); const d = await r.json(); d.lib = true; return d; }
+const libEntry = (sid) => (library || []).find((x) => x.id === sid);
+const hasUpdate = (sid) => { const e = libEntry(sid); return e && subjects[sid] && (e.version || 1) > (subjects[sid].ver || 1); };
+
+// ---- Backup & restore ----
+async function makeBackup() {
+  const data = { format: "mastery-deck-backup", at: Date.now(), subjects, packs: {}, ls: {} };
+  for (const sid of Object.keys(subjects)) data.packs[sid] = await loadPacks(sid);
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("md-") && !k.startsWith("md-packs-")) data.ls[k] = localStorage.getItem(k); }
+  return data;
+}
+async function saveBackup() {
+  const data = await makeBackup();
+  const name = `mastery-deck-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  try {
+    const file = new File([blob], name, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); lsSet("md-lastbackup", Date.now()); renderHome(); return; }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  lsSet("md-lastbackup", Date.now()); toast("Backup saved."); renderHome();
+}
+async function restoreBackup(d) {
+  for (const sid of Object.keys(subjects)) { try { await IDB.del("packs-" + sid); } catch (e) {} delete packs[sid]; }
+  const keep = [];
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("md-")) keep.push(k); }
+  keep.forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
+  for (const [k, v] of Object.entries(d.ls || {})) { try { localStorage.setItem(k, v); } catch (e) {} }
+  subjects = d.subjects || {}; cacheSubjects();
+  for (const [sid, list] of Object.entries(d.packs || {})) await savePacks(sid, list);
+  reports = lsGet("md-reports", []); SID = null; S = null; cur = null; QZ = null;
+}
+let pendingRestore = null;
+async function openFile(file) {
+  let d = null; try { d = JSON.parse(await file.text()); } catch (e) {}
+  if (d && d.format === "mastery-deck-backup") { pendingRestore = d; renderHome(); return; }
+  if (validDeck(d)) {
+    try { const sid = await installDeck(d); toast(`Added "${subjects[sid].name}" (${subjects[sid].count} questions).`); go({ v: "subject", sid }); }
+    catch (e) { toast("Couldn't add that question set."); }
+    return;
+  }
+  toast("That file isn't a question set or a backup from this app.");
+}
+
+// ================= Routing & top bar =================
+let route = { v: "home" };
+function go(r) { route = r; window.scrollTo(0, 0); rerender(); }
+function topbar(backLabel, backFn, title) {
+  const t = $("topbar"); t.replaceChildren();
+  if (backLabel) t.append(btn("back", "‹ " + backLabel, backFn));
+  t.append(el("h1", null, title));
+}
+function rerender() {
+  if (route.v === "home") return renderHome();
+  if (route.v === "subject") return renderSubject();
+  if (route.v === "study") return renderStudy();
+  if (route.v === "quiz") return renderQuiz();
+}
+
+// ================= Per-subject quiz state =================
+let SID = null, ITEMS = new Map(), S = null, H = [], cur = null, view = null;
+const secName = (id) => { const s = subjects[SID]; const x = s && s.sections.find((y) => y.id === id); return x ? x.name : "Unsorted"; };
+function freshState() { return { v: 1, n: 0, order: shuffle([...ITEMS.keys()].filter((id) => !ITEMS.get(id).extraOf)), it: {}, off: [], skip: [], extra: [], auto: false, at: 0 }; }
+function registerExtras(list) {
+  for (const e of list || []) {
+    const base = ITEMS.get(e.base); if (!base || base.extraOf) continue;
+    if (e.src === "ai" && e.rec) ITEMS.set(e.id, { ...e.rec, id: e.id, sec: base.sec, src: base.src, extraOf: e.base });
+    else ITEMS.set(e.id, { ...base, id: e.id, extraOf: e.base });
+  }
+}
+function fixState(s) {
+  if (!s || s.v !== 1 || !Array.isArray(s.order)) s = freshState();
+  s.it = s.it || {}; s.off = s.off || []; s.skip = s.skip || []; s.extra = s.extra || [];
+  registerExtras(s.extra);
+  const known = new Set(s.order);
+  for (const id of ITEMS.keys()) if (!known.has(id) && !ITEMS.get(id).extraOf) s.order.splice(ri(0, s.order.length), 0, id);
+  if (ITEMS.size) s.order = s.order.filter((id) => ITEMS.has(id));
+  return s;
+}
+async function openSubject(sid) {
+  if (SID === sid && S) return;
+  SID = sid; S = null; cur = null; view = null;
+  const ps = await loadPacks(sid);
+  ITEMS = new Map();
+  for (const p of ps) for (const it of p.items || []) ITEMS.set(it.id, { ...it, sec: p.sec, pid: p.id });
+  S = fixState(lsGet("md-p-" + sid, null));
+  H = lsGet("md-h-" + sid, []);
+}
+function persist() { if (SID && S) lsSet("md-p-" + SID, S); }
+function saveSubject(sid, data) { subjects[sid] = data; cacheSubjects(); }
+const st = (id) => S.it[id];
+const active = (id) => { const it = ITEMS.get(id); return it && !S.off.includes(it.sec) && !(st(id) && st(id).m) && !S.skip.includes(id); };
+function counts(sec) {
+  let m = 0, l = 0, t = 0;
+  for (const id of S.order) { const it = ITEMS.get(id); if (!it || (sec && it.sec !== sec)) continue; t++; const s = st(id); if (s && s.m) m++; else if (s) l++; }
+  return { m, l, t, n: t - m - l };
+}
+function nextId(avoid) {
+  const sched = Object.keys(S.it).filter((id) => ITEMS.has(id) && S.order.includes(id) && active(id) && S.it[id].due != null);
+  const due = sched.filter((id) => S.it[id].due <= S.n && id !== avoid).sort((a, b) => (S.it[a].c > 0) - (S.it[b].c > 0) || S.it[a].due - S.it[b].due);
+  if (due.length) return due[0];
+  const nw = S.order.find((id) => !S.it[id] && active(id)); if (nw) return nw;
+  const later = sched.filter((id) => id !== avoid).sort((a, b) => S.it[a].due - S.it[b].due);
+  if (later.length) return later[0];
+  if (avoid && active(avoid)) return avoid;
+  return null;
+}
+function record(id, ok) {
+  const s = S.it[id] || (S.it[id] = { c: 0, due: null, ok: 0, bad: 0 });
+  S.n++;
+  if (ok) { s.ok++; s.c++; if (s.c >= MAX) { s.m = 1; s.due = null; } else s.due = S.n + ri(GAP_MIN, GAP_MAX); }
+  else { s.bad++; s.c = 0; s.m = 0; s.due = S.n + RETRY; }
+  S.at = Date.now(); persist();
+}
+
+// ================= Question formats =================
+const isAllOpt = (t) => /^all (of )?(these|the above|of these)/i.test(t);
+function orderOpts(opts) { const o = shuffle(opts); o.sort((a, b) => isAllOpt(a.t) - isAllOpt(b.t)); return o; }
+function mcOf(x) { return orderOpts([{ t: x.a, c: true, why: x.ex }, ...(x.w || []).map(([t, why]) => ({ t, c: false, why }))]); }
+function tfOf(x) { return [{ t: "True", c: x.a === "True", why: x.a === "True" ? x.ex : x.ww }, { t: "False", c: x.a === "False", why: x.a === "False" ? x.ex : x.ww }]; }
+function build(item, seen, lastFmt) {
+  if (item.gen) {
+    const g = GEN[item.gen]; const q = g.make();
+    if (q.kind === "mc" && q.st && Math.random() < 0.3) {
+      const truth = Math.random() < 0.5; const w = q.w[ri(0, q.w.length - 1)];
+      return { fmt: "tf", tag: ["New numbers", ""], stem: q.st(truth ? q.a : w[0]), opts: [
+        { t: "True", c: truth, why: truth ? q.ex : `${w[1]} Correct answer: ${q.a}.` },
+        { t: "False", c: !truth, why: truth ? "The statement is correct as written." : `The right answer is ${q.a}. ${q.ex}` }] };
+    }
+    if (q.kind === "mc") return { fmt: "mc", tag: ["New numbers", ""], stem: q.stem, opts: mcOf(q) };
+    if (q.kind === "tf") return { fmt: "tf", tag: ["New numbers", ""], stem: q.stem, opts: tfOf(q) };
+    return { fmt: "ms", tag: ["New numbers", ""], stem: q.stem, opts: q.opts.map(([t, c, why]) => ({ t, c: !!c, why })) };
+  }
+  const fmts = ["o"]; (item.alt || []).forEach((_, i) => fmts.push("a" + i)); if (item.tf) fmts.push("tfv"); if (item.ms) fmts.push("ms");
+  let f;
+  if (!seen && !item.extraOf) f = "o";
+  else { let ch = fmts.filter((x) => x !== lastFmt); if (item.extraOf && fmts.length > 1) ch = ch.filter((x) => x !== "o"); if (!ch.length) ch = fmts; f = ch[ri(0, ch.length - 1)]; }
+  const base = { sc: item.sc || null, f, st: item.st || null };
+  const origTag = item.extraOf ? ["Extra", "ai"] : ["Original", "orig"];
+  if (f === "o") return { ...base, tag: origTag, fmt: item.k === "tf" ? "tf" : "mc", stem: item.q, opts: item.k === "tf" ? tfOf(item) : mcOf(item) };
+  if (f[0] === "a") { const a = item.alt[+f.slice(1)]; return { ...base, tag: ["Reworded", ""], fmt: item.k === "tf" ? "tf" : "mc", stem: a.q, opts: item.k === "tf" ? tfOf(a) : mcOf(a) }; }
+  if (f === "tfv") {
+    const truth = Math.random() < 0.5; const [ts, fs, fw] = item.tf;
+    return { ...base, tag: ["Reworded", ""], fmt: "tf", stem: truth ? ts : fs, opts: [
+      { t: "True", c: truth, why: truth ? item.ex : "This statement is inaccurate. " + fw },
+      { t: "False", c: !truth, why: truth ? "This statement is accurate as written. " + item.ex : fw + " Accurate version: " + ts }] };
+  }
+  return { ...base, tag: ["Reworded", ""], fmt: "ms", stem: item.ms[0], opts: shuffle(item.ms[1].map(([t, c, why]) => ({ t, c: !!c, why }))) };
+}
+
+// ================= HOME =================
+const isStandalone = () => window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+function renderHome() {
+  topbar(null, null, "Mastery Deck");
+  const m = $("main"); m.replaceChildren();
+  if (!isStandalone() && !lsGet("md-hide-install", false)) {
+    const ins = el("div", "panel install");
+    ins.append(el("h3", null, "Put this app on your home screen"));
+    const ol = el("ol", "steps");
+    ["Open this page in Safari.", "Tap the Share button (the square with an arrow pointing up).", "Scroll down and tap “Add to Home Screen”, then “Add”."].forEach((t) => ol.append(el("li", null, t)));
+    ins.append(ol, el("p", "small muted", "After that, open it from its icon. It runs full screen and works without internet."), btn("linkbtn", "Hide this", () => { lsSet("md-hide-install", true); renderHome(); }));
+    m.append(ins);
+  }
+  if (pendingRestore) {
+    const c = el("div", "confirm");
+    c.append(el("span", "grow", `Restore the backup from ${new Date(pendingRestore.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}? It replaces everything currently on this phone.`),
+      btn("btn danger small", "Restore", async () => { const d = pendingRestore; pendingRestore = null; await restoreBackup(d); toast("Backup restored."); renderHome(); }),
+      btn("btn ghost small", "Cancel", () => { pendingRestore = null; renderHome(); }));
+    m.append(c);
+  }
+  const ids = Object.keys(subjects).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
+  m.append(el("h2", null, "Your subjects"));
+  if (!ids.length) m.append(el("div", "panel empty", libraryState === "loading" ? "Setting up your subjects…" : "No subjects yet. Add one from the library below, or open a question set file."));
+  for (const sid of ids) {
+    const s = subjects[sid]; const b = el("button", "subj"); b.type = "button";
+    b.append(el("span", "name", s.name));
+    const p = lsGet("md-p-" + sid, null);
+    const mastered = p ? Object.values(p.it || {}).filter((x) => x.m).length : 0; const total = s.count || 0;
+    const bar = el("div", "bar"); const mm = el("span", "m"); mm.style.width = total ? Math.min(100, mastered / total * 100) + "%" : "0%"; bar.append(mm);
+    b.append(bar, el("span", "small muted", `${(s.sections || []).length} subsection${(s.sections || []).length === 1 ? "" : "s"} · ${total} questions · ${mastered} mastered${hasUpdate(sid) ? " · update available" : ""}`));
+    b.addEventListener("click", () => go({ v: "subject", sid }));
+    m.append(b);
+  }
+
+  const lib = el("div", "panel"); lib.append(el("h3", null, "Question library"));
+  lib.append(el("p", "small muted", "Question sets made for you in Claude. When you send new material there, the new set shows up here."));
+  if (libraryState === "loading" || libraryState === "idle") lib.append(el("p", "small muted", "Checking for question sets…"));
+  else if (!library) lib.append(el("p", "small muted", "Connect to the internet to see the library. Everything you've already added works offline."));
+  else if (!library.length) lib.append(el("p", "small muted", "No question sets published yet."));
+  else for (const e of library) {
+    const r = el("div", "librow"); const t = el("div", "grow"); t.append(el("div", "nm", e.name), el("div", "small muted", `${e.count || "?"} questions${e.desc ? " · " + e.desc : ""}`)); r.append(t);
+    const have = !!subjects[e.id];
+    if (!have || hasUpdate(e.id)) {
+      const b = btn("btn small", have ? "Update" : "Add", async () => {
+        b.disabled = true; b.textContent = "Downloading…";
+        try { const sid = await installDeck(await fetchDeck(e)); toast(have ? `Updated "${subjects[sid].name}". Your progress is kept.` : `Added "${subjects[sid].name}".`); }
+        catch (err) { toast("Couldn't download it. Check your internet connection."); }
+        renderHome();
+      });
+      r.append(b);
+    } else r.append(el("span", "small muted", "Added ✓"));
+    lib.append(r);
+  }
+  m.append(lib);
+
+  const files = el("div", "panel"); files.append(el("h3", null, "Files"));
+  files.append(el("p", "small muted", "Open a question set file I sent you, or a backup you saved."));
+  const pk = el("label", "pick"); pk.append("Open a file", el("small", null, "Question set or backup (.json)"));
+  const fi = el("input"); fi.type = "file"; fi.id = "openfile"; fi.accept = ".json,application/json"; fi.addEventListener("change", () => { const f = fi.files[0]; fi.value = ""; if (f) openFile(f); }); pk.append(fi);
+  files.append(pk);
+  const last = lsGet("md-lastbackup", 0);
+  files.append(el("p", "small muted", `Your progress is stored only on this phone. Save a backup to Files or iCloud Drive now and then so you can't lose it. ${last ? "Last backup: " + new Date(last).toLocaleDateString([], { month: "short", day: "numeric" }) + "." : "No backup yet."}`));
+  files.append(btn("btn ghost", "Save a backup", saveBackup));
+  m.append(files);
+}
+
+// ================= SUBJECT =================
+let subjectOpenMore = null, subjectConfirm = null;
+async function renderSubject() {
+  const sid = route.sid; const s = subjects[sid];
+  if (!s) { go({ v: "home" }); return; }
+  topbar("Subjects", () => go({ v: "home" }), s.name);
+  const m = $("main");
+  if (SID !== sid || !S) { m.replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "subject" || route.sid !== sid) return; }
+  m.replaceChildren();
+  const c = counts(); const studyable = S.order.filter((id) => active(id)).length;
+  const sum = el("div", "panel");
+  const bar = el("div", "bar"); const bm = el("span", "m"); bm.style.width = c.t ? (c.m / c.t * 100) + "%" : "0"; const bl = el("span", "l"); bl.style.width = c.t ? (c.l / c.t * 100) + "%" : "0"; bar.append(bm, bl);
+  const stx = el("div", "stats"); const add = (k, label, v) => { const sp = el("span"); if (k) { const i = el("i", "key"); i.style.background = k; sp.append(i); } sp.append(label + " ", Object.assign(el("b"), { textContent: v })); stx.append(sp); };
+  add("var(--accent)", "Mastered", `${c.m}/${c.t}`); add("var(--warn)", "Learning", c.l); add("var(--new)", "Not seen", c.n);
+  const go1 = btn("btn big", studyable ? (S.n ? "Keep studying" : "Start studying") : c.t ? "Nothing left in the checked subsections" : "No questions in this subject yet", () => go({ v: "study", sid }));
+  go1.disabled = !studyable;
+  sum.append(bar, stx, go1);
+  if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections. Check or uncheck them below.`));
+  m.append(sum);
+  if (hasUpdate(sid)) { const u = el("div", "panel install"); u.append(el("h3", null, "Updated questions available"), el("p", "small muted", "A newer version of this question set is in the library. Updating keeps your progress."));
+    const ub = btn("btn", "Update now", async () => { ub.disabled = true; ub.textContent = "Downloading…"; try { await installDeck(await fetchDeck(libEntry(sid))); toast("Updated. Your progress is kept."); } catch (e) { toast("Couldn't download it. Check your internet connection."); } renderSubject(); }); u.append(ub); m.append(u); }
+  m.append(quizPanel(sid, s));
+
+  const secs = el("div", "panel"); secs.append(el("h3", null, "Subsections"));
+  s.sections.forEach((sec, i) => {
+    const cc = counts(sec.id); const off = S.off.includes(sec.id); const box = el("div", "sec" + (off ? " off" : ""));
+    const head = el("div", "head"); const lab = el("label"); const cb = el("input"); cb.type = "checkbox"; cb.id = "sc" + i; cb.checked = !off;
+    cb.addEventListener("change", () => { S.off = cb.checked ? S.off.filter((x) => x !== sec.id) : [...S.off, sec.id]; persist(); renderSubject(); });
+    lab.append(cb, el("span", "nm", sec.name)); head.append(lab, el("span", "num", `${cc.m}/${cc.t}`)); box.append(head);
+    const b = el("div", "bar"); const x1 = el("span", "m"); x1.style.width = cc.t ? (cc.m / cc.t * 100) + "%" : "0"; const x2 = el("span", "l"); x2.style.width = cc.t ? (cc.l / cc.t * 100) + "%" : "0"; b.append(x1, x2); box.append(b);
+    const acts = el("div", "acts");
+    const studyThis = btn("chipbtn", "Study only this", () => { S.off = s.sections.filter((y) => y.id !== sec.id).map((y) => y.id); persist(); go({ v: "study", sid }); });
+    studyThis.disabled = !cc.t;
+    const quizThis = btn("chipbtn", "Quiz me", () => startQuiz(sid, sec.id)); quizThis.disabled = !cc.t;
+    acts.append(studyThis, quizThis);
+    box.append(acts);
+    secs.append(box);
+  });
+  m.append(secs);
+
+  const rp = el("div", "panel"); rp.id = "reports"; m.append(rp); renderReports();
+
+  const set = el("div", "panel"); set.append(el("h3", null, "Settings"));
+  const sw = el("label", "row small"); const ab = el("input"); ab.type = "checkbox"; ab.id = "auto"; ab.checked = !!S.auto; ab.addEventListener("change", () => { S.auto = ab.checked; persist(); });
+  sw.append(ab, "Go straight to the next question after a correct answer"); set.append(sw);
+  if (subjectConfirm === "reset") set.append(confirmBox("Erase your progress in this subject? Your questions stay.", "Erase progress", () => { const ex = S.extra; S = freshState(); S.extra = ex; S = fixState(S); persist(true); H = []; lsSet("md-h-" + sid, H); subjectConfirm = null; renderSubject(); }));
+  else if (subjectConfirm === "delsubj") set.append(confirmBox(`Remove "${s.name}" and your progress in it from this phone? You can add it again from the library, but progress is lost unless you have a backup.`, "Remove", async () => { await removeSubject(sid); subjectConfirm = null; go({ v: "home" }); toast("Subject removed."); }));
+  else if (subjectConfirm === "rename") {
+    const f = el("form", "row"); const inp = el("input"); inp.type = "text"; inp.id = "rensubj"; inp.value = s.name; inp.className = "grow"; inp.setAttribute("aria-label", "Subject name");
+    const sb = el("button", "btn", "Save"); sb.type = "submit"; f.append(inp, sb, btn("btn ghost", "Cancel", () => { subjectConfirm = null; renderSubject(); }));
+    f.addEventListener("submit", async (e) => { e.preventDefault(); const name = inp.value.trim(); if (!name) return; saveSubject(sid, { ...s, name, renamed: true }); subjectConfirm = null; renderSubject(); });
+    set.append(f);
+  } else {
+    const r = el("div", "row");
+    r.append(btn("btn ghost small", "Start over", () => { subjectConfirm = "reset"; renderSubject(); }));
+    r.append(btn("btn ghost small", "Rename subject", () => { subjectConfirm = "rename"; renderSubject(); }), btn("btn ghost small", "Remove subject", () => { subjectConfirm = "delsubj"; renderSubject(); }));
+    set.append(r);
+  }
+  m.append(set);
+}
+function confirmBox(text, yesText, yesFn) {
+  const c = el("div", "confirm"); c.append(el("span", "grow", text));
+  c.append(btn("btn danger small", yesText, yesFn), btn("btn ghost small", "Cancel", () => { subjectConfirm = null; renderSubject(); }));
+  return c;
+}
+// ================= STUDY =================
+const FMT_NAME = { mc: "Multiple choice", tf: "True or false", ms: "Select all that apply" };
+const LETTERS = "ABCDEFGH";
+const labelFor = (item) => `${secName(item.sec)}${item.gen ? " · " + GEN[item.gen].label : item.src ? " · " + item.src : ""}`;
+async function renderStudy() {
+  const sid = route.sid; const s = subjects[sid]; if (!s) { go({ v: "home" }); return; }
+  topbar(s.name, () => go({ v: "subject", sid }), "Study");
+  if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "study") return; }
+  if (!cur || !ITEMS.has(cur.id)) show(); else renderCur();
+}
+function studyShell() {
+  const m = $("main"); m.replaceChildren();
+  const c = counts();
+  const hd = el("div", "stats"); hd.id = "studystats";
+  const bar = el("div", "bar"); const bm = el("span", "m"); bm.style.width = c.t ? (c.m / c.t * 100) + "%" : "0"; const bl = el("span", "l"); bl.style.width = c.t ? (c.l / c.t * 100) + "%" : "0"; bar.append(bm, bl);
+  let ok = 0, bad = 0; for (const x of Object.values(S.it)) { ok += x.ok; bad += x.bad; }
+  const add = (k, label, v) => { const sp = el("span"); if (k) { const i = el("i", "key"); i.style.background = k; sp.append(i); } sp.append(label + " ", Object.assign(el("b"), { textContent: v })); hd.append(sp); };
+  add("var(--accent)", "Mastered", `${c.m}/${c.t}`); add("var(--warn)", "Learning", c.l); add(null, "Accuracy", ok + bad ? Math.round(ok / (ok + bad) * 100) + "%" : "–");
+  const card = el("section", "card"); card.id = "card"; card.setAttribute("aria-live", "polite");
+  m.append(bar, hd, card); return card;
+}
+function show(avoid) {
+  const id = nextId(avoid);
+  if (!id) { cur = null; renderCur(); return; }
+  const item = ITEMS.get(id); const s = st(id);
+  const q = build(item, !!s, s && s.lf);
+  const status = !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
+  cur = { id, q, answered: false, picks: new Set(), status, dots: s ? s.c : 0 };
+  renderCur();
+}
+function navRow() {
+  const nav = el("div", "navrow");
+  const lastPast = cur && cur.answered ? H.length - 2 : H.length - 1;
+  const prevIdx = view == null ? lastPast : view - 1;
+  const prev = btn("navbtn", "‹ Previous question", goPrev); prev.id = "prevbtn"; prev.disabled = prevIdx < 0; nav.append(prev);
+  if (view != null) {
+    nav.append(el("span", "navinfo", `${lastPast - view + 1} back`), btn("navbtn", "Next ›", goNext));
+    const back = btn("btn small", "Back to current", () => { view = null; renderCur(); }); back.id = "backbtn"; nav.append(back);
+  }
+  return nav;
+}
+function goPrev() { const lastPast = cur && cur.answered ? H.length - 2 : H.length - 1; const idx = view == null ? lastPast : view - 1; if (idx >= 0) renderReview(idx); }
+function goNext() { if (view == null) return; const lastPast = cur && cur.answered ? H.length - 2 : H.length - 1; if (view + 1 > lastPast) { view = null; renderCur(); } else renderReview(view + 1); }
+function metaRow(item, status, q, dots) {
+  const meta = el("div", "meta");
+  meta.append(el("span", "chip " + status[1], status[0]));
+  if (q.tag) meta.append(el("span", "chip " + q.tag[1], q.tag[0]));
+  meta.append(el("span", "chip fmt", FMT_NAME[q.fmt]));
+  if (item && item.by === "claude") meta.append(el("span", "chip ai", "Answer by Claude"));
+  if (dots != null) { const d = el("span", "dots"); for (let i = 0; i < MAX; i++) d.append(el("i", i < dots ? "on" : "")); meta.append(d); }
+  if (item) meta.append(el("span", "topic", labelFor(item)));
+  return meta;
+}
+function body(card, q, pre = "") {
+  if (q.sc) { const sc = el("div", "scenario"); sc.append(el("b", null, "Scenario: " + q.sc.title), q.sc.text); card.append(sc); }
+  card.append(el("p", "stem", q.stem));
+  const list = el("div", "opts"); list.setAttribute("role", "group");
+  q.opts.forEach((o, i) => { const b = el("button", "opt"); b.type = "button"; b.id = pre + "opt" + i; b.append(el("span", "k", LETTERS[i])); const bd = el("span", "body"); bd.append(el("span", "t", o.t)); b.append(bd); list.append(b); });
+  card.append(list); return list;
+}
+function applyFeedback(card, q, picks, ok, full) {
+  card.querySelectorAll(".opt").forEach((b, i) => {
+    const o = q.opts[i]; const chosen = picks.has(i); b.disabled = true; b.classList.remove("sel");
+    let why = null, tag = null;
+    if (o.c && chosen) { b.classList.add("right"); why = o.why; if (q.fmt === "ms") tag = "correct"; }
+    else if (o.c && !chosen) { b.classList.add(q.fmt === "ms" ? "missed" : "right"); why = o.why; tag = q.fmt === "ms" ? "you missed this" : "correct answer"; }
+    else if (!o.c && chosen) { b.classList.add("wrong"); why = o.why; tag = "your answer"; }
+    else { b.classList.add(full ? "other" : "dim"); if (full) why = o.why; }
+    if (ok && !full && q.fmt !== "ms" && !chosen) why = null;
+    const bd = b.querySelector(".body");
+    if (tag && (!ok || full)) bd.querySelector(".t").append(el("span", "tag", "· " + tag));
+    if (why) bd.append(el("span", "why", why));
+  });
+  if (q.st) card.querySelector(".opts").after(Object.assign(el("div", "quote"), { textContent: "From your material: “" + q.st + "”" }));
+}
+function bottomRow(ctx) {
+  const row = el("div", "flagrow"); row.id = "flagrow";
+  const left = el("div", "addbox"); const add = btn("chipbtn", "+ Add 2 more like this", () => addMore(ctx.id, add)); add.id = "addbtn";
+  const msg = el("span", "addmsg"); msg.id = "addmsg"; left.append(add, msg);
+  const fb = btn("linkbtn", "Report a problem", () => openReport(ctx)); fb.id = "flagbtn";
+  row.append(left, fb); return row;
+}
+function renderCur() {
+  view = null; const card = studyShell();
+  if (!cur) {
+    const c = counts(); const allDone = c.t && c.m === c.t; const d = el("div", "done");
+    d.append(el("h2", null, allDone ? "Every question mastered" : "Nothing left to study here"),
+      el("p", "note", allDone ? `You got all ${c.t} questions right three times. Start a fresh round to practice again.` : "Check more subsections on the subject page, or add more material."));
+    if (allDone) d.append(btn("btn", "Start a fresh round", () => { const ex = S.extra; S = freshState(); S.extra = ex; S = fixState(S); persist(true); show(); }));
+    d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
+    card.append(navRow(), d); return;
+  }
+  const item = ITEMS.get(cur.id); const q = cur.q;
+  card.append(navRow(), metaRow(item, cur.status, q, cur.answered ? (st(cur.id) || {}).c : cur.dots));
+  const list = body(card, q); const act = el("div", "actions"); act.id = "actions";
+  if (!cur.answered) {
+    if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer, then press Check answer."));
+    list.querySelectorAll(".opt").forEach((b, i) => { b.addEventListener("click", () => choose(i)); b.classList.toggle("sel", cur.picks.has(i)); });
+    if (q.fmt === "ms") { const chk = btn("btn", "Check answer", submit); chk.id = "check"; chk.disabled = !cur.picks.size; act.append(chk); }
+    act.append(el("span", "kbd", "Keys: A–F · ← previous"));
+  } else {
+    applyFeedback(card, q, cur.picks, cur.ok, false);
+    const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
+    act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), nx);
+  }
+  card.append(act, bottomRow({ id: cur.id, q, answered: cur.answered, picks: cur.picks, live: true }));
+}
+function renderReview(idx) {
+  view = idx; const e = H[idx]; const item = ITEMS.get(e.id); const card = studyShell();
+  card.append(navRow(), metaRow(item, ["Looking back", "review"], e.q, null));
+  const picks = new Set(e.picks); body(card, e.q); applyFeedback(card, e.q, picks, e.ok, true);
+  const act = el("div", "actions"); act.append(el("span", "verdict " + (e.ok ? "ok" : "bad"), e.ok ? "You got this right" : "You missed this one"), el("span", "note", "Looking back doesn't change your progress."));
+  card.append(act); if (item) card.append(bottomRow({ id: e.id, q: e.q, answered: true, picks, live: false }));
+  const back = $("backbtn"); if (back) back.focus({ preventScroll: true });
+}
+function choose(i) {
+  if (!cur || cur.answered || view != null) return;
+  if (cur.q.fmt === "ms") { cur.picks.has(i) ? cur.picks.delete(i) : cur.picks.add(i); document.querySelectorAll("#card .opt").forEach((b, k) => b.classList.toggle("sel", cur.picks.has(k))); $("check").disabled = !cur.picks.size; return; }
+  cur.picks = new Set([i]); submit();
+}
+function submit() {
+  if (!cur || cur.answered || !cur.picks.size || view != null) return;
+  const q = cur.q; const ok = q.opts.every((o, i) => o.c === cur.picks.has(i));
+  record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
+  const s = st(cur.id); cur.answered = true; cur.ok = ok;
+  cur.note = ok ? (s.m ? "Mastered. You won't see this one again." : `${s.c} of ${MAX}. It will come back later.`) : `It comes back in ${RETRY} questions. Count reset to 0 of ${MAX}.`;
+  H.push({ id: cur.id, q, picks: [...cur.picks], ok, at: Date.now() }); if (H.length > 60) H = H.slice(-40); lsSet("md-h-" + SID, H.slice(-40));
+  renderCur(); const nx = $("next"); if (nx) nx.focus({ preventScroll: true });
+  if (ok && S.auto) setTimeout(() => { if (route.v === "study" && cur && cur.answered && view == null) show(cur.id); }, 900);
+}
+document.addEventListener("keydown", (e) => {
+  if (route.v === "quiz" && QZ && !QZ.done && !QZ.paused && !(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    const q = QZ.items[QZ.i].q;
+    if (e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); if (QZ.i === QZ.items.length - 1) { if (e.key === "Enter") finishQuiz(); } else quizMove(1); return; }
+    if (e.key === "ArrowLeft") { e.preventDefault(); quizMove(-1); return; }
+    const k = e.key.toUpperCase(); let i = LETTERS.indexOf(k); if (i < 0 && /^[1-8]$/.test(k)) i = +k - 1;
+    if (q.fmt === "tf" && k === "T") i = 0; if (q.fmt === "tf" && k === "F") i = 1;
+    if (i >= 0 && i < q.opts.length) { e.preventDefault(); quizPick(i); }
+    return;
+  }
+  if (route.v !== "study") return;
+  if (e.target && (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable)) return;
+  if ($("fbform") || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); return; }
+  if (e.key === "ArrowRight" && view != null) { e.preventDefault(); goNext(); return; }
+  if (e.key === "Escape" && view != null) { e.preventDefault(); view = null; renderCur(); return; }
+  if (view != null || !cur) return;
+  if (e.key === "Enter") { if (cur.answered) { if (document.activeElement !== $("next")) { e.preventDefault(); show(cur.id); } } else if (cur.q.fmt === "ms" && cur.picks.size) { e.preventDefault(); submit(); } return; }
+  if (cur.answered) return;
+  const k = e.key.toUpperCase(); let i = LETTERS.indexOf(k); if (i < 0 && /^[1-8]$/.test(k)) i = +k - 1;
+  if (cur.q.fmt === "tf" && k === "T") i = 0; if (cur.q.fmt === "tf" && k === "F") i = 1;
+  if (i >= 0 && i < cur.q.opts.length) { e.preventDefault(); choose(i); }
+});
+
+// ================= "Add 2 more like this" =================
+function placeSoon(ids) {
+  const unseen = []; S.order.forEach((id, i) => { if (!S.it[id] && active(id)) unseen.push(i); });
+  ids.forEach((id, k) => { const want = k === 0 ? ri(1, 4) : ri(6, 11); const pos = unseen.length > want ? unseen[want] + k : S.order.length; S.order.splice(Math.min(pos, S.order.length), 0, id); });
+}
+function addMore(id, b) {
+  const item = ITEMS.get(id); if (!item) return;
+  const baseId = item.extraOf || id; const base = ITEMS.get(baseId);
+  const stamp = Date.now().toString(36); const ids = [`${baseId}~${stamp}a`, `${baseId}~${stamp}b`];
+  const entries = ids.map((nid) => ({ id: nid, base: baseId, src: base.gen ? "gen" : "alt" }));
+  S.extra = [...S.extra, ...entries]; registerExtras(entries); placeSoon(ids); persist();
+  $("addmsg").textContent = base.gen ? "Added 2 more with new numbers. They'll come up soon." : "Added 2 more in different wording. They'll come up soon.";
+  b.disabled = true; setTimeout(() => { b.disabled = false; }, 800);
+}
+
+// ================= Reports (kept on this phone, copied to Claude) =================
+const REASONS = ["The marked answer is wrong", "More than one answer could be right", "The numbers or math don't add up", "The wording is confusing", "The explanation doesn't help", "Typo or formatting", "Other"];
+let reports = lsGet("md-reports", []);
+function openReport(ctx) {
+  if (!ctx || $("fbform")) return;
+  const f = el("form", "fbform"); f.id = "fbform"; f.append(el("h3", null, "What's wrong with this question?"));
+  const rs = el("div", "reasons"); REASONS.forEach((r, i) => { const l = el("label", "reason"); const cb = el("input"); cb.type = "checkbox"; cb.id = "fbr" + i; cb.value = r; l.append(cb, el("span", null, r)); rs.append(l); });
+  const ta = el("textarea"); ta.id = "fbnote"; ta.rows = 3; ta.placeholder = "Optional: what should the answer be, or what confused you?"; ta.setAttribute("aria-label", "Details");
+  const sk = el("label", "row small"); const skc = el("input"); skc.type = "checkbox"; skc.id = "fbskip"; sk.append(skc, "Skip this question until it's fixed");
+  const msg = el("span", "fbmsg"); const send = el("button", "btn", "Save report"); send.type = "submit";
+  const br = el("div", "row"); br.append(send, btn("btn ghost", "Cancel", () => f.remove()), msg);
+  f.append(rs, ta, sk, br);
+  f.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const reasons = [...f.querySelectorAll(".reason input:checked")].map((x) => x.value); const note = ta.value.trim();
+    if (!reasons.length && !note) { msg.textContent = "Pick a reason or write a note."; return; }
+    const q = ctx.q;
+    reports.push({ id: uidGen("r"), sid: SID, item: ctx.id, label: labelFor(ITEMS.get(ctx.id) || {}), version: q.tag ? q.tag[0] : "", stem: q.stem,
+      options: q.opts.map((o) => (o.c ? "[marked correct] " : "") + o.t), answered: !!ctx.answered, chose: ctx.answered ? [...ctx.picks].map((i) => q.opts[i].t) : [], reasons, note, skip: skc.checked, at: Date.now() });
+    lsSet("md-reports", reports);
+    if (skc.checked) { S.skip = [...new Set([...S.skip, ctx.id])]; persist(); }
+    f.removeAttribute("id"); f.replaceChildren(el("span", "fbmsg", "Saved. On the subject page, tap “Copy reports for Claude” and paste them into your chat so they get fixed."));
+    if (skc.checked && ctx.live && !(cur && cur.answered)) { const nx = btn("btn", "Next question", () => show(cur && cur.id)); f.append(nx); nx.focus(); }
+  });
+  $("card").append(f); f.querySelector("input").focus();
+}
+function reportsText(list) {
+  const name = subjects[SID] ? subjects[SID].name : "";
+  return [`Problem reports from Mastery Deck · ${name} (${list.length})`, ""].concat(list.map((r, i) => [
+    `${i + 1}. ${r.label}${r.version ? " · " + r.version + " version" : ""}`,
+    `   Question: ${r.stem}`,
+    `   Choices: ${r.options.join(" | ")}`,
+    r.answered ? `   I chose: ${r.chose.join(", ") || "(nothing)"}` : "",
+    r.reasons.length ? `   Problem: ${r.reasons.join("; ")}` : "",
+    r.note ? `   Note: ${r.note}` : ""].filter(Boolean).join("\n"))).join("\n");
+}
+async function copyReports(list, box) {
+  const text = reportsText(list);
+  try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into your Claude chat."); return; } catch (e) {}
+  const ta = el("textarea"); ta.value = text; ta.rows = 8; ta.readOnly = true; ta.id = "reportcopy"; box.append(el("p", "small muted", "Select all of this text, copy it, and paste it into your Claude chat:"), ta); ta.focus(); ta.select();
+}
+function renderReports() {
+  const box = $("reports"); if (!box) return; box.replaceChildren();
+  const list = reports.filter((r) => r.sid === SID).sort((a, b) => b.at - a.at);
+  box.append(el("h3", null, `Reported questions (${list.length})`));
+  if (!list.length) { box.append(el("p", "small muted", "Nothing reported. Tap “Report a problem” under any question to flag it here.")); return; }
+  box.append(btn("btn ghost", "Copy reports for Claude", () => copyReports(list, box)));
+  for (const r of list) {
+    const d = el("div", "fbitem");
+    d.append(el("span", "small muted", `${r.label} · ${new Date(r.at).toLocaleDateString([], { month: "short", day: "numeric" })}`), el("span", "q", r.stem));
+    if (r.reasons && r.reasons.length) d.append(el("span", "small", r.reasons.join(" · ")));
+    if (r.note) d.append(el("span", "small", "“" + r.note + "”"));
+    const row = el("div", "row");
+    if (S.skip.includes(r.item)) row.append(btn("linkbtn", "Put back in the quiz", () => { S.skip = S.skip.filter((x) => x !== r.item); persist(); renderSubject(); }));
+    row.append(btn("linkbtn", "Delete report", () => { reports = reports.filter((x) => x !== r); lsSet("md-reports", reports); renderReports(); }));
+    d.append(row); box.append(d);
+  }
+}
+
+// ================= QUIZ ME (timed practice test) =================
+const QUIZ_LEN = 50;
+let QZ = null;        // {sid, sec, items:[{id,q}], ans:[[i]], i, elapsed, runSince, paused, done, result}
+let qzTick = null, qzConfirm = false, qzFilter = "missed";
+const loadQZ = (sid) => { const q = lsGet("md-quiz-" + sid, null); if (q && !q.done) { q.paused = true; q.runSince = null; } return q; };
+const saveQZ = () => { if (!QZ) return; if (!QZ.done && !QZ.paused && QZ.runSince) { QZ.elapsed = qzElapsed(); QZ.runSince = Date.now(); } lsSet("md-quiz-" + QZ.sid, QZ); };
+document.addEventListener("visibilitychange", () => { if (document.hidden && QZ && !QZ.done) saveQZ(); });
+const qzElapsed = () => (QZ ? QZ.elapsed + (QZ.paused || !QZ.runSince ? 0 : Date.now() - QZ.runSince) : 0);
+const fmtTime = (ms) => { const s = Math.round(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`; };
+function quizPool(sec) {
+  return S.order.filter((id) => { const it = ITEMS.get(id); return it && !it.extraOf && !S.skip.includes(id) && (sec ? it.sec === sec : !S.off.includes(it.sec)); });
+}
+function startQuiz(sid, sec) {
+  const pool = quizPool(sec); if (!pool.length) { toast("No questions to quiz you on yet."); return; }
+  const pick = shuffle(pool).slice(0, QUIZ_LEN);
+  QZ = { sid, sec: sec || null, items: pick.map((id) => ({ id, q: build(ITEMS.get(id), Math.random() < 0.5, null) })), ans: pick.map(() => []), i: 0, elapsed: 0, runSince: Date.now(), paused: false, done: false };
+  qzConfirm = false; saveQZ(); go({ v: "quiz", sid });
+}
+function pauseQuiz() { if (!QZ || QZ.paused) return; QZ.elapsed = qzElapsed(); QZ.paused = true; QZ.runSince = null; saveQZ(); renderQuiz(); }
+function resumeQuiz() { if (!QZ) return; QZ.paused = false; QZ.runSince = Date.now(); saveQZ(); renderQuiz(); }
+function quizScope(q) { return q.sec ? secName(q.sec) : "Whole subject"; }
+
+async function renderQuiz() {
+  const sid = route.sid; const s = subjects[sid]; if (!s) { go({ v: "home" }); return; }
+  if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "quiz") return; }
+  if (!QZ || QZ.sid !== sid) QZ = loadQZ(sid);
+  if (!QZ) { go({ v: "subject", sid }); return; }
+  topbar(s.name, () => { if (QZ && !QZ.done) pauseQuiz(); go({ v: "subject", sid }); }, QZ.done ? "Quiz results" : "Quiz me");
+  clearInterval(qzTick);
+  if (QZ.done) return renderResults();
+  const m = $("main"); m.replaceChildren();
+  const n = QZ.items.length, answered = QZ.ans.filter((a) => a.length).length;
+  const head = el("div", "qzhead");
+  head.append(el("span", "qzpos", `Question ${QZ.i + 1} of ${n}`));
+  const tm = el("span", "qztime"); tm.id = "qztime"; tm.textContent = fmtTime(qzElapsed()); head.append(tm);
+  head.append(QZ.paused ? btn("btn small", "Resume", resumeQuiz) : btn("btn ghost small", "Pause", pauseQuiz));
+  const bar = el("div", "bar"); const b1 = el("span", "m"); b1.style.width = (answered / n * 100) + "%"; bar.append(b1);
+  m.append(head, bar, el("span", "small muted", `${quizScope(QZ)} · ${answered} answered · answers are shown at the end`));
+  if (QZ.paused) {
+    const p = el("div", "panel empty"); p.append(el("h3", null, "Paused"), el("p", "small muted", "The timer is stopped. The question is hidden until you resume."), btn("btn", "Resume quiz", resumeQuiz));
+    m.append(p); return;
+  }
+  qzTick = setInterval(() => { const t = $("qztime"); if (!t || route.v !== "quiz") { clearInterval(qzTick); return; } t.textContent = fmtTime(qzElapsed()); if (Date.now() % 5000 < 1000) saveQZ(); }, 1000);
+  const { id, q } = QZ.items[QZ.i]; const item = ITEMS.get(id);
+  const card = el("section", "card"); card.id = "card";
+  const meta = el("div", "meta"); meta.append(el("span", "chip fmt", FMT_NAME[q.fmt])); if (item) meta.append(el("span", "topic", secName(item.sec)));
+  card.append(meta);
+  const list = body(card, q);
+  if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer."));
+  const sel = new Set(QZ.ans[QZ.i]);
+  list.querySelectorAll(".opt").forEach((b, k) => { b.classList.toggle("sel", sel.has(k)); b.addEventListener("click", () => quizPick(k)); });
+  const act = el("div", "actions qzact");
+  const back = btn("btn ghost", "‹ Back", () => quizMove(-1)); back.disabled = QZ.i === 0;
+  const last = QZ.i === n - 1;
+  const nx = btn("btn", last ? "Finish quiz" : sel.size ? "Next ›" : "Skip ›", () => (last ? finishQuiz() : quizMove(1))); nx.id = "qznext";
+  act.append(back, nx); card.append(act);
+  const end = el("div", "row");
+  if (qzConfirm) {
+    const c = el("div", "confirm"); c.append(el("span", "grow", `Finish now? ${n - answered} unanswered question${n - answered === 1 ? "" : "s"} will count as wrong.`), btn("btn danger small", "Finish now", finishQuiz), btn("btn ghost small", "Keep going", () => { qzConfirm = false; renderQuiz(); }));
+    end.append(c);
+  } else end.append(btn("linkbtn", "Finish early", () => { qzConfirm = true; renderQuiz(); }), btn("linkbtn", "Quit without saving", () => { const sid2 = QZ.sid; try { localStorage.removeItem("md-quiz-" + sid2); } catch (e) {} QZ = null; go({ v: "subject", sid: sid2 }); }));
+  card.append(end);
+  m.append(card);
+}
+function quizPick(k) {
+  if (!QZ || QZ.done || QZ.paused) return;
+  const q = QZ.items[QZ.i].q; let a = QZ.ans[QZ.i];
+  if (q.fmt === "ms") a = a.includes(k) ? a.filter((x) => x !== k) : [...a, k]; else a = [k];
+  QZ.ans[QZ.i] = a; saveQZ();
+  document.querySelectorAll("#card .opt").forEach((b, j) => b.classList.toggle("sel", a.includes(j)));
+  const nx = $("qznext"); if (nx && QZ.i < QZ.items.length - 1) nx.textContent = a.length ? "Next ›" : "Skip ›";
+  const answered = QZ.ans.filter((x) => x.length).length; const bm = document.querySelector("main > .bar .m"); if (bm) bm.style.width = (answered / QZ.items.length * 100) + "%";
+}
+function quizMove(d) { if (!QZ) return; QZ.i = Math.max(0, Math.min(QZ.items.length - 1, QZ.i + d)); qzConfirm = false; saveQZ(); renderQuiz(); window.scrollTo(0, 0); }
+function finishQuiz() {
+  if (!QZ) return; clearInterval(qzTick);
+  const ms = qzElapsed(); QZ.elapsed = ms; QZ.paused = true; QZ.runSince = null;
+  const bySec = {}; let correct = 0;
+  QZ.items.forEach(({ id, q }, k) => {
+    const picks = new Set(QZ.ans[k]); const ok = picks.size > 0 && q.opts.every((o, j) => o.c === picks.has(j));
+    if (ok) correct++; const sec = (ITEMS.get(id) || {}).sec || "?"; bySec[sec] = bySec[sec] || [0, 0]; bySec[sec][1]++; if (ok) bySec[sec][0]++;
+  });
+  QZ.result = { at: Date.now(), n: QZ.items.length, correct, ms, sec: QZ.sec, bySec, answered: QZ.ans.filter((a) => a.length).length };
+  QZ.done = true; qzConfirm = false; qzFilter = correct === QZ.items.length ? "all" : "missed"; saveQZ();
+  S.quizzes = [...(S.quizzes || []), { at: QZ.result.at, n: QZ.result.n, correct, ms, sec: QZ.sec }].slice(-20); persist(true);
+  renderQuiz(); window.scrollTo(0, 0);
+}
+function renderResults() {
+  const m = $("main"); m.replaceChildren(); const r = QZ.result; const pct = Math.round(r.correct / r.n * 100);
+  const top = el("div", "panel qzscore");
+  top.append(el("span", "small muted", quizScope(QZ)), el("div", "big " + (pct >= 70 ? "ok" : "bad"), `${r.correct}/${r.n}`), el("div", "pct", `${pct}%`));
+  const st2 = el("div", "stats"); const add = (l, v) => { const sp = el("span"); sp.append(l + " ", Object.assign(el("b"), { textContent: v })); st2.append(sp); };
+  add("Time", fmtTime(r.ms)); add("Per question", fmtTime(r.ms / r.n)); if (r.answered < r.n) add("Skipped", r.n - r.answered);
+  top.append(st2);
+  const prev = (S.quizzes || []).filter((x) => x.at !== r.at && (x.sec || null) === (QZ.sec || null)).slice(-1)[0];
+  if (prev) { const pp = Math.round(prev.correct / prev.n * 100); top.append(el("span", "small muted", `Last time: ${pp}% in ${fmtTime(prev.ms)} (${pct - pp >= 0 ? "+" : ""}${pct - pp} points)`)); }
+  const missedIds = QZ.items.filter((_, k) => !isRight(k)).map((x) => x.id);
+  const acts = el("div", "row");
+  if (missedIds.length) acts.append(btn("btn", `Practice the ${missedIds.length} I missed`, () => {
+    for (const id of missedIds) { const s = S.it[id] || (S.it[id] = { c: 0, due: null, ok: 0, bad: 0 }); s.c = 0; s.m = 0; s.due = S.n; }
+    persist(true); toast(`${missedIds.length} missed questions moved to the front of your study queue.`); cur = null; go({ v: "study", sid: QZ.sid });
+  }));
+  acts.append(btn("btn ghost", "Take another quiz", () => startQuiz(QZ.sid, QZ.sec)));
+  top.append(acts); m.append(top);
+  const secs = Object.entries(r.bySec);
+  if (secs.length > 1) {
+    const bp = el("div", "panel"); bp.append(el("h3", null, "By subsection"));
+    secs.sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]).forEach(([sec, [c, t]]) => {
+      const row = el("div", "qzsec"); row.append(el("span", "nm", secName(sec)), el("span", "num", `${c}/${t}`));
+      const b = el("div", "bar"); const x = el("span", "m"); x.style.width = (c / t * 100) + "%"; b.append(x); row.append(b); bp.append(row);
+    });
+    m.append(bp);
+  }
+  const rv = el("div", "panel"); const hd = el("div", "row"); hd.append(el("h3", "grow", "Review your answers"));
+  const tg = btn("linkbtn", qzFilter === "missed" ? `Show all ${r.n}` : `Show only missed (${missedIds.length})`, () => { qzFilter = qzFilter === "missed" ? "all" : "missed"; renderResults(); });
+  hd.append(tg); rv.append(hd);
+  QZ.items.forEach(({ id, q }, k) => {
+    const ok = isRight(k); if (qzFilter === "missed" && ok) return;
+    const c = el("div", "qzrev " + (ok ? "good" : "miss"));
+    const meta = el("div", "meta"); meta.append(el("span", "chip " + (ok ? "" : "retry"), `${k + 1} · ${ok ? "Right" : QZ.ans[k].length ? "Missed" : "Skipped"}`), el("span", "chip fmt", FMT_NAME[q.fmt]));
+    const item = ITEMS.get(id); if (item) meta.append(el("span", "topic", secName(item.sec)));
+    c.append(meta); body(c, q, "r" + k + "-"); applyFeedback(c, q, new Set(QZ.ans[k]), ok, true); rv.append(c);
+  });
+  if (qzFilter === "missed" && !missedIds.length) rv.append(el("p", "small muted", "You got every question right."));
+  m.append(rv);
+  m.append(btn("btn ghost big", "Back to subject", () => go({ v: "subject", sid: QZ.sid })));
+}
+function isRight(k) { const q = QZ.items[k].q; const p = new Set(QZ.ans[k]); return p.size > 0 && q.opts.every((o, j) => o.c === p.has(j)); }
+function quizPanel(sid, s) {
+  const p = el("div", "panel"); const q = (!QZ || QZ.sid !== sid) ? loadQZ(sid) : QZ;
+  const pool = quizPool(null).length;
+  p.append(el("h3", null, "Quiz me"));
+  if (q && !q.done) {
+    QZ = q; const answered = q.ans.filter((a) => a.length).length;
+    p.append(el("p", "small muted", `Quiz in progress: ${answered} of ${q.items.length} answered · ${fmtTime(q.elapsed)} so far.`));
+    const r = el("div", "row"); r.append(btn("btn", "Resume quiz", () => go({ v: "quiz", sid })), btn("btn ghost", "Start a new one", () => startQuiz(sid, null))); p.append(r);
+  } else {
+    p.append(el("p", "small muted", `${Math.min(QUIZ_LEN, pool)} random questions from the subsections checked below, timed. Answers are shown at the end, and your study progress isn't changed.`));
+    const b = btn("btn ghost big", `Quiz me · ${Math.min(QUIZ_LEN, pool)} questions`, () => startQuiz(sid, null)); b.disabled = !pool; p.append(b);
+  }
+  const hist = (S.quizzes || []).slice().reverse().slice(0, 5);
+  if (hist.length) {
+    const h = el("div", "qzhist"); h.append(el("span", "small muted", "Recent quizzes"));
+    for (const x of hist) { const pct = Math.round(x.correct / x.n * 100); const r = el("div", "row small"); r.append(el("span", "grow", `${new Date(x.at).toLocaleDateString([], { month: "short", day: "numeric" })} · ${x.sec ? secName(x.sec) : "Whole subject"}`), el("b", null, `${pct}%`), el("span", "muted", `${x.correct}/${x.n} · ${fmtTime(x.ms)}`)); h.append(r); }
+    if (q && q.done) h.append(btn("linkbtn", "See last results", () => { QZ = q; go({ v: "quiz", sid }); }));
+    p.append(h);
+  }
+  return p;
+}
+
+async function boot() {
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  rerender();
+  await loadLibrary();
+  if (!lsGet("md-booted", false) && library) {
+    for (const e of library.filter((x) => x.auto)) { try { await installDeck(await fetchDeck(e)); } catch (err) {} }
+    lsSet("md-booted", true);
+  }
+  if (route.v === "home") renderHome();
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+boot();
+})();
+</script>
+</body>
+</html>
