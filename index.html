@@ -11,8 +11,8 @@
 <meta name="theme-color" content="#0f1614" media="(prefers-color-scheme: dark)">
 <meta name="description" content="Mastery quiz app for your classes.">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>Mastery Deck</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -609,11 +609,11 @@ async function removeSubject(sid) {
 let library = null, libraryState = "idle"; // idle | loading | ok | offline
 async function loadLibrary() {
   libraryState = "loading";
-  try { const r = await fetch("decks/index.json", { cache: "no-cache" }); if (!r.ok) throw 0; library = (await r.json()).decks || []; libraryState = "ok"; }
+  try { let r = await fetch("index.json", { cache: "no-cache" }); if (!r.ok) r = await fetch("decks/index.json", { cache: "no-cache" }); if (!r.ok) throw 0; library = (await r.json()).decks || []; libraryState = "ok"; }
   catch (e) { libraryState = library ? "ok" : "offline"; }
   return library;
 }
-async function fetchDeck(entry) { const r = await fetch("decks/" + entry.file, { cache: "no-cache" }); if (!r.ok) throw new Error("download"); const d = await r.json(); d.lib = true; return d; }
+async function fetchDeck(entry) { let r = await fetch(entry.file, { cache: "no-cache" }); if (!r.ok) r = await fetch("decks/" + entry.file, { cache: "no-cache" }); if (!r.ok) throw new Error("download"); const d = await r.json(); d.lib = true; return d; }
 const libEntry = (sid) => (library || []).find((x) => x.id === sid);
 const hasUpdate = (sid) => { const e = libEntry(sid); return e && subjects[sid] && (e.version || 1) > (subjects[sid].ver || 1); };
 
