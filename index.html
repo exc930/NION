@@ -75,7 +75,7 @@ input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); f
 
 /* subjects */
 .subj { text-align: left; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 8px; cursor: pointer; }
-.subj:hover { border-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) { .subj:hover { border-color: var(--accent); } }
 .subj .name { font-family: var(--f-display); font-weight: 800; font-size: 1.1rem; }
 .sec { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 8px; }
 .sec:first-of-type { border-top: 0; padding-top: 0; }
@@ -113,7 +113,7 @@ input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); f
 .hint { font-size: .82rem; color: var(--muted); margin-top: -6px; }
 .opts { display: flex; flex-direction: column; gap: 8px; }
 .opt { width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; grid-template-columns: 26px 1fr; gap: 10px; cursor: pointer; min-height: 48px; }
-.opt:hover:not(:disabled) { border-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) { .opt:hover:not(:disabled) { border-color: var(--accent); } }
 .opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .opt .k { font-family: var(--f-mono); font-size: .8rem; width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--line); display: grid; place-items: center; color: var(--muted); }
 .opt.sel { border-color: var(--accent); background: var(--accent-soft); }
@@ -304,7 +304,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 /* ---- study card ---- */
 .stem { color: #fff; }
 .opt { background: rgba(3, 6, 18, .62); border-color: rgba(120, 150, 220, .3); color: var(--ink); }
-.opt:hover:not(:disabled) { border-color: var(--accent-2); box-shadow: 0 0 12px rgba(111, 216, 255, .22); }
+@media (hover: hover) and (pointer: fine) { .opt:hover:not(:disabled) { border-color: var(--accent-2); box-shadow: 0 0 12px rgba(111, 216, 255, .22); } }
 .opt .k { font-family: var(--f-mono); font-size: 1.05rem; border-color: rgba(120, 150, 220, .45); color: var(--muted); }
 .opt.sel { border-color: var(--accent); background: rgba(255, 61, 139, .13); box-shadow: 0 0 14px rgba(255, 61, 139, .32); }
 .opt.sel .k { background: var(--accent); color: #fff; }
@@ -343,7 +343,8 @@ input[type=checkbox] { accent-color: var(--accent); }
 .home-h .n { font-family: var(--f-mono); font-size: 1.2rem; color: var(--blood-hi); text-shadow: var(--glow-red); }
 .subj { position: relative; text-align: left; width: 100%; padding: 18px 18px 16px; display: grid; gap: 10px; cursor: pointer; overflow: hidden; border: 1px solid rgba(120, 150, 220, .28); }
 .subj::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--accent), var(--blood)); box-shadow: var(--glow-pink); }
-.subj:hover, .subj:focus-visible { border-color: rgba(255, 61, 139, .6); box-shadow: 0 0 0 1px rgba(255, 61, 139, .3), var(--glow-pink); outline: none; }
+.subj:focus-visible { border-color: rgba(255, 61, 139, .6); box-shadow: 0 0 0 1px rgba(255, 61, 139, .3), var(--glow-pink); outline: none; }
+@media (hover: hover) and (pointer: fine) { .subj:hover { border-color: rgba(255, 61, 139, .6); box-shadow: 0 0 0 1px rgba(255, 61, 139, .3), var(--glow-pink); } }
 .subj .name { font-family: var(--f-display); font-weight: 400; font-size: 1.06rem; letter-spacing: .03em; line-height: 1.3; color: #fff; padding-right: 70px; }
 .subj .pct { position: absolute; top: 12px; right: 16px; font-family: var(--f-mono); font-size: 2rem; line-height: 1; color: var(--accent-2); text-shadow: var(--glow-ice); }
 .subj .meta2 { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--f-mono); font-size: 1.08rem; color: var(--muted); letter-spacing: .04em; }
@@ -368,6 +369,117 @@ input[type=checkbox] { accent-color: var(--accent); }
 .top { top: 0; padding-top: env(safe-area-inset-top, 0px); }
 .hero { padding-top: calc(34px + env(safe-area-inset-top, 0px)); }
 .hero .gear { top: calc(10px + env(safe-area-inset-top, 0px)); }
+
+/* ===== making your own subjects & questions (same Midnight Woods look) ===== */
+input[type=password] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: rgba(3, 5, 13, .7); color: var(--ink); font-size: 16px; }
+select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--accent-2) 50%), linear-gradient(135deg, var(--accent-2) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 34px; }
+.newsubj { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px 16px; border-radius: 16px; cursor: pointer; color: var(--ink);
+  border: 1.5px solid rgba(255, 61, 139, .6); background: rgba(3, 5, 13, .6); box-shadow: 0 0 16px rgba(255, 61, 139, .18), inset 0 0 14px rgba(255, 61, 139, .06); }
+.newsubj .plus { pointer-events: none; }
+.newsubj .grow { display: grid; gap: 2px; }
+.newsubj .nm { font-family: var(--f-display); font-size: .98rem; color: #fff; letter-spacing: .02em; }
+.newsubj .chev { font-family: var(--f-mono); font-size: 1.8rem; color: var(--accent); text-shadow: 0 0 8px rgba(255, 61, 139, .5); }
+.newsubj:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+.addlbl { margin: 6px 2px 0; font-family: var(--f-mono); font-size: 1.05rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 560px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tile { position: relative; display: grid; gap: 2px; align-content: center; min-height: 74px; padding: 12px; border-radius: 14px; text-align: left; cursor: pointer; color: var(--ink); font: inherit;
+  border: 1.5px solid rgba(111, 216, 255, .4); background: rgba(3, 5, 13, .6); box-shadow: inset 0 0 12px rgba(111, 216, 255, .05); }
+.tile .tt { font-family: var(--f-display); font-size: .9rem; letter-spacing: .06em; color: var(--accent-2); text-shadow: 0 0 8px rgba(111, 216, 255, .4); }
+.tile .ts { font-size: .76rem; color: var(--muted); line-height: 1.25; }
+.tile input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.tile.on, .tile:focus-within, .tile:focus-visible { border-color: var(--accent); box-shadow: 0 0 14px rgba(255, 61, 139, .3); outline: none; }
+.tile.on .tt { color: #ff8fbd; text-shadow: 0 0 8px rgba(255, 61, 139, .5); }
+.tile:active { transform: translateY(1px); }
+.subpanel { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
+.mats { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.mat { display: flex; gap: 8px; align-items: center; font-size: .86rem; border: 1px solid var(--line); border-radius: 10px; padding: 6px 6px 6px 10px; background: rgba(3, 5, 13, .5); }
+.mat .k { font-family: var(--f-mono); font-size: .95rem; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 0 6px; border-radius: 5px; }
+.mat .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mat button { background: none; border: 0; color: var(--muted); font-size: 1.3rem; padding: 2px 10px; cursor: pointer; }
+.progress { display: grid; gap: 6px; justify-items: start; }
+.progress p { font-family: var(--f-mono); font-size: 1.1rem; color: var(--accent-2); letter-spacing: .04em; animation: blink 1.6s infinite; }
+@keyframes blink { 50% { opacity: .55; } }
+.prev { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.pq > div { min-width: 0; overflow-wrap: anywhere; }
+.pq { display: grid; grid-template-columns: auto 1fr; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; font-size: .9rem; align-items: start; background: rgba(3, 5, 13, .5); }
+.pq .q { font-weight: 700; color: #fff; }
+.pq .a { color: var(--ok); margin-top: 2px; }
+.pq .meta { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pq .topic { font-size: .76rem; color: var(--muted); }
+.chip.ai { background: var(--warn-soft); color: var(--warn); }
+.warnline { color: var(--warn); }
+.warnline:empty { display: none; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.segbtn { flex: 1; min-width: 120px; padding: 9px 10px; border-radius: 10px; cursor: pointer; font: inherit; font-size: .9rem; color: var(--muted); background: rgba(3, 5, 13, .6); border: 1.5px solid var(--line); }
+.segbtn.on { color: #fff; border-color: var(--accent); background: rgba(255, 61, 139, .14); box-shadow: 0 0 12px rgba(255, 61, 139, .28); }
+.flabel { font-family: var(--f-mono); font-size: 1.05rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.flabel.ok { color: var(--ok); } .flabel.bad { color: var(--bad); }
+#writeform, .panel form { display: grid; gap: 8px; }
+.panel form.row { display: flex; }
+
+/* ===== question types ===== */
+.typegrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 560px) { .typegrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.typechip { font: inherit; cursor: pointer; color: var(--muted); background: rgba(3, 5, 13, .6); border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 13px; font-size: .86rem; }
+.typechip.on { color: #fff; border-color: var(--accent); background: rgba(255, 61, 139, .14); box-shadow: 0 0 12px rgba(255, 61, 139, .28); }
+.typechip.big { border-radius: 12px; display: grid; gap: 1px; text-align: left; padding: 9px 11px; }
+.typechip.big .tn { font-family: var(--f-display); font-size: .8rem; letter-spacing: .05em; color: var(--accent-2); }
+.typechip.big.on .tn { color: #ff8fbd; }
+.typechip.big .ts { font-size: .72rem; color: var(--muted); line-height: 1.25; }
+.typepick { display: grid; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rows { display: grid; gap: 6px; }
+.msrow, .ordrow { display: flex; gap: 8px; align-items: center; }
+.msrow input[type=text], .ordrow input[type=text] { flex: 1; min-width: 0; }
+.ordrow .n { font-family: var(--f-mono); font-size: 1.15rem; color: var(--accent); width: 22px; text-align: center; flex: none; }
+.ordrow .linkbtn { font-size: 1.3rem; padding: 0 8px; }
+.pairrow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; align-items: center; }
+.pairrow .eq { font-family: var(--f-mono); color: var(--accent-2); font-size: 1.2rem; }
+.fbprev { font-size: .9rem; color: var(--accent-2); margin: 0; }
+.fbprev:empty { display: none; }
+.picrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pick.small { min-height: 0; padding: 10px 12px; font-size: .9rem; }
+.pthumb { display: block; max-width: 140px; max-height: 110px; border-radius: 8px; border: 1px solid var(--line); object-fit: cover; margin-bottom: 6px; }
+.occedit { position: relative; touch-action: none; user-select: none; -webkit-user-select: none; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); cursor: crosshair; }
+.occedit img { display: block; width: 100%; height: auto; pointer-events: none; -webkit-touch-callout: none; }
+.obox { position: absolute; background: rgba(255, 61, 139, .82); border: 2px solid #fff; border-radius: 6px; box-shadow: 0 0 10px rgba(255, 61, 139, .6); display: grid; place-items: center; }
+.obox .n { font-family: var(--f-mono); font-size: .95rem; line-height: 1; color: #fff; }
+.obox.tmp { background: rgba(255, 61, 139, .35); border-style: dashed; }
+
+/* in the quiz card */
+.qimg { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); cursor: zoom-in; background: #fff; }
+.qimg img { display: block; width: 100%; height: auto; max-height: 52vh; object-fit: contain; }
+.qimg .occ { position: absolute; background: #3a4566; border-radius: 4px; }
+.qimg .occ.hi { background: var(--accent); box-shadow: 0 0 0 2px #fff, 0 0 14px rgba(255, 61, 139, .8); display: grid; place-items: center; font-family: var(--f-mono); color: #fff; font-size: 1.2rem; }
+.qimg .occ.hi.open { background: transparent; box-shadow: 0 0 0 3px var(--ok), 0 0 14px rgba(94, 242, 198, .7); }
+.zoomhint { position: absolute; right: 6px; bottom: 6px; font-size: .7rem; color: #fff; background: rgba(0, 0, 0, .55); padding: 2px 7px; border-radius: 99px; }
+.lightbox { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .92); display: grid; place-items: center; padding: calc(12px + env(safe-area-inset-top, 0px)) 8px calc(12px + env(safe-area-inset-bottom, 0px)); gap: 8px; align-content: center; }
+.lightbox .qimg { cursor: zoom-out; width: 100%; max-width: 1100px; }
+.lightbox .qimg img { max-height: 84vh; }
+.lbclose { color: #cfd6ee; font-size: .8rem; }
+.ix { display: grid; gap: 8px; }
+.ixlbl { font-family: var(--f-mono); font-size: 1.02rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ixlbl.ok { color: var(--ok); }
+.ixempty { font-size: .86rem; color: var(--muted); border: 1.5px dashed var(--line); border-radius: var(--r); padding: 12px; text-align: center; }
+.fbline { font-size: 1.1rem; font-weight: 700; line-height: 2.3; color: #fff; }
+.typeline { display: grid; }
+.blankwrap { display: inline-flex; flex-direction: column; vertical-align: middle; margin: 0 4px; }
+.fbline input.blank { width: 8em; max-width: 100%; display: inline-block; height: 36px; min-height: 0; padding: 2px 8px; line-height: 1.2; font-weight: 400; border-radius: 8px; }
+.typeline input.blank { width: 100%; }
+input.blank { background: rgba(3, 5, 13, .75); border: 1.5px solid rgba(111, 216, 255, .55); color: var(--ink); font-size: 16px; }
+input.blank:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 10px rgba(255, 61, 139, .35); }
+input.blank.right { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+input.blank.wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); text-decoration: line-through; }
+.blankwrap .fix { font-size: .82rem; font-weight: 700; color: var(--ok); line-height: 1.4; }
+.ixwhy { font-size: .88rem; color: var(--muted); border-left: 3px solid var(--bad); padding-left: 10px; }
+.ixwhy.ok { border-left-color: var(--ok); }
+.opt.pooli .k { color: var(--accent-2); }
+.opt .mto { display: block; font-size: .9rem; color: var(--accent-2); margin-top: 3px; }
+.opt .mto.none { color: var(--muted); }
+.solution { margin: 0; padding-left: 22px; display: grid; gap: 3px; color: var(--ok); font-size: .92rem; }
+.swipe-shade { position: fixed; inset: 0; z-index: -1; background: #000; opacity: 0; pointer-events: none; }
+.top, #main { will-change: auto; }
 </style>
 </head>
 <body>
@@ -756,10 +868,14 @@ function validDeck(d) { return d && d.format === "mastery-deck" && typeof d.name
 async function installDeck(deck) {
   if (!validDeck(deck)) throw new Error("not a question set");
   const sid = String(deck.id || uidGen("s"));
-  const list = deck.sections.map((s) => ({ id: sid + "-" + s.id, sec: s.id, src: deck.name, items: s.items }));
+  // Material you added yourself (own: true) and subsections you created are kept when a set updates.
+  const own = subjects[sid] ? (await loadPacks(sid)).filter((p) => p.own) : [];
+  const list = deck.sections.map((s) => ({ id: sid + "-" + s.id, sec: s.id, src: deck.name, items: s.items })).concat(own);
   await savePacks(sid, list);
   const old = subjects[sid] || {};
-  subjects[sid] = { name: old.renamed ? old.name : deck.name, renamed: old.renamed, sections: deck.sections.map((s) => ({ id: s.id, name: s.name })), count: list.reduce((n, p) => n + p.items.length, 0), at: old.at || Date.now(), order: old.order || Date.now(), ver: deck.version || 1, lib: !!deck.lib };
+  const deckSecs = deck.sections.map((s) => ({ id: s.id, name: (old.sections || []).find((x) => x.id === s.id && x.renamed) ? old.sections.find((x) => x.id === s.id).name : s.name }));
+  const extraSecs = (old.sections || []).filter((x) => !deck.sections.some((d) => d.id === x.id));
+  subjects[sid] = { name: old.renamed ? old.name : deck.name, renamed: old.renamed, sections: deckSecs.concat(extraSecs), count: list.reduce((n, p) => n + p.items.length, 0), at: old.at || Date.now(), order: old.order || Date.now(), ver: deck.version || 1, lib: !!deck.lib };
   cacheSubjects();
   if (SID === sid) { SID = null; S = null; cur = null; }
   return sid;
@@ -788,7 +904,7 @@ const hasUpdate = (sid) => { const e = libEntry(sid); return e && subjects[sid] 
 async function makeBackup() {
   const data = { format: "mastery-deck-backup", at: Date.now(), subjects, packs: {}, ls: {} };
   for (const sid of Object.keys(subjects)) data.packs[sid] = await loadPacks(sid);
-  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("md-") && !k.startsWith("md-packs-")) data.ls[k] = localStorage.getItem(k); }
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("md-") && !k.startsWith("md-packs-") && k !== "md-apikey") data.ls[k] = localStorage.getItem(k); }
   return data;
 }
 async function saveBackup() {
@@ -806,7 +922,7 @@ async function saveBackup() {
 async function restoreBackup(d) {
   for (const sid of Object.keys(subjects)) { try { await IDB.del("packs-" + sid); } catch (e) {} delete packs[sid]; }
   const keep = [];
-  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("md-")) keep.push(k); }
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("md-") && k !== "md-apikey" && k !== "md-model") keep.push(k); }
   keep.forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
   for (const [k, v] of Object.entries(d.ls || {})) { try { localStorage.setItem(k, v); } catch (e) {} }
   subjects = d.subjects || {}; cacheSubjects();
@@ -826,8 +942,85 @@ async function openFile(file) {
 }
 
 // ================= Routing & top bar =================
+// ================= Page history + iPhone-style edge swipe (back / forward) =================
 let route = { v: "home" };
-function go(r) { route = r; window.scrollTo(0, 0); rerender(); }
+let navIdx = 0, maxIdx = 0;
+const sameRoute = (a, b) => !!a && !!b && a.v === b.v && (a.sid || null) === (b.sid || null);
+function leaving() {
+  // Leaving a running quiz pauses its timer (same as the old back button did).
+  if (route.v === "quiz" && typeof QZ !== "undefined" && QZ && !QZ.done && !QZ.paused) { QZ.elapsed = qzElapsed(); QZ.paused = true; QZ.runSince = null; saveQZ(); }
+}
+function go(r) {
+  leaving();
+  const prev = route; route = r; navIdx++; maxIdx = navIdx;
+  try { history.pushState({ r, i: navIdx, prev }, ""); } catch (e) {}
+  window.scrollTo(0, 0); rerender();
+}
+// Back buttons in the top bar act like a real "back" when they lead to the page you came from.
+function backTo(target) {
+  const st = history.state;
+  if (st && sameRoute(st.prev, target)) history.back(); else go(target);
+}
+let pendingAnim = null; // "back" | "fwd" | null — set by the swipe so popstate knows how to animate
+addEventListener("popstate", (e) => {
+  const st = e.state; if (!st || !st.r) return;
+  const dir = pendingAnim || (st.i < navIdx ? "back" : "fwd"); pendingAnim = null;
+  leaving(); route = st.r; navIdx = st.i; if (navIdx > maxIdx) maxIdx = navIdx; window.scrollTo(0, 0); rerender();
+  slideIn(dir);
+});
+try { history.replaceState({ r: route, i: 0, prev: null }, ""); } catch (e) {}
+
+const pageEls = () => [document.querySelector(".top"), document.getElementById("main")].filter(Boolean);
+function setX(x, ms) { for (const e of pageEls()) { e.style.transition = ms ? `transform ${ms}ms cubic-bezier(.2,.8,.2,1)` : "none"; e.style.transform = x ? `translateX(${x}px)` : ""; } }
+function slideIn(dir) {
+  if (matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const w = innerWidth; setX(dir === "back" ? -w * 0.28 : w * 0.28, 0);
+  requestAnimationFrame(() => requestAnimationFrame(() => { setX(0, 260); setTimeout(() => setX(0, 0), 280); }));
+}
+(() => {
+  const EDGE = 28; let s = null;
+  const canBack = () => history.state && history.state.i > 0;
+  const canFwd = () => navIdx < maxIdx;
+  const shade = document.createElement("div"); shade.className = "swipe-shade"; shade.hidden = true; document.body.append(shade);
+  addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) { s = null; return; }
+    const t = e.touches[0]; const w = innerWidth;
+    // In Safari itself the browser already has its own swipe-back, so only add ours in the installed app.
+    const standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+    if (!standalone) { s = null; return; }
+    if (t.clientX <= EDGE && canBack()) s = { dir: "back", x0: t.clientX, y0: t.clientY, t0: Date.now(), dx: 0, locked: false };
+    else if (t.clientX >= w - EDGE && canFwd()) s = { dir: "fwd", x0: t.clientX, y0: t.clientY, t0: Date.now(), dx: 0, locked: false };
+    else s = null;
+  }, { passive: true });
+  addEventListener("touchmove", (e) => {
+    if (!s) return; const t = e.touches[0]; const dx = t.clientX - s.x0, dy = t.clientY - s.y0;
+    if (!s.locked) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { s = null; return; }
+      if (Math.abs(dx) < 8) return; s.locked = true; shade.hidden = false;
+    }
+    e.preventDefault();
+    const w = innerWidth; s.dx = s.dir === "back" ? Math.max(0, dx) : Math.min(0, dx);
+    setX(s.dx, 0); shade.style.opacity = String(Math.min(1, Math.abs(s.dx) / w) * 0.5);
+    shade.dataset.side = s.dir;
+  }, { passive: false });
+  const end = () => {
+    if (!s) return; const g = s; s = null;
+    if (!g.locked) return;
+    const w = innerWidth; const dist = Math.abs(g.dx); const v = dist / Math.max(1, Date.now() - g.t0);
+    const commit = dist > w * 0.33 || (v > 0.5 && dist > 40);
+    if (!commit) { setX(0, 200); shade.style.transition = "opacity 200ms"; shade.style.opacity = "0"; setTimeout(() => { shade.hidden = true; shade.style.transition = ""; setX(0, 0); }, 210); return; }
+    setX(g.dir === "back" ? w : -w, 180); shade.style.transition = "opacity 180ms"; shade.style.opacity = "0";
+    setTimeout(() => {
+      shade.hidden = true; shade.style.transition = "";
+      pendingAnim = g.dir; const before = history.state && history.state.i;
+      if (g.dir === "back") history.back(); else history.forward();
+      // Nothing to go forward to: put the page back.
+      setTimeout(() => { if (pendingAnim && history.state && history.state.i === before) { pendingAnim = null; setX(0, 220); setTimeout(() => setX(0, 0), 240); } }, 350);
+    }, 170);
+  };
+  addEventListener("touchend", end, { passive: true });
+  addEventListener("touchcancel", () => { if (s && s.locked) { setX(0, 200); shade.hidden = true; } s = null; }, { passive: true });
+})();
 function topbar(backLabel, backFn, title) {
   const t = $("topbar"); t.parentElement.hidden = false; t.replaceChildren();
   if (backLabel) t.append(btn("back", "‹ " + backLabel, backFn));
@@ -837,6 +1030,8 @@ function rerender() {
   if (route.v === "home") return renderHome();
   if (route.v === "subject") return renderSubject();
   if (route.v === "study") return renderStudy();
+  if (route.v === "import") return renderImport();
+  if (route.v === "newsubject") return renderNewSubject();
   if (route.v === "quiz") return renderQuiz();
   if (route.v === "settings") return renderSettings();
 }
@@ -866,7 +1061,7 @@ async function openSubject(sid) {
   SID = sid; S = null; cur = null; view = null;
   const ps = await loadPacks(sid);
   ITEMS = new Map();
-  for (const p of ps) for (const it of p.items || []) ITEMS.set(it.id, { ...it, sec: p.sec, pid: p.id });
+  for (const p of ps) { if (p.imgs) Object.assign(IMGS, p.imgs); for (const it of p.items || []) ITEMS.set(it.id, { ...it, sec: p.sec, pid: p.id }); }
   S = fixState(lsGet("md-p-" + sid, null));
   H = lsGet("md-h-" + sid, []);
 }
@@ -902,7 +1097,7 @@ const isAllOpt = (t) => /^all (of )?(these|the above|of these)/i.test(t);
 function orderOpts(opts) { const o = shuffle(opts); o.sort((a, b) => isAllOpt(a.t) - isAllOpt(b.t)); return o; }
 function mcOf(x) { return orderOpts([{ t: x.a, c: true, why: x.ex }, ...(x.w || []).map(([t, why]) => ({ t, c: false, why }))]); }
 function tfOf(x) { return [{ t: "True", c: x.a === "True", why: x.a === "True" ? x.ex : x.ww }, { t: "False", c: x.a === "False", why: x.a === "False" ? x.ex : x.ww }]; }
-function build(item, seen, lastFmt) {
+function buildBase(item, seen, lastFmt) {
   if (item.gen) {
     const g = GEN[item.gen]; const q = g.make();
     if (q.kind === "mc" && q.st && Math.random() < 0.3) {
@@ -964,8 +1159,13 @@ function renderHome() {
     m.append(b);
   }
 
-  const add = el("section", "addsec"); add.append(el("h2", null, "Add a subject"));
   const avail = (library || []).filter((e) => !subjects[e.id]);
+  const add = el("section", "addsec"); add.append(el("h2", null, "Add a subject"));
+  const ns = el("button", "newsubj"); ns.type = "button"; ns.id = "newsubj";
+  ns.append(el("span", "plus", "+"), Object.assign(el("span", "grow"), {}), el("span", "chev", "›"));
+  ns.children[1].append(el("span", "nm", "Create your own subject"), el("span", "small muted", "Write questions, or make them from photos, notes, PDFs, slides and Word files"));
+  ns.addEventListener("click", () => go({ v: "newsubject" })); add.append(ns);
+  if (avail.length || libraryState === "loading" || libraryState === "idle") add.append(el("p", "addlbl", "From the Nion library"));
   for (const e of avail) {
     const r = el("div", "addcard"); const t = el("div", "grow");
     t.append(el("div", "nm", e.name), el("div", "small muted", `${e.count || "?"} questions${e.desc ? " · " + e.desc : ""}`));
@@ -978,12 +1178,9 @@ function renderHome() {
   }
   if (libraryState === "loading" || libraryState === "idle") add.append(el("p", "addhint", "Checking for new subjects…"));
   else if (!library) add.append(el("p", "addhint", "Connect to the internet to see subjects you can add."));
-  else if (!avail.length) add.append(el("p", "addhint", "Every available subject is already added."));
   const pk = el("label", "pick"); pk.append("Open a question set file", el("small", null, "A .json file Claude sent you"));
   const fi = el("input"); fi.type = "file"; fi.id = "openfile"; fi.accept = ".json,application/json"; fi.addEventListener("change", () => { const f = fi.files[0]; fi.value = ""; if (f) openFile(f); }); pk.append(fi);
   add.append(pk);
-  const hint = el("p", "addhint"); hint.append("Want a new subject? Send your notes, PDFs or photos to ", el("b", null, "Claude"), " and it will appear here.");
-  add.append(hint);
   m.append(add);
 }
 function restoreConfirm() {
@@ -996,7 +1193,7 @@ function restoreConfirm() {
 
 // ================= SETTINGS =================
 function renderSettings() {
-  topbar("Home", () => go({ v: "home" }), "Settings");
+  topbar("Home", () => backTo({ v: "home" }), "Settings");
   const m = $("main"); m.replaceChildren();
   if (pendingRestore) m.append(restoreConfirm());
   const p = el("div", "panel");
@@ -1008,7 +1205,7 @@ function renderSettings() {
   const r3 = el("div", "setrow"); r3.append(el("h3", null, "Install on iPhone"));
   const ol = el("ol", "steps"); ["Open this app's page in Safari.", "Tap the Share button (square with an arrow).", "Tap “Add to Home Screen”, then “Add”."].forEach((t) => ol.append(el("li", null, t)));
   r3.append(ol, el("p", "small muted", isStandalone() ? "You're using the installed app." : "You're in the browser right now. Install it for full screen and offline use."));
-  p.append(r1, r2, r3); m.append(p);
+  p.append(aiSettings(), r1, r2, r3); m.append(p);
 }
 
 // ================= SUBJECT =================
@@ -1016,7 +1213,7 @@ let subjectOpenMore = null, subjectConfirm = null;
 async function renderSubject() {
   const sid = route.sid; const s = subjects[sid];
   if (!s) { go({ v: "home" }); return; }
-  topbar("Subjects", () => go({ v: "home" }), s.name);
+  topbar("Subjects", () => backTo({ v: "home" }), s.name);
   const m = $("main");
   if (SID !== sid || !S) { m.replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "subject" || route.sid !== sid) return; }
   m.replaceChildren();
@@ -1025,8 +1222,8 @@ async function renderSubject() {
   const bar = el("div", "bar"); const bm = el("span", "m"); bm.style.width = c.t ? (c.m / c.t * 100) + "%" : "0"; const bl = el("span", "l"); bl.style.width = c.t ? (c.l / c.t * 100) + "%" : "0"; bar.append(bm, bl);
   const stx = el("div", "stats"); const add = (k, label, v) => { const sp = el("span"); if (k) { const i = el("i", "key"); i.style.background = k; sp.append(i); } sp.append(label + " ", Object.assign(el("b"), { textContent: v })); stx.append(sp); };
   add("var(--accent)", "Mastered", `${c.m}/${c.t}`); add("var(--warn)", "Learning", c.l); add("var(--new)", "Not seen", c.n);
-  const go1 = btn("btn big", studyable ? (S.n ? "Keep studying" : "Start studying") : c.t ? "Nothing left in the checked subsections" : "No questions in this subject yet", () => go({ v: "study", sid }));
-  go1.disabled = !studyable;
+  const go1 = c.t ? btn("btn big", studyable ? (S.n ? "Keep studying" : "Start studying") : "Nothing left in the checked subsections", () => go({ v: "study", sid })) : btn("btn big", "+ Add material", () => go({ v: "import", sid }));
+  go1.disabled = !!c.t && !studyable;
   sum.append(bar, stx, go1);
   if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections. Check or uncheck them below.`));
   m.append(sum);
@@ -1045,10 +1242,18 @@ async function renderSubject() {
     const studyThis = btn("chipbtn", "Study only this", () => { S.off = s.sections.filter((y) => y.id !== sec.id).map((y) => y.id); persist(); go({ v: "study", sid }); });
     studyThis.disabled = !cc.t;
     const quizThis = btn("chipbtn", "Quiz me", () => startQuiz(sid, sec.id)); quizThis.disabled = !cc.t;
-    acts.append(studyThis, quizThis);
+    acts.append(studyThis, quizThis, btn("chipbtn", "+ Add material", () => go({ v: "import", sid, sec: sec.id })), btn("linkbtn", subjectOpenMore === sec.id ? "Close" : "Manage", () => { subjectOpenMore = subjectOpenMore === sec.id ? null : sec.id; subjectConfirm = null; renderSubject(); }));
     box.append(acts);
+    if (subjectOpenMore === sec.id) box.append(manageSection(sid, s, sec));
     secs.append(box);
   });
+  {
+    const f = el("form", "row"); const inp = el("input"); inp.type = "text"; inp.id = "newsec"; inp.placeholder = "New subsection, e.g. Chapter 3"; inp.className = "grow"; inp.setAttribute("aria-label", "New subsection name");
+    const sb = el("button", "btn ghost", "Add"); sb.type = "submit"; f.append(inp, sb);
+    f.addEventListener("submit", async (e) => { e.preventDefault(); const name = inp.value.trim(); if (!name) return; sb.disabled = true;
+      try { await saveSubject(sid, { ...s, sections: [...s.sections, { id: uidGen("x"), name }] }); renderSubject(); } catch (err) { toast("Couldn't add it. Try again."); sb.disabled = false; } });
+    secs.append(f);
+  }
   m.append(secs);
 
   const rp = el("div", "panel"); rp.id = "reports"; m.append(rp); renderReports();
@@ -1082,7 +1287,7 @@ const LETTERS = "ABCDEFGH";
 const labelFor = (item) => `${secName(item.sec)}${item.gen ? " · " + GEN[item.gen].label : item.src ? " · " + item.src : ""}`;
 async function renderStudy() {
   const sid = route.sid; const s = subjects[sid]; if (!s) { go({ v: "home" }); return; }
-  topbar(s.name, () => go({ v: "subject", sid }), "Study");
+  topbar(s.name, () => backTo({ v: "subject", sid }), "Study");
   if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "study") return; }
   if (!cur || !ITEMS.has(cur.id)) show(); else renderCur();
 }
@@ -1129,28 +1334,6 @@ function metaRow(item, status, q, dots) {
   if (item) meta.append(el("span", "topic", labelFor(item)));
   return meta;
 }
-function body(card, q, pre = "") {
-  if (q.sc) { const sc = el("div", "scenario"); sc.append(el("b", null, "Scenario: " + q.sc.title), q.sc.text); card.append(sc); }
-  card.append(el("p", "stem", q.stem));
-  const list = el("div", "opts"); list.setAttribute("role", "group");
-  q.opts.forEach((o, i) => { const b = el("button", "opt"); b.type = "button"; b.id = pre + "opt" + i; b.append(el("span", "k", LETTERS[i])); const bd = el("span", "body"); bd.append(el("span", "t", o.t)); b.append(bd); list.append(b); });
-  card.append(list); return list;
-}
-function applyFeedback(card, q, picks, ok, full) {
-  card.querySelectorAll(".opt").forEach((b, i) => {
-    const o = q.opts[i]; const chosen = picks.has(i); b.disabled = true; b.classList.remove("sel");
-    let why = null, tag = null;
-    if (o.c && chosen) { b.classList.add("right"); why = o.why; if (q.fmt === "ms") tag = "correct"; }
-    else if (o.c && !chosen) { b.classList.add(q.fmt === "ms" ? "missed" : "right"); why = o.why; tag = q.fmt === "ms" ? "you missed this" : "correct answer"; }
-    else if (!o.c && chosen) { b.classList.add("wrong"); why = o.why; tag = "your answer"; }
-    else { b.classList.add(full ? "other" : "dim"); if (full) why = o.why; }
-    if (ok && !full && q.fmt !== "ms" && !chosen) why = null;
-    const bd = b.querySelector(".body");
-    if (tag && (!ok || full)) bd.querySelector(".t").append(el("span", "tag", "· " + tag));
-    if (why) bd.append(el("span", "why", why));
-  });
-  if (q.st) card.querySelector(".opts").after(Object.assign(el("div", "quote"), { textContent: "From your material: “" + q.st + "”" }));
-}
 function bottomRow(ctx) {
   const row = el("div", "flagrow"); row.id = "flagrow";
   const left = el("div", "addbox"); const add = btn("chipbtn", "+ Add 2 more like this", () => addMore(ctx.id, add)); add.id = "addbtn";
@@ -1158,53 +1341,10 @@ function bottomRow(ctx) {
   const fb = btn("linkbtn", "Report a problem", () => openReport(ctx)); fb.id = "flagbtn";
   row.append(left, fb); return row;
 }
-function renderCur() {
-  view = null; const card = studyShell();
-  if (!cur) {
-    const c = counts(); const allDone = c.t && c.m === c.t; const d = el("div", "done");
-    d.append(el("h2", null, allDone ? "Every question mastered" : "Nothing left to study here"),
-      el("p", "note", allDone ? `You got all ${c.t} questions right three times. Start a fresh round to practice again.` : "Check more subsections on the subject page, or add more material."));
-    if (allDone) d.append(btn("btn", "Start a fresh round", () => { const ex = S.extra; S = freshState(); S.extra = ex; S = fixState(S); persist(true); show(); }));
-    d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
-    card.append(navRow(), d); return;
-  }
-  const item = ITEMS.get(cur.id); const q = cur.q;
-  card.append(navRow(), metaRow(item, cur.status, q, cur.answered ? (st(cur.id) || {}).c : cur.dots));
-  const list = body(card, q); const act = el("div", "actions"); act.id = "actions";
-  if (!cur.answered) {
-    if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer, then press Check answer."));
-    list.querySelectorAll(".opt").forEach((b, i) => { b.addEventListener("click", () => choose(i)); b.classList.toggle("sel", cur.picks.has(i)); });
-    if (q.fmt === "ms") { const chk = btn("btn", "Check answer", submit); chk.id = "check"; chk.disabled = !cur.picks.size; act.append(chk); }
-    act.append(el("span", "kbd", "Keys: A–F · ← previous"));
-  } else {
-    applyFeedback(card, q, cur.picks, cur.ok, false);
-    const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
-    act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), nx);
-  }
-  card.append(act, bottomRow({ id: cur.id, q, answered: cur.answered, picks: cur.picks, live: true }));
-}
-function renderReview(idx) {
-  view = idx; const e = H[idx]; const item = ITEMS.get(e.id); const card = studyShell();
-  card.append(navRow(), metaRow(item, ["Looking back", "review"], e.q, null));
-  const picks = new Set(e.picks); body(card, e.q); applyFeedback(card, e.q, picks, e.ok, true);
-  const act = el("div", "actions"); act.append(el("span", "verdict " + (e.ok ? "ok" : "bad"), e.ok ? "You got this right" : "You missed this one"), el("span", "note", "Looking back doesn't change your progress."));
-  card.append(act); if (item) card.append(bottomRow({ id: e.id, q: e.q, answered: true, picks, live: false }));
-  const back = $("backbtn"); if (back) back.focus({ preventScroll: true });
-}
 function choose(i) {
   if (!cur || cur.answered || view != null) return;
   if (cur.q.fmt === "ms") { cur.picks.has(i) ? cur.picks.delete(i) : cur.picks.add(i); document.querySelectorAll("#card .opt").forEach((b, k) => b.classList.toggle("sel", cur.picks.has(k))); $("check").disabled = !cur.picks.size; return; }
   cur.picks = new Set([i]); submit();
-}
-function submit() {
-  if (!cur || cur.answered || !cur.picks.size || view != null) return;
-  const q = cur.q; const ok = q.opts.every((o, i) => o.c === cur.picks.has(i));
-  record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
-  const s = st(cur.id); cur.answered = true; cur.ok = ok;
-  cur.note = ok ? (s.m ? "Mastered. You won't see this one again." : `${s.c} of ${MAX}. It will come back later.`) : `It comes back in ${RETRY} questions. Count reset to 0 of ${MAX}.`;
-  H.push({ id: cur.id, q, picks: [...cur.picks], ok, at: Date.now() }); if (H.length > 60) H = H.slice(-40); lsSet("md-h-" + SID, H.slice(-40));
-  renderCur(); const nx = $("next"); if (nx) nx.focus({ preventScroll: true });
-  if (ok && S.auto) setTimeout(() => { if (route.v === "study" && cur && cur.answered && view == null) show(cur.id); }, 900);
 }
 document.addEventListener("keydown", (e) => {
   if (route.v === "quiz" && QZ && !QZ.done && !QZ.paused && !(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -1213,7 +1353,7 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") { e.preventDefault(); quizMove(-1); return; }
     const k = e.key.toUpperCase(); let i = LETTERS.indexOf(k); if (i < 0 && /^[1-8]$/.test(k)) i = +k - 1;
     if (q.fmt === "tf" && k === "T") i = 0; if (q.fmt === "tf" && k === "F") i = 1;
-    if (i >= 0 && i < q.opts.length) { e.preventDefault(); quizPick(i); }
+    if (q.opts && i >= 0 && i < q.opts.length) { e.preventDefault(); quizPick(i); }
     return;
   }
   if (route.v !== "study") return;
@@ -1223,11 +1363,11 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight" && view != null) { e.preventDefault(); goNext(); return; }
   if (e.key === "Escape" && view != null) { e.preventDefault(); view = null; renderCur(); return; }
   if (view != null || !cur) return;
-  if (e.key === "Enter") { if (cur.answered) { if (document.activeElement !== $("next")) { e.preventDefault(); show(cur.id); } } else if (cur.q.fmt === "ms" && cur.picks.size) { e.preventDefault(); submit(); } return; }
+  if (e.key === "Enter") { if (cur.answered) { if (document.activeElement !== $("next")) { e.preventDefault(); show(cur.id); } } else if ((cur.q.fmt === "ms" && cur.picks.size) || (!cur.q.opts && ready(cur.q, cur.resp))) { e.preventDefault(); submit(); } return; }
   if (cur.answered) return;
   const k = e.key.toUpperCase(); let i = LETTERS.indexOf(k); if (i < 0 && /^[1-8]$/.test(k)) i = +k - 1;
   if (cur.q.fmt === "tf" && k === "T") i = 0; if (cur.q.fmt === "tf" && k === "F") i = 1;
-  if (i >= 0 && i < cur.q.opts.length) { e.preventDefault(); choose(i); }
+  if (cur.q.opts && i >= 0 && i < cur.q.opts.length) { e.preventDefault(); choose(i); }
 });
 
 // ================= "Add 2 more like this" =================
@@ -1235,14 +1375,38 @@ function placeSoon(ids) {
   const unseen = []; S.order.forEach((id, i) => { if (!S.it[id] && active(id)) unseen.push(i); });
   ids.forEach((id, k) => { const want = k === 0 ? ri(1, 4) : ri(6, 11); const pos = unseen.length > want ? unseen[want] + k : S.order.length; S.order.splice(Math.min(pos, S.order.length), 0, id); });
 }
-function addMore(id, b) {
+async function addMore(id, b) {
   const item = ITEMS.get(id); if (!item) return;
-  const baseId = item.extraOf || id; const base = ITEMS.get(baseId);
+  const baseId = item.extraOf || id; const base = ITEMS.get(baseId); const msg = $("addmsg"); b.disabled = true;
   const stamp = Date.now().toString(36); const ids = [`${baseId}~${stamp}a`, `${baseId}~${stamp}b`];
-  const entries = ids.map((nid) => ({ id: nid, base: baseId, src: base.gen ? "gen" : "alt" }));
+  let entries;
+  const k = base.k || "mc";
+  if (base.gen || !apiKey() || k === "img" || !AI_KINDS.includes(k)) entries = ids.map((nid) => ({ id: nid, base: baseId, src: base.gen ? "gen" : "alt" }));
+  else {
+    // With an API key, Claude writes 2 brand-new questions on the same idea, in the same question type.
+    msg.textContent = "Writing 2 new questions…"; let recs = null;
+    const known = [base.q, ...(base.alt || []).map((a) => a.q)].map((t) => "- " + t).join("\n");
+    const ans = answerText(base);
+    const prompt = `You write practice questions for a student's quiz app (subject: ${subjects[SID].name}; subsection: ${secName(base.sec)}).
+Original ${KIND_USE[k]} question and its official answer (treat the answer as correct):
+Question: ${base.q}
+Answer: ${ans}
+${base.ex ? "Why: " + base.ex : ""}
+${base.st ? "Source text: " + base.st : ""}
+Versions the student has already seen:
+${known}
+
+Write 2 NEW ${KIND_USE[k]} questions that test the same idea with different wording or a different example. Each must agree with the official answer.${k === "mc" ? " Give 3 plausible wrong choices from the same topic, similar in length to the right answer; no \"All/None of the above\"." : ""} Keep explanations to one short sentence.
+Reply with only JSON: {"questions":[2 questions, each in this shape: ${SHAPE[k]}]}`;
+    try { const { text } = await callClaude([{ type: "text", text: prompt }], { maxTokens: 2500 }); const out = parseLooseJSON(text); const ok = out && Array.isArray(out.questions) ? out.questions.map((v) => normQ(v, k)).filter(Boolean) : []; if (ok.length) recs = ok; } catch (e) { recs = null; }
+    entries = ids.map((nid, j) => (recs && recs[j] ? { id: nid, base: baseId, src: "ai", rec: { ...recs[j], k } } : { id: nid, base: baseId, src: "alt" }));
+    const nAi = entries.filter((e) => e.src === "ai").length;
+    msg.textContent = nAi === 2 ? "" : nAi === 1 ? "1 brand-new question; the other reuses this one's reworded versions." : "Couldn't write new ones right now, so I added this question's reworded versions again.";
+  }
   S.extra = [...S.extra, ...entries]; registerExtras(entries); placeSoon(ids); persist();
-  $("addmsg").textContent = base.gen ? "Added 2 more with new numbers. They'll come up soon." : "Added 2 more in different wording. They'll come up soon.";
-  b.disabled = true; setTimeout(() => { b.disabled = false; }, 800);
+  const done = base.gen ? "Added 2 more with new numbers." : entries.some((e) => e.src === "ai") ? "Added 2 more." : "Added 2 more in different wording.";
+  msg.textContent = (msg.textContent ? msg.textContent + " " : "") + done + " They'll come up soon.";
+  setTimeout(() => { b.disabled = false; }, 800);
 }
 
 // ================= Reports (kept on this phone, copied to Claude) =================
@@ -1262,8 +1426,8 @@ function openReport(ctx) {
     const reasons = [...f.querySelectorAll(".reason input:checked")].map((x) => x.value); const note = ta.value.trim();
     if (!reasons.length && !note) { msg.textContent = "Pick a reason or write a note."; return; }
     const q = ctx.q;
-    reports.push({ id: uidGen("r"), sid: SID, item: ctx.id, label: labelFor(ITEMS.get(ctx.id) || {}), version: q.tag ? q.tag[0] : "", stem: q.stem,
-      options: q.opts.map((o) => (o.c ? "[marked correct] " : "") + o.t), answered: !!ctx.answered, chose: ctx.answered ? [...ctx.picks].map((i) => q.opts[i].t) : [], reasons, note, skip: skc.checked, at: Date.now() });
+    reports.push({ id: uidGen("r"), sid: SID, item: ctx.id, label: labelFor(ITEMS.get(ctx.id) || {}), version: q.tag ? q.tag[0] : "", stem: q.stem || (q.parts ? q.parts.map((x, i) => (i % 2 ? "_____" : x)).join("") : ""),
+      options: describeQ(q), answered: !!ctx.answered, chose: ctx.answered ? describeResp(q, ctx.picks, ctx.resp) : [], reasons, note, skip: skc.checked, at: Date.now() });
     lsSet("md-reports", reports);
     if (skc.checked) { S.skip = [...new Set([...S.skip, ctx.id])]; persist(); }
     f.removeAttribute("id"); f.replaceChildren(el("span", "fbmsg", "Saved. On the subject page, tap “Copy reports for Claude” and paste them into your chat so they get fixed."));
@@ -1304,6 +1468,308 @@ function renderReports() {
   }
 }
 
+// ================= Question types: Q&A, multi-select, fill in the blank, order, match, true/false, image =================
+const IMGS = {};                                   // picture id -> data URL (pictures live inside their material pack)
+const QTYPES = [
+  { k: "mc", name: "Q&A", s: "Question and answer" },
+  { k: "ms", name: "Multi-select", s: "Several right answers" },
+  { k: "fb", name: "Fill in the blank", s: "Type the missing word" },
+  { k: "ord", name: "Order items", s: "Put steps in sequence" },
+  { k: "match", name: "Match pairs", s: "Terms with meanings" },
+  { k: "tf", name: "True or false", s: "Judge a statement" },
+  { k: "img", name: "Image", s: "Cover labels on a picture" },
+];
+Object.assign(FMT_NAME, { fb: "Fill in the blank", type: "Type the answer", ord: "Put in order", match: "Match the pairs" });
+const IXF = ["fb", "type", "ord", "match"];
+
+// ---- typed answers: forgiving about case, accents, punctuation, "the", and small typos ----
+const normAns = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9%.]+/g, " ").replace(/\.(?!\d)/g, " ").replace(/^\s*(the|a|an)\s+/, "").replace(/\s+/g, " ").trim();
+function lev(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 9;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) { const row = [i]; for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = row; }
+  return prev[b.length];
+}
+function blankOk(accepted, given) {
+  const g = normAns(given); if (!g) return false;
+  return accepted.some((a) => { const n = normAns(a); if (!n) return false; if (n === g) return true; if (/\d/.test(n)) return false; const tol = n.length >= 9 ? 2 : n.length >= 4 ? 1 : 0; return lev(n, g) <= tol; });
+}
+function parseBlanks(text) {
+  const parts = String(text).split(/\[\[([^\]]+?)\]\]/); const blanks = [];
+  for (let i = 1; i < parts.length; i += 2) blanks.push(parts[i].split("|").map((x) => x.trim()).filter(Boolean));
+  return { parts: parts.map((p, i) => (i % 2 ? "" : p)), blanks };
+}
+const blankText = (text) => String(text).replace(/\[\[([^\]]+?)\]\]/g, "_____");
+
+// ---- picking the original or a reworded version ----
+function pickVariant(item, seen, lastFmt) {
+  const fmts = ["o"]; (item.alt || []).forEach((_, i) => fmts.push("a" + i));
+  let f;
+  if (!seen && !item.extraOf) f = "o";
+  else { let ch = fmts.filter((x) => x !== lastFmt); if (item.extraOf && fmts.length > 1) ch = ch.filter((x) => x !== "o"); if (!ch.length) ch = fmts; f = ch[ri(0, ch.length - 1)]; }
+  const v = f === "o" ? item : item.alt[+f.slice(1)];
+  return { f, v, tag: f === "o" ? (item.extraOf ? ["Extra", "ai"] : ["Original", "orig"]) : ["Reworded", ""] };
+}
+function shuffledIdx(n) { let o = shuffle([...Array(n).keys()]); for (let t = 0; t < 5 && n > 1 && o.every((x, i) => x === i); t++) o = shuffle(o); return o; }
+// Q&A without written wrong answers: borrow answers from other questions in the same subsection, or ask to type it.
+function poolAnswers(item, right) {
+  const seen = new Set([normAns(right)]); const out = [];
+  for (const x of ITEMS.values()) {
+    if (x.extraOf || x.id === item.id || x.sec !== item.sec || (x.k && x.k !== "mc") || x.gen || !x.a) continue;
+    const n = normAns(x.a); if (seen.has(n)) continue; seen.add(n); out.push(x.a);
+  }
+  return shuffle(out).slice(0, 3);
+}
+function build(item, seen, lastFmt) {
+  const k = item.k || "mc";
+  if (item.gen) return buildBase(item, seen, lastFmt);
+  let q;
+  if (k === "img") {
+    const labels = (item.boxes || []).map((b) => b.t); const me = labels[item.hi];
+    const others = [...new Set(labels.filter((t, i) => i !== item.hi && normAns(t) !== normAns(me)))];
+    const boxes = (item.boxes || []).map(({ x, y, w, h }) => ({ x, y, w, h }));
+    const base = { f: "o", tag: ["Picture", "orig"], im: item.im, boxes, hi: item.hi, stem: item.q || "What is under the highlighted box?" };
+    if (others.length >= 2) q = { ...base, fmt: "mc", opts: orderOpts([{ t: me, c: true, why: item.ex || "That's the label under the highlighted box." }, ...shuffle(others).slice(0, 3).map((t) => ({ t, c: false, why: "That label is somewhere else on the picture." }))]) };
+    else q = { ...base, fmt: "type", ex: item.ex || "", parts: ["", ""], blanks: [[me]] };
+    return q;
+  }
+  if (!["ms", "fb", "ord", "match"].includes(k)) {
+    const v0 = pickVariant(item, seen, lastFmt);
+    if (k === "mc" && !(v0.v.w && v0.v.w.length)) {
+      const others = poolAnswers(item, v0.v.a);
+      if (others.length >= 2) q = { f: v0.f, tag: v0.tag, fmt: "mc", stem: v0.v.q, opts: orderOpts([{ t: v0.v.a, c: true, why: v0.v.ex }, ...others.map((t) => ({ t, c: false, why: "That's the answer to a different question." }))]) };
+      else q = { f: v0.f, tag: v0.tag, fmt: "type", stem: v0.v.q, ex: v0.v.ex || "", parts: ["", ""], blanks: [[v0.v.a]] };
+    } else q = buildBase(item, seen, lastFmt);
+    if (item.im) q.im = item.im;
+    return q;
+  }
+  const { f, v, tag } = pickVariant(item, seen, lastFmt);
+  const base = { f, tag, st: item.st || null, ex: v.ex || item.ex || "" };
+  if (k === "ms") q = { ...base, fmt: "ms", stem: v.q, opts: shuffle(v.o.map(([t, c, why]) => ({ t, c: !!c, why: why || (c ? v.ex || "" : "") }))) };
+  else if (k === "fb") q = { ...base, fmt: "fb", stem: "", ...parseBlanks(v.q) };
+  else if (k === "ord") q = { ...base, fmt: "ord", stem: v.q, items: v.items.slice(), shown: shuffledIdx(v.items.length) };
+  else q = { ...base, fmt: "match", stem: v.q, pairs: v.pairs.map((p) => p.slice()), lorder: shuffle([...v.pairs.keys()]), rorder: shuffledIdx(v.pairs.length) };
+  if (item.im) q.im = item.im;
+  return q;
+}
+function gradeAns(q, a) {
+  a = a || [];
+  if (q.opts) { const p = new Set(a); return p.size > 0 && q.opts.every((o, j) => o.c === p.has(j)); }
+  if (q.fmt === "fb" || q.fmt === "type") return q.blanks.every((acc, i) => blankOk(acc, a[i]));
+  if (q.fmt === "ord") return a.length === q.items.length && a.every((x, i) => x === i);
+  if (q.fmt === "match") return a.length === q.pairs.length && a.every(([l, r]) => l === r);
+  return false;
+}
+function ready(q, a) {
+  a = a || [];
+  if (q.opts) return a.length > 0;
+  if (q.fmt === "fb" || q.fmt === "type") return q.blanks.every((_, i) => String(a[i] || "").trim());
+  if (q.fmt === "ord") return a.length === q.items.length;
+  if (q.fmt === "match") return a.length === q.pairs.length;
+  return false;
+}
+
+// ---- pictures ----
+function imgView(q, reveal) {
+  const src = IMGS[q.im]; if (!src) return null;
+  const w = el("div", "qimg"); const img = el("img"); img.src = src; img.alt = "Picture for this question"; w.append(img);
+  (q.boxes || []).forEach((b, i) => {
+    const d = el("div", "occ" + (i === q.hi ? " hi" : "") + (i === q.hi && reveal ? " open" : ""));
+    d.style.left = b.x + "%"; d.style.top = b.y + "%"; d.style.width = b.w + "%"; d.style.height = b.h + "%";
+    if (i === q.hi && !reveal) d.textContent = "?";
+    w.append(d);
+  });
+  const z = el("span", "zoomhint", "Tap to enlarge"); w.append(z);
+  w.addEventListener("click", () => { const lb = el("div", "lightbox"); const c = w.cloneNode(true); c.querySelector(".zoomhint").remove(); lb.append(c, el("span", "lbclose", "Tap anywhere to close")); lb.addEventListener("click", () => lb.remove()); document.body.append(lb); });
+  return w;
+}
+
+// ---- drawing the question body (all formats) ----
+function body(card, q, pre = "", io = null) {
+  io = io || {};
+  if (q.sc) { const sc = el("div", "scenario"); sc.append(el("b", null, "Scenario: " + q.sc.title), q.sc.text); card.append(sc); }
+  const pic = q.im ? imgView(q, !!io.reveal) : null; if (pic) card.append(pic);
+  if (q.stem) card.append(el("p", "stem", q.stem));
+  if (q.opts) {
+    const list = el("div", "opts"); list.setAttribute("role", "group");
+    q.opts.forEach((o, i) => { const b = el("button", "opt"); b.type = "button"; b.id = pre + "opt" + i; b.append(el("span", "k", LETTERS[i])); const bd = el("span", "body"); bd.append(el("span", "t", o.t)); b.append(bd); list.append(b); });
+    card.append(list); return list;
+  }
+  const box = el("div", "ix ix-" + q.fmt); box.dataset.pre = pre; card.append(box);
+  if (!io.resp) io.resp = [];
+  drawIx(box, q, io); return box;
+}
+function drawIx(box, q, io) {
+  const pre = box.dataset.pre || ""; box.replaceChildren(); const a = io.resp || []; const marks = !!io.marks; const lock = !!io.locked || marks;
+  const change = (r) => { io.resp = r; if (io.onChange) io.onChange(r); drawIx(box, q, io); };
+  if (q.fmt === "fb" || q.fmt === "type") {
+    const line = el("div", q.fmt === "fb" ? "fbline" : "typeline");
+    q.parts.forEach((seg, i) => {
+      if (i % 2 === 0) { if (seg) line.append(seg); return; }
+      const bi = (i - 1) / 2; const wrap = el("span", "blankwrap");
+      const inp = el("input", "blank"); inp.type = "text"; inp.id = pre + "blank" + bi; inp.autocomplete = "off"; inp.spellcheck = false;
+      inp.setAttribute("autocapitalize", "off"); inp.setAttribute("autocorrect", "off"); inp.setAttribute("enterkeyhint", bi < q.blanks.length - 1 ? "next" : "done");
+      inp.setAttribute("aria-label", q.fmt === "type" ? "Your answer" : "Blank " + (bi + 1)); if (q.fmt === "type") inp.placeholder = "Type your answer";
+      inp.value = a[bi] || ""; inp.disabled = lock;
+      if (marks) { const ok = blankOk(q.blanks[bi], a[bi]); inp.classList.add(ok ? "right" : "wrong"); wrap.append(inp); if (!ok) wrap.append(el("span", "fix", "Correct: " + q.blanks[bi][0])); }
+      else {
+        inp.addEventListener("input", () => { const r = q.blanks.map((_, k) => (k === bi ? inp.value : String((io.resp || [])[k] || ""))); io.resp = r.some((x) => x.trim()) ? r : []; if (io.onChange) io.onChange(io.resp); });
+        inp.addEventListener("keydown", (e) => { if (e.key !== "Enter") return; e.preventDefault(); const nx = document.getElementById(pre + "blank" + (bi + 1)); if (nx) nx.focus(); else { inp.blur(); if (io.onEnter) io.onEnter(); } });
+        wrap.append(inp);
+      }
+      line.append(wrap);
+    });
+    box.append(line);
+    if (marks && q.fmt === "type" && !blankOk(q.blanks[0], a[0]) && a[0]) box.append(el("p", "small muted", "Your answer: " + a[0]));
+    return;
+  }
+  if (q.fmt === "ord") {
+    box.append(el("div", "ixlbl", "Your order"));
+    const yours = el("div", "opts"); a.forEach((ix, pos) => {
+      const b = el("button", "opt ordi"); b.type = "button"; b.id = pre + "ord" + pos; b.append(el("span", "k", String(pos + 1))); const bd = el("span", "body"); bd.append(el("span", "t", q.items[ix])); b.append(bd);
+      if (marks) { b.disabled = true; b.classList.add(ix === pos ? "right" : "wrong"); if (ix !== pos) bd.append(el("span", "why", "Should be number " + (ix + 1))); }
+      else if (lock) b.disabled = true; else b.addEventListener("click", () => change(a.filter((x) => x !== ix)));
+      yours.append(b);
+    });
+    if (!a.length) yours.append(el("div", "ixempty", lock ? "No answer given." : "Tap the items below in the order they go."));
+    box.append(yours);
+    const left = q.shown.filter((ix) => !a.includes(ix));
+    if (left.length && !marks) {
+      box.append(el("div", "ixlbl", "Items"));
+      const pool = el("div", "opts"); left.forEach((ix) => {
+        const b = el("button", "opt pooli"); b.type = "button"; b.id = pre + "pool" + ix; b.append(el("span", "k", "+")); const bd = el("span", "body"); bd.append(el("span", "t", q.items[ix])); b.append(bd);
+        if (lock) b.disabled = true; else b.addEventListener("click", () => change([...a, ix]));
+        pool.append(b);
+      });
+      box.append(pool);
+    }
+    if (marks && !gradeAns(q, a)) { const ol = el("ol", "solution"); q.items.forEach((t) => ol.append(el("li", null, t))); box.append(el("div", "ixlbl ok", "Correct order"), ol); }
+    return;
+  }
+  if (q.fmt === "match") {
+    const got = new Map(a.map(([l, r]) => [l, r]));
+    if (io.sel == null || got.has(io.sel)) io.sel = q.lorder.find((l) => !got.has(l));
+    box.append(el("div", "ixlbl", lock ? "Your matches" : "Tap a term, then its match"));
+    const rows = el("div", "opts");
+    q.lorder.forEach((l, n) => {
+      const b = el("button", "opt mrow"); b.type = "button"; b.id = pre + "mrow" + n; b.append(el("span", "k", LETTERS[n]));
+      const bd = el("span", "body"); bd.append(el("span", "t", q.pairs[l][0]));
+      if (got.has(l)) bd.append(el("span", "mto", "→ " + q.pairs[got.get(l)][1])); else if (!lock) bd.append(el("span", "mto none", "→ ?"));
+      b.append(bd);
+      if (marks) { b.disabled = true; const ok = got.get(l) === l; b.classList.add(ok ? "right" : got.has(l) ? "wrong" : "missed"); if (!ok) bd.append(el("span", "why", "Correct: " + q.pairs[l][1])); }
+      else if (lock) b.disabled = true;
+      else { if (io.sel === l) b.classList.add("sel"); b.addEventListener("click", () => { if (got.has(l)) { io.sel = l; change(a.filter(([x]) => x !== l)); } else { io.sel = l; drawIx(box, q, io); } }); }
+      rows.append(b);
+    });
+    box.append(rows);
+    const left = q.rorder.filter((r) => ![...got.values()].includes(r));
+    if (left.length && !lock) {
+      box.append(el("div", "ixlbl", "Matches"));
+      const pool = el("div", "opts mpool"); left.forEach((r) => {
+        const b = el("button", "opt pooli"); b.type = "button"; b.id = pre + "mpool" + r; b.append(el("span", "k", "·")); const bd = el("span", "body"); bd.append(el("span", "t", q.pairs[r][1])); b.append(bd);
+        b.addEventListener("click", () => { const l = io.sel != null ? io.sel : q.lorder.find((x) => !got.has(x)); if (l == null) return; io.sel = null; change([...a.filter(([x]) => x !== l), [l, r]]); });
+        pool.append(b);
+      });
+      box.append(pool);
+    }
+  }
+}
+function applyFeedback(card, q, picks, ok, full) {
+  if (!q.opts) {
+    const box = card.querySelector(".ix"); drawIx(box, q, { resp: Array.isArray(picks) ? picks : [], marks: true });
+    if (q.ex) box.append(el("div", "ixwhy" + (ok ? " ok" : ""), q.ex));
+    if (q.st) box.after(Object.assign(el("div", "quote"), { textContent: "From your material: “" + q.st + "”" }));
+    return;
+  }
+  picks = picks instanceof Set ? picks : new Set(picks || []);
+  card.querySelectorAll(".opt").forEach((b, i) => {
+    const o = q.opts[i]; const chosen = picks.has(i); b.disabled = true; b.classList.remove("sel");
+    let why = null, tag = null;
+    if (o.c && chosen) { b.classList.add("right"); why = o.why; if (q.fmt === "ms") tag = "correct"; }
+    else if (o.c && !chosen) { b.classList.add(q.fmt === "ms" ? "missed" : "right"); why = o.why; tag = q.fmt === "ms" ? "you missed this" : "correct answer"; }
+    else if (!o.c && chosen) { b.classList.add("wrong"); why = o.why; tag = "your answer"; }
+    else { b.classList.add(full ? "other" : "dim"); if (full) why = o.why; }
+    if (ok && !full && q.fmt !== "ms" && !chosen) why = null;
+    const bd = b.querySelector(".body");
+    if (tag && (!ok || full)) bd.querySelector(".t").append(el("span", "tag", "· " + tag));
+    if (why) bd.append(el("span", "why", why));
+  });
+  if (q.st) card.querySelector(".opts").after(Object.assign(el("div", "quote"), { textContent: "From your material: “" + q.st + "”" }));
+}
+// For problem reports: a plain-text version of any question and answer.
+function describeQ(q) {
+  if (q.opts) return q.opts.map((o) => (o.c ? "[marked correct] " : "") + o.t);
+  if (q.fmt === "fb" || q.fmt === "type") return ["Accepted answers: " + q.blanks.map((b) => b.join(" / ")).join(" ; "), q.fmt === "fb" ? "Sentence: " + q.parts.map((p, i) => (i % 2 ? "[" + q.blanks[(i - 1) / 2][0] + "]" : p)).join("") : ""].filter(Boolean);
+  if (q.fmt === "ord") return ["Correct order: " + q.items.join(" → ")];
+  if (q.fmt === "match") return q.pairs.map((p) => p[0] + " = " + p[1]);
+  return [];
+}
+function describeResp(q, picks, resp) {
+  if (q.opts) return [...(picks || [])].map((i) => q.opts[i].t);
+  const a = resp || [];
+  if (q.fmt === "fb" || q.fmt === "type") return a.map((x) => x || "(blank)");
+  if (q.fmt === "ord") return [a.map((i) => q.items[i]).join(" → ")];
+  if (q.fmt === "match") return a.map(([l, r]) => q.pairs[l][0] + " = " + q.pairs[r][1]);
+  return [];
+}
+
+// ---- study screen (all formats) ----
+function renderCur() {
+  view = null; const card = studyShell();
+  if (!cur) {
+    const c = counts(); const allDone = c.t && c.m === c.t; const d = el("div", "done");
+    d.append(el("h2", null, allDone ? "Every question mastered" : "Nothing left to study here"),
+      el("p", "note", allDone ? `You got all ${c.t} questions right three times. Start a fresh round to practice again.` : "Check more subsections on the subject page, or add more material."));
+    if (allDone) d.append(btn("btn", "Start a fresh round", () => { const ex = S.extra; S = freshState(); S.extra = ex; S = fixState(S); persist(true); show(); }));
+    d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
+    card.append(navRow(), d); return;
+  }
+  const item = ITEMS.get(cur.id); const q = cur.q; const ix = !q.opts;
+  if (ix && !cur.resp) cur.resp = [];
+  card.append(navRow(), metaRow(item, cur.status, q, cur.answered ? (st(cur.id) || {}).c : cur.dots));
+  const io = ix ? { resp: cur.resp, locked: cur.answered, reveal: cur.answered, onChange: (r) => { cur.resp = r; const c = $("check"); if (c) c.disabled = !ready(q, r); }, onEnter: () => { if (ready(q, cur.resp)) submit(); } } : { reveal: cur.answered };
+  const list = body(card, q, "", io); const act = el("div", "actions"); act.id = "actions";
+  if (!cur.answered) {
+    if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer, then press Check answer."));
+    if (!ix) list.querySelectorAll(".opt").forEach((b, i) => { b.addEventListener("click", () => choose(i)); b.classList.toggle("sel", cur.picks.has(i)); });
+    if (q.fmt === "ms" || ix) { const chk = btn("btn", "Check answer", submit); chk.id = "check"; chk.disabled = ix ? !ready(q, cur.resp) : !cur.picks.size; act.append(chk); }
+    if (ix) { const idk = btn("linkbtn", "I don't know", () => submit(true)); idk.id = "idk"; act.prepend(idk); }
+    else act.append(el("span", "kbd", "Keys: A–F · ← previous"));
+  } else {
+    applyFeedback(card, q, ix ? cur.resp : cur.picks, cur.ok, false);
+    const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
+    act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), nx);
+  }
+  card.append(act, bottomRow({ id: cur.id, q, answered: cur.answered, picks: cur.picks, resp: cur.resp, live: true }));
+}
+function renderReview(idx) {
+  view = idx; const e = H[idx]; const item = ITEMS.get(e.id); const card = studyShell();
+  card.append(navRow(), metaRow(item, ["Looking back", "review"], e.q, null));
+  const picks = new Set(e.picks || []); body(card, e.q, "", { resp: e.resp || [], locked: true, reveal: true }); applyFeedback(card, e.q, e.q.opts ? picks : e.resp || [], e.ok, true);
+  const act = el("div", "actions"); act.append(el("span", "verdict " + (e.ok ? "ok" : "bad"), e.ok ? "You got this right" : "You missed this one"), el("span", "note", "Looking back doesn't change your progress."));
+  card.append(act); if (item) card.append(bottomRow({ id: e.id, q: e.q, answered: true, picks, resp: e.resp, live: false }));
+  const back = $("backbtn"); if (back) back.focus({ preventScroll: true });
+}
+function submit(giveUp) {
+  if (!cur || cur.answered || view != null) return;
+  const q = cur.q; const ix = !q.opts; const gu = giveUp === true;
+  if (!gu && (ix ? !ready(q, cur.resp) : !cur.picks.size)) return;
+  const ok = gu ? false : gradeAns(q, ix ? cur.resp : [...cur.picks]);
+  record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
+  const s = st(cur.id); cur.answered = true; cur.ok = ok;
+  cur.note = ok ? (s.m ? "Mastered. You won't see this one again." : `${s.c} of ${MAX}. It will come back later.`) : `It comes back in ${RETRY} questions. Count reset to 0 of ${MAX}.`;
+  H.push({ id: cur.id, q, picks: [...cur.picks], resp: ix ? cur.resp : null, ok, at: Date.now() }); if (H.length > 60) H = H.slice(-40); lsSet("md-h-" + SID, H.slice(-40));
+  renderCur(); const nx = $("next"); if (nx) nx.focus({ preventScroll: true });
+  if (ok && S.auto) setTimeout(() => { if (route.v === "study" && cur && cur.answered && view == null) show(cur.id); }, 900);
+}
+// Quiz me: answers for the new formats
+function quizSet(i, a) {
+  if (!QZ || QZ.done || QZ.paused) return;
+  QZ.ans[i] = a; saveQZ();
+  const nx = $("qznext"); if (nx && QZ.i < QZ.items.length - 1) nx.textContent = a.length ? "Next ›" : "Skip ›";
+  const answered = QZ.ans.filter((x) => x.length).length; const bm = document.querySelector("main > .bar .m"); if (bm) bm.style.width = (answered / QZ.items.length * 100) + "%";
+}
+
 // ================= QUIZ ME (timed practice test) =================
 const QUIZ_LEN = 50;
 let QZ = null;        // {sid, sec, items:[{id,q}], ans:[[i]], i, elapsed, runSince, paused, done, result}
@@ -1331,7 +1797,7 @@ async function renderQuiz() {
   if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "quiz") return; }
   if (!QZ || QZ.sid !== sid) QZ = loadQZ(sid);
   if (!QZ) { go({ v: "subject", sid }); return; }
-  topbar(s.name, () => { if (QZ && !QZ.done) pauseQuiz(); go({ v: "subject", sid }); }, QZ.done ? "Quiz results" : "Quiz me");
+  topbar(s.name, () => backTo({ v: "subject", sid }), QZ.done ? "Quiz results" : "Quiz me");
   clearInterval(qzTick);
   if (QZ.done) return renderResults();
   const m = $("main"); m.replaceChildren();
@@ -1351,10 +1817,11 @@ async function renderQuiz() {
   const card = el("section", "card"); card.id = "card";
   const meta = el("div", "meta"); meta.append(el("span", "chip fmt", FMT_NAME[q.fmt])); if (item) meta.append(el("span", "topic", secName(item.sec)));
   card.append(meta);
-  const list = body(card, q);
+  const qi = QZ.i;
+  const list = body(card, q, "", q.opts ? null : { resp: QZ.ans[qi], onChange: (a) => quizSet(qi, a) });
   if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer."));
   const sel = new Set(QZ.ans[QZ.i]);
-  list.querySelectorAll(".opt").forEach((b, k) => { b.classList.toggle("sel", sel.has(k)); b.addEventListener("click", () => quizPick(k)); });
+  if (q.opts) list.querySelectorAll(".opt").forEach((b, k) => { b.classList.toggle("sel", sel.has(k)); b.addEventListener("click", () => quizPick(k)); });
   const act = el("div", "actions qzact");
   const back = btn("btn ghost", "‹ Back", () => quizMove(-1)); back.disabled = QZ.i === 0;
   const last = QZ.i === n - 1;
@@ -1383,7 +1850,7 @@ function finishQuiz() {
   const ms = qzElapsed(); QZ.elapsed = ms; QZ.paused = true; QZ.runSince = null;
   const bySec = {}; let correct = 0;
   QZ.items.forEach(({ id, q }, k) => {
-    const picks = new Set(QZ.ans[k]); const ok = picks.size > 0 && q.opts.every((o, j) => o.c === picks.has(j));
+    const ok = gradeAns(q, QZ.ans[k]);
     if (ok) correct++; const sec = (ITEMS.get(id) || {}).sec || "?"; bySec[sec] = bySec[sec] || [0, 0]; bySec[sec][1]++; if (ok) bySec[sec][0]++;
   });
   QZ.result = { at: Date.now(), n: QZ.items.length, correct, ms, sec: QZ.sec, bySec, answered: QZ.ans.filter((a) => a.length).length };
@@ -1425,13 +1892,13 @@ function renderResults() {
     const c = el("div", "qzrev " + (ok ? "good" : "miss"));
     const meta = el("div", "meta"); meta.append(el("span", "chip " + (ok ? "" : "retry"), `${k + 1} · ${ok ? "Right" : QZ.ans[k].length ? "Missed" : "Skipped"}`), el("span", "chip fmt", FMT_NAME[q.fmt]));
     const item = ITEMS.get(id); if (item) meta.append(el("span", "topic", secName(item.sec)));
-    c.append(meta); body(c, q, "r" + k + "-"); applyFeedback(c, q, new Set(QZ.ans[k]), ok, true); rv.append(c);
+    c.append(meta); body(c, q, "r" + k + "-", { resp: QZ.ans[k], locked: true, reveal: true }); applyFeedback(c, q, q.opts ? new Set(QZ.ans[k]) : QZ.ans[k], ok, true); rv.append(c);
   });
   if (qzFilter === "missed" && !missedIds.length) rv.append(el("p", "small muted", "You got every question right."));
   m.append(rv);
   m.append(btn("btn ghost big", "Back to subject", () => go({ v: "subject", sid: QZ.sid })));
 }
-function isRight(k) { const q = QZ.items[k].q; const p = new Set(QZ.ans[k]); return p.size > 0 && q.opts.every((o, j) => o.c === p.has(j)); }
+function isRight(k) { return gradeAns(QZ.items[k].q, QZ.ans[k]); }
 function quizPanel(sid, s) {
   const p = el("div", "panel"); const q = (!QZ || QZ.sid !== sid) ? loadQZ(sid) : QZ;
   const pool = quizPool(null).length;
@@ -1454,6 +1921,667 @@ function quizPanel(sid, s) {
   return p;
 }
 
+// ================= Making questions: your own API key, files, notes, writing by hand =================
+const LIB = {
+  pdf: "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js",
+  pdfw: "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js",
+  docx: "https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js",
+  zip: "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js",
+};
+const MODELS = [{ id: "claude-sonnet-5-5", name: "Best quality", note: "Claude Sonnet 5.5" }, { id: "claude-haiku-5-5", name: "Fastest and cheapest", note: "Claude Haiku 5.5" }];
+const apiKey = () => (lsGet("md-apikey", "") || "").trim();
+const apiModel = () => lsGet("md-model", MODELS[0].id);
+const str = (x) => (typeof x === "string" ? x.trim() : "");
+function loadScript(src) { return new Promise((res, rej) => { if (document.querySelector(`script[src="${src}"]`)) return res(); const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("load")); document.head.append(s); }); }
+const blobToB64 = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(b); });
+
+class AIError extends Error { constructor(code, msg) { super(msg); this.code = code; } }
+async function callClaude(content, { signal, maxTokens = 16000 } = {}) {
+  const key = apiKey(); if (!key) throw new AIError("nokey", "Add your API key in Settings first.");
+  let r;
+  try {
+    r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal,
+      headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: apiModel(), max_tokens: maxTokens, messages: [{ role: "user", content }] }) });
+  } catch (e) { if (e && e.name === "AbortError") throw new AIError("cancelled", "Stopped."); throw new AIError("offline", "No internet connection. Connect and try again."); }
+  let data = null; try { data = await r.json(); } catch (e) {}
+  if (!r.ok) {
+    const msg = (data && data.error && data.error.message) || "";
+    if (r.status === 401) throw new AIError("badkey", "Your API key isn't working. Check that you copied all of it (it starts with sk-ant-) and paste it again in Settings.");
+    if (r.status === 403) throw new AIError("badkey", "Your API key doesn't have permission. Check it in Settings.");
+    if (/credit|balance|billing/i.test(msg)) throw new AIError("credit", "Your Anthropic API account is out of credit. Add credit at console.anthropic.com.");
+    if (r.status === 429) throw new AIError("busy", "Too many requests right now. Wait a minute and try again.");
+    if (r.status === 529 || r.status >= 500) throw new AIError("busy", "Claude is busy right now. Try again in a minute.");
+    if (r.status === 404) throw new AIError("model", "That model isn't available on your account. Pick the other one in Settings.");
+    throw new AIError("error", msg || "Something went wrong (" + r.status + ").");
+  }
+  const text = (data.content || []).filter((c) => c.type === "text").map((c) => c.text).join("");
+  return { text, cut: data.stop_reason === "max_tokens" };
+}
+function parseLooseJSON(text) {
+  const t = text.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (e) {} }
+  // Cut short: keep every complete question we can recover.
+  const start = t.indexOf("["); if (start < 0) return null;
+  for (let end = t.lastIndexOf("}"); end > start; end = t.lastIndexOf("}", end - 1)) {
+    try { const arr = JSON.parse(t.slice(start, end + 1) + "]"); return { questions: arr }; } catch (e) {}
+  }
+  return null;
+}
+
+// ---- normalising what the AI returns (every question type) ----
+const AI_KINDS = ["mc", "tf", "ms", "fb", "ord", "match"];
+function normQ(x, k) {
+  if (!x) return null;
+  const q = str(x.q), ex = str(x.ex) || "";
+  if (k === "ms") {
+    const raw = Array.isArray(x.opts) ? x.opts : Array.isArray(x.o) ? x.o.map((p) => ({ t: p[0], c: p[1], why: p[2] })) : [];
+    const seen = new Set(); const o = [];
+    for (const p of raw) { const t = str(p && p.t); if (!t || seen.has(t.toLowerCase())) continue; seen.add(t.toLowerCase()); o.push([t, p.c === true || p.c === "true", str(p.why)]); }
+    if (!q || o.length < 3 || !o.some((p) => p[1]) || !o.some((p) => !p[1])) return null;
+    return { q, o: o.slice(0, 7), ex };
+  }
+  if (k === "fb") {
+    let t = q; if (!/\[\[[^\]]+\]\]/.test(t) && /\[[^\[\]]+\]/.test(t)) t = t.replace(/\[([^\[\]]+)\]/g, "[[$1]]");
+    if (!/\[\[[^\]]+\]\]/.test(t)) return null;
+    return { q: t, ex };
+  }
+  if (k === "ord") {
+    const items = (Array.isArray(x.items) ? x.items : []).map(str).filter(Boolean);
+    if (!q || items.length < 3 || new Set(items.map((s) => s.toLowerCase())).size !== items.length) return null;
+    return { q, items: items.slice(0, 8), ex };
+  }
+  if (k === "match") {
+    const pairs = (Array.isArray(x.pairs) ? x.pairs : []).map((p) => (Array.isArray(p) ? [str(p[0]), str(p[1])] : [str(p && (p.a || p.l || p.term)), str(p && (p.b || p.r || p.match))])).filter((p) => p[0] && p[1]);
+    const L = new Set(), R = new Set(); const ok = pairs.filter((p) => { const l = p[0].toLowerCase(), r = p[1].toLowerCase(); if (L.has(l) || R.has(r)) return false; L.add(l); R.add(r); return true; });
+    if (!q || ok.length < 3) return null;
+    return { q, pairs: ok.slice(0, 8), ex };
+  }
+  let a = str(x.a);
+  if (!q || !a) return null;
+  if (k === "tf") {
+    if (/^t(rue)?$/i.test(a)) a = "True"; else if (/^f(alse)?$/i.test(a)) a = "False"; else return null;
+    return { q, a, ex, ww: str(x.ww) || (a === "True" ? "The statement is accurate." : "The statement is not accurate.") };
+  }
+  const wr = Array.isArray(x.wrong) ? x.wrong : Array.isArray(x.w) ? x.w.map((p) => ({ t: p[0], why: p[1] })) : [];
+  const seen = new Set([a.toLowerCase()]); const w = [];
+  for (const o of wr) { const t = str(o && o.t); if (t && !seen.has(t.toLowerCase()) && w.length < 5) { seen.add(t.toLowerCase()); w.push([t, str(o.why)]); } }
+  if (w.length < 2) return null;
+  return { q, a, ex, w };
+}
+function normItem(x) {
+  if (!x) return null;
+  const k = AI_KINDS.includes(x.k) ? x.k : /^(true|false)$/i.test(str(x.a)) ? "tf" : "mc";
+  const base = normQ(x, k); if (!base) return null;
+  const it = { k, ...base };
+  const alt = (Array.isArray(x.alt) ? x.alt : []).map((v) => normQ(v, k)).filter(Boolean).slice(0, 2);
+  if (alt.length) it.alt = alt;
+  if (str(x.source_text)) it.st = str(x.source_text).slice(0, 400);
+  if (x.answer_source === "claude") it.by = "claude";
+  if (Number.isInteger(x.image) && x.image > 0) it.imgIdx = x.image;
+  return it;
+}
+// How each type looks in JSON, for prompts.
+const SHAPE = {
+  mc: '{"k":"mc","q":"question","a":"correct answer","ex":"why","wrong":[{"t":"wrong answer","why":"why it is wrong"},{"t":"...","why":"..."},{"t":"...","why":"..."}]}',
+  tf: '{"k":"tf","q":"statement","a":"True or False","ex":"why","ww":"why the opposite is wrong"}',
+  ms: '{"k":"ms","q":"question that asks to select all that apply","ex":"why","opts":[{"t":"option","c":true,"why":"why it is right"},{"t":"option","c":false,"why":"why it is wrong"}, ...4 to 6 options, at least 2 correct and at least 1 wrong]}',
+  fb: '{"k":"fb","q":"one sentence with the key term(s) wrapped in double square brackets, e.g. The [[mitochondria]] produces ATP. Put other accepted spellings after |, e.g. [[ATP|adenosine triphosphate]]. 1 or 2 blanks, each 1 to 3 words","ex":"why"}',
+  ord: '{"k":"ord","q":"instruction, e.g. Put the stages of mitosis in order","items":["first","second","third", ...3 to 8 items listed in the CORRECT order],"ex":"why this order"}',
+  match: '{"k":"match","q":"instruction, e.g. Match each organelle with its job","pairs":[["term","its match"],["term","its match"],["term","its match"], ...3 to 8 pairs],"ex":"short note"}',
+};
+const KIND_USE = { mc: "Q&A (multiple choice with one right answer)", tf: "true or false", ms: "multi-select (select all that apply)", fb: "fill in the blank", ord: "put items in order (steps, stages, sequences, timelines)", match: "match pairs (terms with definitions, structures with functions)" };
+function answerText(it) {
+  if (it.k === "ms") return it.o.filter((p) => p[1]).map((p) => p[0]).join("; ");
+  if (it.k === "fb") return parseBlanks(it.q).blanks.map((b) => b[0]).join("; ");
+  if (it.k === "ord") return it.items.join(" → ");
+  if (it.k === "match") return it.pairs.map((p) => p[0] + " = " + p[1]).join("; ");
+  if (it.k === "img") return (it.boxes[it.hi] || {}).t || "";
+  return it.a || "";
+}
+const KNAME = (k) => (QTYPES.find((t) => t.k === k) || QTYPES[0]).name;
+
+// ---- reading files ----
+function splitText(text, max = 4000) {
+  const parts = []; let cur = "";
+  for (const para of text.split(/\n\s*\n/)) { if ((cur + "\n\n" + para).length > max && cur) { parts.push(cur); cur = para; } else cur = cur ? cur + "\n\n" + para : para; }
+  if (cur.trim()) parts.push(cur);
+  return parts.flatMap((p) => (p.length > max * 1.5 ? p.match(new RegExp(`[\\s\\S]{1,${max}}`, "g")) : [p]));
+}
+async function shrink(file, max = 1568) {
+  try {
+    const bmp = await createImageBitmap(file); const sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement("canvas"); cv.width = Math.round(bmp.width * sc); cv.height = Math.round(bmp.height * sc);
+    cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+    return await new Promise((r) => cv.toBlob((b) => r(b || file), "image/jpeg", 0.85));
+  } catch (e) { return file; }
+}
+const IMG_PER_CALL = 3;
+async function toChunks(mt) {
+  if (mt.kind === "notes") return splitText(mt.text).map((t) => ({ text: t, src: mt.name }));
+  if (mt.kind === "text") return splitText(await mt.file.text()).map((t) => ({ text: t, src: mt.name }));
+  if (mt.kind === "photo") return [{ images: [await shrink(mt.file)], src: mt.name }];
+  if (mt.kind === "word") {
+    await loadScript(LIB.docx); const r = await window.mammoth.extractRawText({ arrayBuffer: await mt.file.arrayBuffer() });
+    return splitText(r.value || "").map((t) => ({ text: t, src: mt.name }));
+  }
+  if (mt.kind === "slides") {
+    await loadScript(LIB.zip); const zip = await window.JSZip.loadAsync(await mt.file.arrayBuffer());
+    const num = (n) => +((n.match(/(\d+)\.xml$/) || [0, 0])[1]);
+    const grab = (xml) => (xml.match(/<a:t>([\s\S]*?)<\/a:t>/g) || []).map((x) => x.replace(/<\/?a:t>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'")).join(" ").replace(/\s+/g, " ").trim();
+    const slides = Object.keys(zip.files).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a, b) => num(a) - num(b));
+    const notes = {}; for (const n of Object.keys(zip.files).filter((n) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(n))) notes[num(n)] = grab(await zip.file(n).async("string"));
+    let text = ""; for (const n of slides) { const i = num(n); const t = grab(await zip.file(n).async("string")); if (t || notes[i]) text += `Slide ${i}: ${t}${notes[i] ? "\nSpeaker notes: " + notes[i] : ""}\n\n`; }
+    return splitText(text).map((t) => ({ text: t, src: mt.name }));
+  }
+  if (mt.kind === "pdf") {
+    await loadScript(LIB.pdfw); await loadScript(LIB.pdf);
+    const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(await mt.file.arrayBuffer()), isEvalSupported: false }).promise;
+    const chunks = []; let buf = "", from = 1; let imgs = [], imgFrom = 1;
+    const flushText = (to) => { if (buf.trim()) chunks.push({ text: buf, src: `${mt.name} p.${from}${to > from ? "–" + to : ""}` }); buf = ""; };
+    for (let p = 1; p <= pdf.numPages; p++) {
+      setProg(`Reading ${mt.name}: page ${p} of ${pdf.numPages}…`);
+      const page = await pdf.getPage(p); const tc = await page.getTextContent();
+      const text = tc.items.map((x) => x.str + (x.hasEOL ? "\n" : " ")).join("").replace(/[ \t]+/g, " ").trim();
+      if (text.length >= 60) { if (buf && (buf + text).length > 4000) { flushText(p - 1); from = p; } if (!buf) from = p; buf += (buf ? "\n\n" : "") + text; }
+      else {
+        const vp = page.getViewport({ scale: 1 }); const scale = Math.min(2, 1400 / vp.width); const v2 = page.getViewport({ scale });
+        const cv = document.createElement("canvas"); cv.width = v2.width; cv.height = v2.height; await page.render({ canvasContext: cv.getContext("2d"), viewport: v2 }).promise;
+        const blob = await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.85)); if (!imgs.length) imgFrom = p; imgs.push(blob);
+        if (imgs.length >= IMG_PER_CALL) { chunks.push({ images: imgs, src: `${mt.name} p.${imgFrom}–${p}` }); imgs = []; }
+      }
+    }
+    flushText(pdf.numPages); if (imgs.length) chunks.push({ images: imgs, src: `${mt.name} p.${imgFrom}+` });
+    return chunks;
+  }
+  return [];
+}
+function importPrompt(subj, sec, src, text, nImg, kinds) {
+  kinds = kinds && kinds.length ? kinds : ["mc"];
+  return `You turn a student's study material into quiz questions for a mastery quiz app.
+Subject: ${subj}. Subsection: ${sec}. Source: ${src}.
+${nImg ? `The material is in the ${nImg} attached image${nImg > 1 ? "s" : ""} (photos or screenshots of notes, slides, worksheets or pages).` : "Material:\n<<<\n" + text + "\n>>>"}
+
+The student chose these question types: ${kinds.map((k) => KIND_USE[k]).join("; ")}.
+Rules:
+1. If the material contains questions (quiz, worksheet, practice test, review questions), include EVERY one, copied word for word, in its own type with its own answer choices kept as given. If the material gives the answer, use it exactly and set "answer_source":"material". If it doesn't, work out the answer from the material or standard knowledge and set "answer_source":"claude".
+2. If the material is notes, slides or text, write new questions on its key facts using ONLY the chosen types${kinds.length > 1 ? ", spread across them, picking the type that fits each fact best" : ""}. Use the material's own wording as closely as possible. Put the exact sentence each one comes from in "source_text" and set "answer_source":"material".
+3. Multiple choice needs exactly 3 wrong choices, similar in length and detail to the right answer and never arguably correct. Avoid "All/None of the above".
+4. For EVERY question add exactly 2 reworded versions in "alt", in the SAME type and shape, testing the same knowledge with the same correct answer meaning: one paraphrase in clearly different words, one applied example or different angle. Reworded versions never replace the original.
+5. Explanations ("ex", "why", "ww"): one short sentence each, under 20 words. Skip anything illegible rather than guessing. At most 25 questions.${nImg ? `
+6. If a question can only be answered by looking at a picture (a diagram, chart or figure) and the picture does not show the answer, add "image": N where N is the attached image number (1 to ${nImg}). The student will see that picture with the question.` : ""}
+Shapes (add "answer_source", optional "source_text", and "alt":[2 versions in the same shape] to each):
+${kinds.concat(["mc", "tf"].filter((k) => !kinds.includes(k))).map((k) => k + ": " + SHAPE[k]).join("\n")}
+Reply with only JSON: {"questions":[...]}
+If there is nothing to make questions from, reply {"questions":[]}.`;
+}
+async function contentFor(ch, prompt) {
+  if (!ch.images) return [{ type: "text", text: prompt }];
+  const blocks = []; ch.b64 = [];
+  for (const b of ch.images) { const mt = /png|webp|gif/.test(b.type) ? b.type : "image/jpeg"; const d = await blobToB64(b); ch.b64.push(`data:${mt};base64,${d}`); blocks.push({ type: "image", source: { type: "base64", media_type: mt, data: d } }); }
+  blocks.push({ type: "text", text: prompt });
+  return blocks;
+}
+// ---- own packs in a subsection ----
+async function addOwnItems(sid, sec, items, srcName, imgs, merge) {
+  const list = (await loadPacks(sid)).slice();
+  // Questions you write go together into one "Written by you" entry per subsection.
+  const old = merge ? list.findIndex((p) => p.own && p.sec === sec && p.src === srcName) : -1;
+  const pid = old >= 0 ? list[old].id : uidGen("u"); const stamp = Date.now().toString(36);
+  const fresh = items.map((it, j) => ({ ...it, id: `${pid}-${stamp}${j}`, src: it.src || srcName }));
+  const pack = old >= 0 ? { ...list[old], items: [...list[old].items, ...fresh], imgs: { ...(list[old].imgs || {}), ...(imgs || {}) } } : { id: pid, sec, src: srcName, own: true, at: Date.now(), items: fresh };
+  if (imgs && Object.keys(imgs).length) { pack.imgs = { ...(pack.imgs || {}), ...imgs }; Object.assign(IMGS, imgs); }
+  if (pack.imgs && !Object.keys(pack.imgs).length) delete pack.imgs;
+  if (old >= 0) list[old] = pack; else list.push(pack);
+  await savePacks(sid, list);
+  await refreshLocal(sid);
+}
+async function refreshLocal(sid) {
+  const list = await loadPacks(sid);
+  subjects[sid] = { ...subjects[sid], count: list.reduce((n, p) => n + (p.items || []).length, 0) }; cacheSubjects();
+  if (SID === sid && S) {
+    ITEMS = new Map(); for (const p of list) { if (p.imgs) Object.assign(IMGS, p.imgs); for (const it of p.items || []) ITEMS.set(it.id, { ...it, sec: p.sec, pid: p.id }); }
+    S = fixState(S); persist();
+  }
+}
+
+// Swap the current page for another without adding a history step (so swiping back skips it).
+function replaceRoute(r) {
+  leaving(); const st = history.state || {}; route = r;
+  try { history.replaceState({ r, i: navIdx, prev: st.prev || null }, ""); } catch (e) {}
+  window.scrollTo(0, 0); rerender();
+}
+
+// ================= NEW SUBJECT =================
+function renderNewSubject() {
+  topbar("Home", () => backTo({ v: "home" }), "New subject");
+  const m = $("main"); m.replaceChildren();
+  const p = el("form", "panel"); p.append(el("h3", null, "Name your subject"));
+  const n = el("input"); n.type = "text"; n.id = "ns-name"; n.placeholder = "e.g. Anatomy & Physiology"; n.setAttribute("aria-label", "Subject name"); n.autocomplete = "off";
+  const l2 = el("p", "small muted", "First subsection (a chapter, unit or topic). You can add more later.");
+  const s2 = el("input"); s2.type = "text"; s2.id = "ns-sec"; s2.value = "Chapter 1"; s2.setAttribute("aria-label", "First subsection name");
+  const go1 = el("button", "btn big", "Create and add material"); go1.type = "submit";
+  p.append(n, l2, s2, go1);
+  p.addEventListener("submit", (e) => {
+    e.preventDefault(); const name = n.value.trim(); if (!name) { n.focus(); toast("Give your subject a name."); return; }
+    const sid = uidGen("s"), sec = uidGen("x");
+    saveSubject(sid, { name, sections: [{ id: sec, name: s2.value.trim() || "General" }], count: 0, at: Date.now(), order: Date.now(), lib: false, ver: 1 });
+    savePacks(sid, []).then(() => replaceRoute({ v: "import", sid, sec }));
+  });
+  m.append(p); setTimeout(() => n.focus(), 50);
+}
+
+// ================= ADD MATERIAL (Gizmo-style) =================
+let imp = null; // {sid, sec, mode, mats:[], results, picked, ctl, status, failed}
+const TILES = [
+  { k: "write", t: "Write", s: "Type your own question" },
+  { k: "photo", t: "Photos", s: "From your library" },
+  { k: "camera", t: "Camera", s: "Snap notes or a page" },
+  { k: "notes", t: "Notes", s: "Type or paste text" },
+  { k: "pdf", t: "PDF", s: "Slides, study guides" },
+  { k: "slides", t: "PowerPoint", s: ".pptx lecture slides" },
+  { k: "word", t: "Word", s: ".docx documents" },
+  { k: "audio", t: "Audio", s: "Lecture recordings" },
+];
+const ACCEPT = { photo: "image/*", camera: "image/*", pdf: ".pdf,application/pdf", slides: ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation", word: ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
+function setProg(text) { if (!imp) return; imp.status = text; const p = $("impprog"); if (p) { p.replaceChildren(el("p", "small", text)); if (imp.ctl) p.append(btn("btn ghost small", "Stop", () => imp.ctl && imp.ctl.abort())); } }
+async function renderImport() {
+  const sid = route.sid; const s = subjects[sid]; if (!s) { go({ v: "home" }); return; }
+  if (SID !== sid || !S) await openSubject(sid);
+  if (!imp || imp.sid !== sid) imp = { sid, sec: route.sec || (s.sections[0] && s.sections[0].id), mode: null, mats: [], results: null, picked: new Set(), status: "", failed: [] };
+  if (!s.sections.some((x) => x.id === imp.sec)) imp.sec = s.sections[0] && s.sections[0].id;
+  topbar(s.name, () => { if (imp && imp.ctl) imp.ctl.abort(); imp = null; const st = history.state; if (st && sameRoute(st.prev, { v: "subject", sid })) history.back(); else replaceRoute({ v: "subject", sid }); }, "Add material");
+  const m = $("main"); m.replaceChildren();
+
+  const where = el("div", "panel"); where.append(el("h3", null, "Add to subsection"));
+  const sel = el("select"); sel.id = "impsec"; sel.setAttribute("aria-label", "Subsection");
+  s.sections.forEach((x) => { const o = el("option", null, x.name); o.value = x.id; o.selected = x.id === imp.sec; sel.append(o); });
+  sel.addEventListener("change", () => { imp.sec = sel.value; });
+  where.append(sel); m.append(where);
+
+  if (imp.results) { renderPreview(m); return; }
+  if (imp.mode === "write") { renderWrite(m); return; }
+
+  const panel = el("div", "panel"); panel.append(el("h3", null, "What do you want to add?"));
+  const grid = el("div", "tiles");
+  for (const t of TILES) {
+    const card = el(ACCEPT[t.k] ? "label" : "button", "tile"); if (!ACCEPT[t.k]) card.type = "button";
+    card.append(el("span", "tt", t.t), el("span", "ts", t.s));
+    if (ACCEPT[t.k]) {
+      const f = el("input"); f.type = "file"; f.id = "tile-" + t.k; f.accept = ACCEPT[t.k]; if (t.k !== "camera") f.multiple = true; if (t.k === "camera") f.setAttribute("capture", "environment");
+      f.addEventListener("change", () => { addFiles(f.files, t.k); f.value = ""; }); card.append(f);
+    } else card.addEventListener("click", () => { if (t.k === "write") { imp.mode = "write"; renderImport(); } else { imp.mode = t.k; renderImport(); setTimeout(() => { const x = $("notesbox"); if (x) x.focus(); }, 60); } });
+    if (imp.mode === t.k) card.classList.add("on");
+    grid.append(card);
+  }
+  panel.append(grid);
+  if (imp.mode === "notes") {
+    const box = el("div", "subpanel");
+    const ta = el("textarea"); ta.id = "notesbox"; ta.rows = 8; ta.placeholder = "Type or paste your notes, a study guide, review questions, or a transcript…"; ta.setAttribute("aria-label", "Notes");
+    ta.addEventListener("paste", (e) => { const files = [...((e.clipboardData && e.clipboardData.files) || [])].filter((x) => x.type.startsWith("image/")); if (files.length) { e.preventDefault(); addFiles(files, "photo", "Pasted screenshot"); } });
+    const add = btn("btn ghost", "Add these notes", () => { const t = ta.value.trim(); if (!t) { toast("Type or paste some notes first."); return; } imp.mats.push({ id: uidGen("m"), kind: "notes", name: "Notes · " + t.slice(0, 36).replace(/\s+/g, " "), text: t }); imp.mode = null; renderImport(); });
+    box.append(ta, add); panel.append(box);
+  }
+  if (imp.mode === "audio") {
+    const box = el("div", "subpanel");
+    box.append(el("p", "small", "Nion can't listen to recordings directly, but your iPhone can turn them into text for free:"));
+    const ol = el("ol", "steps");
+    ["Record your lecture in the Voice Memos app (or open an existing recording).", "Open the recording and tap the transcript button (the speech-bubble icon). This needs iOS 18 or later.", "Press and hold the transcript, tap Select All, then Copy.", "Come back here, tap Notes, and paste it in."].forEach((x) => ol.append(el("li", null, x)));
+    box.append(ol, btn("btn ghost small", "Go to Notes", () => { imp.mode = "notes"; renderImport(); setTimeout(() => { const x = $("notesbox"); if (x) x.focus(); }, 60); }));
+    panel.append(box);
+  }
+  if (imp.mats.length) {
+    const mats = el("div", "mats");
+    imp.mats.forEach((mt) => { const r = el("div", "mat"); r.append(el("span", "k", mt.kind === "slides" ? "pptx" : mt.kind), el("span", "n", mt.name)); const x = btn(null, "×", () => { imp.mats = imp.mats.filter((y) => y !== mt); renderImport(); }); x.setAttribute("aria-label", "Remove " + mt.name); r.append(x); mats.append(r); });
+    panel.append(mats);
+  }
+  m.append(panel);
+
+  const gen = el("div", "panel");
+  if (!apiKey()) {
+    gen.append(el("h3", null, "Turn on question making"), el("p", "small muted", "To make questions from photos, notes and files, Nion needs your own Anthropic API key. It takes about 5 minutes to set up. You can still write questions yourself without it."), btn("btn ghost", "Set it up in Settings", () => go({ v: "settings" })));
+  } else {
+    const kinds = genKinds(); const tp = el("div", "typepick"); tp.append(el("span", "small muted", "Question types to make"));
+    const chips = el("div", "chips");
+    for (const t of QTYPES.filter((x) => x.k !== "img")) {
+      const c = btn("typechip" + (kinds.includes(t.k) ? " on" : ""), t.name, () => { let k2 = genKinds(); k2 = k2.includes(t.k) ? k2.filter((x) => x !== t.k) : [...k2, t.k]; if (!k2.length) { toast("Pick at least one type."); return; } lsSet("md-kinds", k2); renderImport(); });
+      c.setAttribute("aria-pressed", String(kinds.includes(t.k))); c.id = "kind-" + t.k; chips.append(c);
+    }
+    tp.append(chips); gen.append(tp);
+    const run = btn("btn big", imp.mats.length ? `Make questions from ${imp.mats.length} item${imp.mats.length > 1 ? "s" : ""}` : "Add material above first", runImport); run.id = "runimp"; run.disabled = !imp.mats.length || !!imp.ctl;
+    gen.append(run);
+    const prog = el("div", "progress"); prog.id = "impprog"; gen.append(prog); if (imp.status) prog.append(el("p", "small", imp.status));
+    gen.append(el("p", "small muted", `Questions already in your material are kept word for word. Each question gets 2 reworded versions. Uses ${MODELS.find((x) => x.id === apiModel()).name.toLowerCase()} on your API key.`));
+  }
+  m.append(gen);
+}
+const genKinds = () => { const k = lsGet("md-kinds", ["mc"]); const ok = Array.isArray(k) ? k.filter((x) => AI_KINDS.includes(x)) : []; return ok.length ? ok : ["mc"]; };
+function addFiles(list, kind, label) {
+  for (const f of list) {
+    const n = (f.name || "").toLowerCase(); let k = kind;
+    if (kind === "camera") k = "photo";
+    if (n.endsWith(".pdf") || f.type === "application/pdf") k = "pdf"; else if (n.endsWith(".docx")) k = "word"; else if (n.endsWith(".pptx")) k = "slides"; else if (f.type.startsWith("image/")) k = "photo"; else if (n.endsWith(".txt") || n.endsWith(".md")) k = "text";
+    if (n.endsWith(".ppt") || n.endsWith(".doc")) { toast(`${f.name} is an old format. Save it as .pptx or .docx, or as a PDF.`); continue; }
+    if (!["pdf", "word", "slides", "photo", "text"].includes(k)) { toast(`${f.name} isn't a type Nion can read.`); continue; }
+    imp.mats.push({ id: uidGen("m"), kind: k, name: label || f.name || "Photo", file: f });
+  }
+  imp.mode = null; renderImport();
+}
+async function runImport() {
+  if (!apiKey()) { go({ v: "settings" }); return; }
+  const job = imp; job.ctl = new AbortController(); job.failed = []; const found = []; const subj = subjects[job.sid].name; const kinds = genKinds(); job.imgs = {}; const secNm = secName(job.sec);
+  renderImport();
+  try {
+    let chunks = [];
+    for (const mt of job.mats) {
+      try { const cs = await toChunks(mt); cs.forEach((c) => { c.mat = mt.name; }); chunks.push(...cs); } catch (e) { job.failed.push(`${mt.name}: couldn't open this file.`); }
+      if (job.ctl.signal.aborted) throw new AIError("cancelled");
+    }
+    // photos: send a few per request
+    const merged = []; let ph = null;
+    for (const c of chunks) { if (c.images && c.images.length === 1 && c.src) { if (!ph || ph.images.length >= IMG_PER_CALL) { ph = { images: [], src: "", mat: c.mat }; merged.push(ph); } ph.images.push(c.images[0]); ph.src = ph.src ? ph.src + ", " + c.src : c.src; if (ph.images.length > 1) ph.mat = "Photos"; } else merged.push(c); }
+    chunks = merged;
+    if (chunks.length > 40) { job.failed.push(`Only the first 40 parts were used (the material had ${chunks.length}).`); chunks = chunks.slice(0, 40); }
+    for (let i = 0; i < chunks.length; i++) {
+      const ch = chunks[i];
+      setProg(`Making questions: part ${i + 1} of ${chunks.length} · ${found.length} so far`);
+      try {
+        const { text } = await callClaude(await contentFor(ch, importPrompt(subj, secNm, ch.src, ch.text, ch.images ? ch.images.length : 0, kinds)), { signal: job.ctl.signal });
+        const out = parseLooseJSON(text); const list = out && Array.isArray(out.questions) ? out.questions : [];
+        for (const x of list) {
+          const it = normItem(x); if (!it) continue; it.src = ch.src; it.mat = ch.mat;
+          if (it.imgIdx && ch.b64 && ch.b64[it.imgIdx - 1]) { const key = "pic-" + ch.src + "-" + it.imgIdx; ch.pics = ch.pics || {}; if (!ch.pics[key]) { ch.pics[key] = uidGen("im"); job.imgs[ch.pics[key]] = ch.b64[it.imgIdx - 1]; } it.im = ch.pics[key]; }
+          delete it.imgIdx; found.push(it);
+        }
+        if (!out) job.failed.push(`Part ${i + 1} (${ch.src}) came back unreadable.`);
+      } catch (e) {
+        if (e.code === "cancelled") throw e;
+        if (["nokey", "badkey", "credit", "model", "offline"].includes(e.code)) { job.failed.push(e.message); break; }
+        job.failed.push(`Part ${i + 1} (${ch.src}): ${e.message}`);
+      }
+    }
+  } catch (e) { if (e.code !== "cancelled") job.failed.push("Something went wrong while reading."); }
+  job.ctl = null;
+  const seen = new Set(); job.results = found.filter((it) => { const k = it.q.toLowerCase().replace(/\W+/g, " ").trim(); if (seen.has(k)) return false; seen.add(k); return true; });
+  job.picked = new Set(job.results.map((_, i) => i)); job.status = "";
+  if (imp !== job) return;
+  if (route.v === "import" && route.sid === job.sid) { renderImport(); window.scrollTo(0, 0); } else toast(`Your questions are ready to review in Add material.`);
+}
+function renderPreview(m) {
+  const p = el("div", "panel");
+  const n = imp.results.length; const nClaude = imp.results.filter((x) => x.by === "claude").length;
+  p.append(el("h3", null, n ? `Found ${n} question${n > 1 ? "s" : ""}` : "No questions found"));
+  if (n) p.append(el("p", "small muted", `Each comes with 2 reworded versions.${nClaude ? ` ${nClaude} had no answer in your material, so Claude wrote it; those are marked.` : ""} Uncheck any you don't want.`));
+  for (const f of imp.failed) p.append(el("p", "small warnline", f));
+  const list = el("div", "prev");
+  const saveLabel = () => `Add ${imp.picked.size} question${imp.picked.size === 1 ? "" : "s"} to ${secName(imp.sec)}`;
+  imp.results.forEach((it, i) => {
+    const r = el("label", "pq"); const cb = el("input"); cb.type = "checkbox"; cb.id = "pq" + i; cb.checked = imp.picked.has(i);
+    cb.addEventListener("change", () => { cb.checked ? imp.picked.add(i) : imp.picked.delete(i); $("saveimp").textContent = saveLabel(); $("saveimp").disabled = !imp.picked.size; });
+    const b = el("div"); if (it.im && imp.imgs && imp.imgs[it.im]) { const th = el("img", "pthumb"); th.src = imp.imgs[it.im]; th.alt = "Picture shown with this question"; b.append(th); }
+    b.append(el("div", "q", it.k === "fb" ? blankText(it.q) : it.q), el("div", "a", (it.k === "ord" ? "Order: " : it.k === "match" ? "Pairs: " : "Answer: ") + answerText(it)));
+    const mt = el("div", "meta"); mt.append(el("span", "chip fmt", KNAME(it.k)), el("span", "chip", `+${(it.alt || []).length} reworded`));
+    if (it.by === "claude") mt.append(el("span", "chip ai", "Answer by Claude"));
+    mt.append(el("span", "topic", it.src)); b.append(mt);
+    r.append(cb, b); list.append(r);
+  });
+  p.append(list);
+  if (n) { const sv = btn("btn big", saveLabel(), saveImport); sv.id = "saveimp"; sv.disabled = !imp.picked.size; p.append(sv); }
+  p.append(btn("btn ghost", n ? "Start over with different material" : "Try again", () => { imp.results = null; if (n) imp.mats = []; renderImport(); }));
+  m.append(p);
+}
+async function saveImport() {
+  const b = $("saveimp"); b.disabled = true; b.textContent = "Saving…";
+  const chosen = imp.results.filter((_, i) => imp.picked.has(i));
+  // One entry per file/photo/notes, so each can be deleted on its own later.
+  const groups = new Map(); for (const it of chosen) { const k = it.mat || "Added material"; if (!groups.has(k)) groups.set(k, []); const { mat, ...rest } = it; groups.get(k).push(rest); }
+  const picsFor = (items) => { const o = {}; for (const it of items) if (it.im && imp.imgs && imp.imgs[it.im]) o[it.im] = imp.imgs[it.im]; return o; };
+  try { for (const [name, items] of groups) await addOwnItems(imp.sid, imp.sec, items, name.slice(0, 120), picsFor(items)); } catch (e) { b.disabled = false; b.textContent = "Couldn't save. Try again"; return; }
+  const sid = imp.sid, nm = secName(imp.sec); imp = null; toast(`Added ${chosen.length} questions to ${nm}.`); go({ v: "subject", sid });
+}
+
+// ---- write your own question (every type) ----
+const PICMAX = 1400;
+async function picFromFile(file) { const b = await shrink(file, PICMAX); return `data:${b.type || "image/jpeg"};base64,` + (await blobToB64(b)); }
+function renderWrite(m) {
+  const kind = imp.wkind || "mc";
+  const f = el("form", "panel"); f.id = "writeform"; f.noValidate = true; f.append(el("h3", null, "Write a question"));
+  // Keep what you've typed when the form redraws (switching type, adding a picture).
+  const snap = () => { imp.wdraft = {}; f.querySelectorAll("input[id],textarea[id]").forEach((x) => { if (x.type === "file" || /^w-lab/.test(x.id)) return; imp.wdraft[x.id] = x.type === "checkbox" ? x.checked : x.value; }); };
+  const tg = el("div", "typegrid");
+  for (const t of QTYPES) { const b = btn("typechip big" + (kind === t.k ? " on" : ""), null, () => { snap(); imp.wkind = t.k; renderImport(); }); b.append(el("span", "tn", t.name), el("span", "ts", t.s)); b.id = "wk-" + t.k; b.setAttribute("aria-pressed", String(kind === t.k)); tg.append(b); }
+  f.append(el("span", "flabel", "Question type"), tg);
+  const lab = (t, c) => el("label", "flabel" + (c ? " " + c : ""), t);
+  const note = (t) => el("p", "small muted", t);
+  const inp = (id, ph, label) => { const x = el("input"); x.type = "text"; x.id = id; x.placeholder = ph; x.autocomplete = "off"; x.setAttribute("aria-label", label || ph); return x; };
+  const area = (id, ph, rows, label) => { const x = el("textarea"); x.id = id; x.rows = rows; x.placeholder = ph; x.setAttribute("aria-label", label || ph); return x; };
+  const fail = (t, focusEl) => { const e = new Error(t); e.el = focusEl; throw e; };
+  const val = (x) => x.value.trim();
+  const listRows = (prefix, start, max, make, addLabel) => {
+    const wrap = el("div", "rows"); let n = 0; const add = () => { if (n >= max) return; wrap.append(make(n)); n++; addB.hidden = n >= max; };
+    const addB = btn("linkbtn", addLabel, () => { add(); const all = wrap.querySelectorAll("input[type=text]"); if (all.length) all[all.length - (prefix === "pair" ? 2 : 1)].focus(); });
+    for (let i = 0; i < start; i++) add();
+    return [wrap, addB];
+  };
+  let collect;
+  if (kind === "mc") {
+    const q = area("w-q", "e.g. Which organ filters blood?", 3, "Question"), a = inp("w-a", "The right answer", "Right answer");
+    const ws = [0, 1, 2].map((i) => inp("w-w" + i, "Wrong answer " + (i + 1)));
+    f.append(lab("Question"), q, lab("Answer", "ok"), a, lab("Wrong answers (optional)", "bad"), ...ws,
+      note("Leave these empty and Nion uses answers from your other questions in this subsection as the wrong choices" + (apiKey() ? ", or Claude writes them if the box below is ticked." : ". With only a few questions, you'll type the answer instead.")));
+    collect = () => {
+      const qt = val(q), at = val(a); if (!qt) fail("Write the question first.", q); if (!at) fail("Add the right answer.", a);
+      const wv = [...new Set(ws.map(val).filter(Boolean))]; if (wv.some((w) => w.toLowerCase() === at.toLowerCase())) fail("A wrong answer matches the right answer.", ws[0]);
+      return { k: "mc", q: qt, a: at, w: wv.map((w) => [w, ""]) };
+    };
+  } else if (kind === "tf") {
+    const q = area("w-q", "e.g. The heart has four chambers.", 3, "Statement"); let tfv = imp.wtf || "True";
+    const seg = el("div", "seg"); for (const v of ["True", "False"]) seg.append(btn("segbtn" + (tfv === v ? " on" : ""), v, () => { imp.wtf = tfv = v; [...seg.children].forEach((c) => c.classList.toggle("on", c.textContent === v)); }));
+    f.append(lab("Statement"), q, lab("The statement is"), seg);
+    collect = () => { const qt = val(q); if (!qt) fail("Write the statement first.", q); return { k: "tf", q: qt, a: tfv, ww: "" }; };
+  } else if (kind === "ms") {
+    const q = area("w-q", "e.g. Which of these are bones of the arm?", 3, "Question");
+    const [rows, addB] = listRows("ms", 4, 7, (i) => { const r = el("label", "msrow"); const c = el("input"); c.type = "checkbox"; c.id = "w-c" + i; c.setAttribute("aria-label", "Option " + (i + 1) + " is correct"); r.append(c, inp("w-o" + i, "Option " + (i + 1))); return r; }, "+ Add option");
+    f.append(lab("Question"), q, lab("Options: tick every correct one"), rows, addB);
+    collect = () => {
+      const qt = val(q); if (!qt) fail("Write the question first.", q);
+      const o = [...rows.querySelectorAll(".msrow")].map((r) => [val(r.querySelector("input[type=text]")), r.querySelector("input[type=checkbox]").checked, ""]).filter((x) => x[0]);
+      if (o.length < 3) fail("Add at least 3 options."); if (!o.some((x) => x[1])) fail("Tick at least one correct option."); if (!o.some((x) => !x[1])) fail("At least one option should be wrong.");
+      if (new Set(o.map((x) => x[0].toLowerCase())).size !== o.length) fail("Two options are the same.");
+      return { k: "ms", q: qt, o };
+    };
+  } else if (kind === "fb") {
+    const q = area("w-q", "e.g. The [mitochondria] makes [ATP/adenosine triphosphate].", 3, "Sentence");
+    const pv = el("p", "fbprev"); pv.id = "w-prev";
+    const toMark = (t) => t.replace(/\[\[/g, "[").replace(/\]\]/g, "]").replace(/\[([^\[\]]+)\]/g, (_, x) => "[[" + x.split("/").map((s) => s.trim()).filter(Boolean).join("|") + "]]");
+    const upd = () => { const t = toMark(q.value); pv.textContent = /\[\[/.test(t) ? "Preview: " + blankText(t) : ""; };
+    q.addEventListener("input", upd);
+    f.append(lab("Sentence"), q, note("Put [square brackets] around the words to hide. Use / inside the brackets for other answers you'd accept."), pv);
+    collect = () => { const t = toMark(val(q)); if (!t) fail("Write the sentence first.", q); if (!/\[\[[^\]]+\]\]/.test(t)) fail("Put [brackets] around at least one word to hide.", q); return { k: "fb", q: t }; };
+  } else if (kind === "ord") {
+    const q = inp("w-q", "Put these in the correct order", "Instruction");
+    const [rows, addB] = listRows("ord", 4, 8, (i) => { const r = el("div", "ordrow"); r.append(el("span", "n", String(i + 1)), inp("w-i" + i, i === 0 ? "First item" : "Next item", "Item " + (i + 1))); return r; }, "+ Add item");
+    f.append(lab("Instruction (optional)"), q, lab("Items, in the correct order"), rows, addB, note("Nion shuffles them when it asks you."));
+    collect = () => {
+      const items = [...rows.querySelectorAll("input")].map(val).filter(Boolean);
+      if (items.length < 3) fail("Add at least 3 items."); if (new Set(items.map((x) => x.toLowerCase())).size !== items.length) fail("Two items are the same.");
+      return { k: "ord", q: val(q) || "Put these in the correct order.", items };
+    };
+  } else if (kind === "match") {
+    const q = inp("w-q", "Match each item with its pair", "Instruction");
+    const [rows, addB] = listRows("pair", 4, 8, (i) => { const r = el("div", "pairrow"); r.append(inp("w-l" + i, "Term " + (i + 1)), el("span", "eq", "="), inp("w-r" + i, "Its match")); return r; }, "+ Add pair");
+    f.append(lab("Instruction (optional)"), q, lab("Pairs"), rows, addB);
+    collect = () => {
+      const pairs = [...rows.querySelectorAll(".pairrow")].map((r) => [...r.querySelectorAll("input")].map(val));
+      if (pairs.some(([l, r]) => (l && !r) || (!l && r))) fail("Every term needs a match.");
+      const ok = pairs.filter(([l, r]) => l && r); if (ok.length < 3) fail("Add at least 3 pairs.");
+      if (new Set(ok.map((p) => p[0].toLowerCase())).size !== ok.length || new Set(ok.map((p) => p[1].toLowerCase())).size !== ok.length) fail("Two terms or two matches are the same.");
+      return { k: "match", q: val(q) || "Match each item with its pair.", pairs: ok };
+    };
+  } else {
+    // Image: cover labels on a diagram; each covered label becomes its own question.
+    const occ = imp.occ;
+    if (!occ) {
+      const pk = el("label", "pick"); pk.append("Choose a picture", el("small", null, "A diagram, chart or labelled photo"));
+      const fi = el("input"); fi.type = "file"; fi.accept = "image/*"; fi.id = "w-img";
+      fi.addEventListener("change", async () => { const file = fi.files[0]; fi.value = ""; if (!file) return; snap(); imp.occ = { id: uidGen("im"), data: await picFromFile(file), boxes: [] }; renderImport(); });
+      pk.append(fi); f.append(pk, note("Then you'll cover each label on the picture. Every covered label becomes its own question: “What's under the highlighted box?”"));
+      collect = () => fail("Choose a picture first.");
+    } else {
+      f.append(lab("Cover each label"), note("Drag a box over a label (or tap it), then type what it says below. Tap a box to remove it."));
+      const ed = el("div", "occedit"); ed.id = "occedit"; const im = el("img"); im.src = occ.data; im.alt = "Your picture"; im.draggable = false; ed.append(im);
+      const labels = el("div", "rows"); labels.id = "occlabels";
+      const draw = () => {
+        ed.querySelectorAll(".obox").forEach((x) => x.remove());
+        occ.boxes.forEach((b, i) => { const d = el("div", "obox"); d.style.left = b.x + "%"; d.style.top = b.y + "%"; d.style.width = b.w + "%"; d.style.height = b.h + "%"; d.append(el("span", "n", String(i + 1))); d.dataset.i = i; ed.append(d); });
+        labels.replaceChildren();
+        occ.boxes.forEach((b, i) => { const r = el("div", "ordrow"); const x = inp("w-lab" + i, "What's under box " + (i + 1) + "?", "Label " + (i + 1)); x.value = b.t || ""; x.addEventListener("input", () => { b.t = x.value; }); const del = btn("linkbtn", "×", () => { occ.boxes.splice(i, 1); draw(); }); del.setAttribute("aria-label", "Remove box " + (i + 1)); r.append(el("span", "n", String(i + 1)), x, del); labels.append(r); });
+        if (!occ.boxes.length) labels.append(note("No boxes yet."));
+      };
+      let st = null, tmp = null;
+      const pt = (e) => { const r = ed.getBoundingClientRect(); return { x: Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)), y: Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100)) }; };
+      ed.addEventListener("pointerdown", (e) => { if (e.button > 0) return; e.preventDefault(); st = pt(e); st.target = e.target.closest(".obox"); tmp = el("div", "obox tmp"); ed.append(tmp); try { ed.setPointerCapture(e.pointerId); } catch (err) {} });
+      ed.addEventListener("pointermove", (e) => { if (!st) return; const p = pt(e); Object.assign(tmp.style, { left: Math.min(st.x, p.x) + "%", top: Math.min(st.y, p.y) + "%", width: Math.abs(p.x - st.x) + "%", height: Math.abs(p.y - st.y) + "%" }); });
+      const up = (e) => {
+        if (!st) return; const p = pt(e); const s0 = st; st = null; tmp.remove();
+        let w = Math.abs(p.x - s0.x), h = Math.abs(p.y - s0.y);
+        if (w < 2.5 && h < 2.5) {
+          if (s0.target) { occ.boxes.splice(+s0.target.dataset.i, 1); draw(); return; }
+          w = 24; h = 8; const x = Math.max(0, Math.min(100 - w, s0.x - w / 2)), y = Math.max(0, Math.min(100 - h, s0.y - h / 2)); occ.boxes.push({ x, y, w, h, t: "" });
+        } else occ.boxes.push({ x: Math.min(s0.x, p.x), y: Math.min(s0.y, p.y), w: Math.max(w, 3), h: Math.max(h, 3), t: "" });
+        draw(); const last = $("w-lab" + (occ.boxes.length - 1)); if (last) last.focus({ preventScroll: true });
+      };
+      ed.addEventListener("pointerup", up); ed.addEventListener("pointercancel", () => { st = null; if (tmp) tmp.remove(); });
+      const q = inp("w-q", "What is under the highlighted box?", "Question wording");
+      f.append(ed, labels, btn("linkbtn", "Use a different picture", () => { snap(); imp.occ = null; renderImport(); }), lab("Question wording (optional)"), q);
+      draw();
+      collect = () => {
+        const done = occ.boxes.filter((b) => str(b.t)).map((b) => ({ x: +b.x.toFixed(2), y: +b.y.toFixed(2), w: +b.w.toFixed(2), h: +b.h.toFixed(2), t: str(b.t) }));
+        if (!done.length) fail("Cover at least one label and type what it says.");
+        if (occ.boxes.some((b) => !str(b.t))) fail("Type the label for every box, or remove the empty ones.");
+        return done.map((b, i) => ({ k: "img", im: occ.id, boxes: done, hi: i, q: val(q) }));
+      };
+    }
+  }
+  // optional picture with the question
+  if (kind !== "img") {
+    const pw = el("div", "picrow");
+    if (imp.wpic) { const th = el("img", "pthumb"); th.src = imp.wpic.data; th.alt = "Picture for this question"; pw.append(th, btn("linkbtn", "Remove picture", () => { snap(); imp.wpic = null; renderImport(); })); }
+    else { const pk = el("label", "pick small"); pk.append("+ Add a picture (optional)"); const fi = el("input"); fi.type = "file"; fi.accept = "image/*"; fi.id = "w-pic"; fi.addEventListener("change", async () => { const file = fi.files[0]; fi.value = ""; if (!file) return; snap(); imp.wpic = { id: uidGen("im"), data: await picFromFile(file) }; renderImport(); }); pk.append(fi); pw.append(pk); }
+    f.append(pw);
+  }
+  const ex = area("w-ex", "Optional: why the answer is right", 2, "Explanation");
+  f.append(lab("Explanation (optional)"), ex);
+  let aiBox = null;
+  if (kind !== "img") {
+    if (apiKey()) { const l = el("label", "row small"); aiBox = el("input"); aiBox.type = "checkbox"; aiBox.id = "w-ai"; aiBox.checked = imp.wai !== false; aiBox.addEventListener("change", () => { imp.wai = aiBox.checked; }); l.append(aiBox, kind === "mc" ? "Also make 2 reworded versions and fill in missing wrong answers (uses your API key)" : "Also make 2 reworded versions (uses your API key)"); f.append(l); }
+    else f.append(note("Tip: with an API key in Settings, Nion also writes 2 reworded versions of each question you type."));
+  }
+  const msg = el("p", "small warnline"); msg.id = "w-msg";
+  const save = el("button", "btn big", kind === "img" ? "Save picture questions" : "Save question"); save.type = "submit";
+  const row = el("div", "row"); row.append(save, btn("btn ghost", "Done", () => { imp.mode = null; imp.occ = null; imp.wpic = null; imp.wdraft = null; renderImport(); }));
+  f.append(msg, row);
+  if (imp.wdraft) for (const [id, v] of Object.entries(imp.wdraft)) { const x = f.querySelector("#" + id); if (!x) continue; if (x.type === "checkbox") x.checked = !!v; else { x.value = v; x.dispatchEvent(new Event("input")); } }
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault(); msg.textContent = "";
+    let items; try { items = collect(); } catch (err) { msg.textContent = err.message; if (err.el) err.el.focus(); return; }
+    items = Array.isArray(items) ? items : [items];
+    const exv = val(ex); items.forEach((it) => { if (exv) it.ex = exv; it.src = "Written by you"; });
+    const imgs = {};
+    if (kind === "img") imgs[imp.occ.id] = imp.occ.data;
+    else if (imp.wpic) { items[0].im = imp.wpic.id; imgs[imp.wpic.id] = imp.wpic.data; }
+    save.disabled = true;
+    if (aiBox && aiBox.checked) { save.textContent = "Writing reworded versions…"; try { Object.assign(items[0], await reworkOwn(items[0])); } catch (err) { msg.textContent = err.message + " Saved without reworded versions."; } }
+    imp.wdraft = null;
+    await addOwnItems(imp.sid, imp.sec, items, kind === "img" ? "Picture labels" : "Written by you", imgs, kind !== "img");
+    toast(kind === "img" ? `Saved ${items.length} picture question${items.length > 1 ? "s" : ""}.` : "Question saved.");
+    if (route.v === "import" && imp) { imp.wkind = kind; imp.wpic = null; imp.wdraft = null; if (kind === "img") imp.occ = null; renderImport(); setTimeout(() => { const x = $("w-q"); if (x && kind !== "img") x.focus(); }, 60); }
+  });
+  m.append(f);
+}
+async function reworkOwn(item) {
+  const k = item.k; const needWrong = k === "mc" && !(item.w && item.w.length);
+  const shown = { k, q: item.q };
+  if (k === "mc" || k === "tf") shown.a = item.a;
+  if (k === "mc" && !needWrong) shown.wrong = item.w.map((w) => w[0]);
+  if (k === "ms") shown.opts = item.o.map(([t, c]) => ({ t, c }));
+  if (k === "ord") shown.items = item.items;
+  if (k === "match") shown.pairs = item.pairs;
+  if (item.ex) shown.ex = item.ex;
+  const ask = [!item.ex ? '"ex":"one short sentence explaining the answer"' : null,
+    needWrong ? '"wrong":[3 objects {"t":"plausible wrong answer, similar length to the right one","why":"why it is wrong"}]' : null,
+    k === "mc" && !needWrong ? '"why":["one short sentence why each wrong answer is wrong, in the same order"]' : null,
+    k === "tf" ? '"ww":"one short sentence why the opposite is wrong"' : null,
+    k === "ms" ? '"whys":["one short sentence per option, in the same order, saying why it is right or wrong"]' : null].filter(Boolean);
+  const prompt = `A student wrote this ${KIND_USE[k]} question for their quiz app. Treat their answer as correct.
+${JSON.stringify(shown)}${k === "fb" ? "\n(Words in [[double brackets]] are the blanks; | separates other accepted answers.)" : ""}
+Reply with only JSON: {${ask.join(",")}${ask.length ? "," : ""}"alt":[exactly 2 reworded versions, each in this shape: ${SHAPE[k]}. One paraphrase in clearly different words, one applied example or different angle. Same type, same correct answer meaning.]}`;
+  const { text } = await callClaude([{ type: "text", text: prompt }], { maxTokens: 3000 });
+  const out = parseLooseJSON(text) || {}; const extra = {};
+  if (!item.ex && str(out.ex)) extra.ex = str(out.ex);
+  if (needWrong) { const n = normQ({ q: item.q, a: item.a, wrong: out.wrong }, "mc"); if (n) extra.w = n.w; }
+  if (k === "mc" && !needWrong && Array.isArray(out.why)) extra.w = item.w.map((w, i) => [w[0], str(out.why[i])]);
+  if (k === "tf" && str(out.ww)) extra.ww = str(out.ww);
+  if (k === "ms" && Array.isArray(out.whys)) extra.o = item.o.map((o, i) => [o[0], o[1], o[2] || str(out.whys[i])]);
+  const alt = (Array.isArray(out.alt) ? out.alt : []).map((v) => normQ(v, k)).filter(Boolean).slice(0, 2);
+  if (alt.length) extra.alt = alt;
+  return extra;
+}
+
+// ================= Manage a subsection (rename, delete material, delete subsection) =================
+function manageSection(sid, s, sec) {
+  const box = el("div", "more");
+  const f = el("form", "row"); const inp = el("input"); inp.type = "text"; inp.id = "ren-" + sec.id; inp.value = sec.name; inp.className = "grow"; inp.setAttribute("aria-label", "Subsection name");
+  const sb = el("button", "btn small", "Rename"); sb.type = "submit"; f.append(inp, sb);
+  f.addEventListener("submit", (e) => { e.preventDefault(); const name = inp.value.trim(); if (!name) return; saveSubject(sid, { ...s, sections: s.sections.map((x) => (x.id === sec.id ? { ...x, name, renamed: true } : x)) }); renderSubject(); });
+  box.append(f);
+  const ps = (packs[sid] || []).filter((p) => p.sec === sec.id);
+  box.append(el("span", "small muted", ps.length ? "Material in this subsection:" : "No material yet."));
+  for (const p of ps) {
+    const r = el("div", "src"); r.append(el("span", "grow", `${p.own ? p.src : "Course question bank"} · ${(p.items || []).length} question${(p.items || []).length === 1 ? "" : "s"}`));
+    if (!p.own) { r.append(el("span", "small muted", "from library")); box.append(r); continue; }
+    if (subjectConfirm === "pack:" + p.id) r.append(btn("btn danger small", "Delete", async () => { await savePacks(sid, (packs[sid] || []).filter((x) => x !== p)); await refreshLocal(sid); subjectConfirm = null; toast("Deleted."); renderSubject(); }), btn("btn ghost small", "Keep", () => { subjectConfirm = null; renderSubject(); }));
+    else r.append(btn("linkbtn", "Delete", () => { subjectConfirm = "pack:" + p.id; renderSubject(); }));
+    box.append(r);
+  }
+  const libSec = ps.some((p) => !p.own);
+  if (!libSec) {
+    if (subjectConfirm === "sec:" + sec.id) box.append(confirmBox(`Delete "${sec.name}" and its ${ps.reduce((n, p) => n + (p.items || []).length, 0)} questions?`, "Delete subsection", async () => {
+      await savePacks(sid, (packs[sid] || []).filter((x) => x.sec !== sec.id)); const s2 = subjects[sid]; saveSubject(sid, { ...s2, sections: s2.sections.filter((x) => x.id !== sec.id) }); await refreshLocal(sid); subjectConfirm = null; subjectOpenMore = null; renderSubject(); }));
+    else if (s.sections.length > 1) box.append(btn("linkbtn", "Delete this subsection", () => { subjectConfirm = "sec:" + sec.id; renderSubject(); }));
+  }
+  return box;
+}
+
+// ================= Settings: question making =================
+function aiSettings() {
+  const r = el("div", "setrow"); r.append(el("h3", null, "Question making"));
+  const has = !!apiKey();
+  r.append(el("p", "small muted", has ? "Your API key is saved on this phone only. It's never included in backups." : "Nion uses your own Anthropic API key to turn photos, notes and files into questions. It's billed by Anthropic separately from any Claude plan: you add prepaid credit, and each file uses a small amount."));
+  if (!has) {
+    const ol = el("ol", "steps");
+    ["Go to console.anthropic.com and sign up (you can use the same email as Claude).", "Open Billing and add some prepaid credit.", "Open API Keys, tap Create Key, name it Nion, and copy the key (it starts with sk-ant-).", "Paste it below and tap Save key."].forEach((x) => ol.append(el("li", null, x)));
+    r.append(ol);
+  }
+  const f = el("form", "row"); const k = el("input"); k.type = "password"; k.id = "apikey"; k.autocomplete = "off"; k.placeholder = has ? "•••••••• saved" : "sk-ant-…"; k.className = "grow"; k.setAttribute("aria-label", "Anthropic API key");
+  const sv = el("button", "btn small", "Save key"); sv.type = "submit"; f.append(k, sv);
+  const msg = el("p", "small"); msg.id = "keymsg";
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault(); const v = k.value.trim(); if (!v) { msg.textContent = "Paste your key first."; return; }
+    lsSet("md-apikey", v); msg.textContent = "Testing your key…"; sv.disabled = true;
+    try { await callClaude([{ type: "text", text: "Reply with the word OK." }], { maxTokens: 5 }); msg.textContent = "Key works. You can make questions from files now."; k.value = ""; k.placeholder = "•••••••• saved"; }
+    catch (err) { msg.textContent = err.message; if (err.code === "badkey") lsSet("md-apikey", ""); }
+    sv.disabled = false;
+  });
+  r.append(f, msg);
+  const mrow = el("div", "seg");
+  for (const md of MODELS) { const b = btn("segbtn" + (apiModel() === md.id ? " on" : ""), md.name, () => { lsSet("md-model", md.id); renderSettings(); }); b.title = md.note; mrow.append(b); }
+  r.append(el("span", "small muted", "Quality"), mrow);
+  if (has) r.append(btn("linkbtn", "Remove key from this phone", () => { lsSet("md-apikey", ""); toast("Key removed."); renderSettings(); }));
+  return r;
+}
+
 async function boot() {
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   rerender();
@@ -1462,7 +2590,14 @@ async function boot() {
     for (const e of library.filter((x) => x.auto)) { try { await installDeck(await fetchDeck(e)); } catch (err) {} }
     lsSet("md-booted", true);
   }
-  if (route.v === "home") renderHome();
+  // Question sets update themselves (progress is kept), unless you're in the middle of studying them.
+  if (library) {
+    for (const sid of Object.keys(subjects).filter((x) => subjects[x].lib && hasUpdate(x))) {
+      if ((route.v === "study" || route.v === "quiz") && route.sid === sid) continue;
+      try { await installDeck(await fetchDeck(libEntry(sid))); toast(`"${subjects[sid].name}" questions updated. Your progress is kept.`); } catch (e) {}
+    }
+  }
+  if (route.v === "home" || route.v === "subject") rerender();
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
