@@ -491,6 +491,8 @@ input.blank.wrong { border-color: var(--bad); background: var(--bad-soft); color
 .archrow.confirm .grow { flex-basis: 100%; }
 .swipe-shade { position: fixed; inset: 0; z-index: -1; background: #000; opacity: 0; pointer-events: none; }
 .top, #main { will-change: auto; }
+.runbox { display: grid; gap: 8px; margin-top: 10px; }
+.runbox p { margin: 0; }
 </style>
 </head>
 <body>
@@ -1277,6 +1279,7 @@ async function renderSubject() {
   const go1 = c.t ? btn("btn big", studyable ? (S.n ? "Keep studying" : "Start studying") : "Nothing left in the checked subsections", () => go({ v: "study", sid })) : btn("btn big", "+ Add material", () => go({ v: "import", sid }));
   go1.disabled = !!c.t && !studyable;
   sum.append(bar, stx, go1);
+  if (c.t) sum.append(runPanel(sid, s, studyable));
   if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections. Check or uncheck them below.`));
   m.append(sum);
   if (s.archived) { const u = el("div", "panel install"); u.append(el("h3", null, "Archived"), el("p", "small muted", "This subject is hidden from your home screen. Its questions and progress are kept."), btn("btn", "Unarchive", () => archiveSubject(sid, false))); m.append(u); }
@@ -1295,7 +1298,8 @@ async function renderSubject() {
     const studyThis = btn("chipbtn", "Study only this", () => { S.off = s.sections.filter((y) => y.id !== sec.id).map((y) => y.id); persist(); go({ v: "study", sid }); });
     studyThis.disabled = !cc.t;
     const quizThis = btn("chipbtn", "Quiz me", () => startQuiz(sid, sec.id)); quizThis.disabled = !cc.t;
-    acts.append(studyThis, quizThis, btn("chipbtn", "+ Add material", () => go({ v: "import", sid, sec: sec.id })), btn("linkbtn", subjectOpenMore === sec.id ? "Close" : "Manage", () => { subjectOpenMore = subjectOpenMore === sec.id ? null : sec.id; subjectConfirm = null; renderSubject(); }));
+    const runThis = btn("chipbtn", "Go through all", () => startRun(sid, sec.id)); runThis.disabled = !cc.t;
+    acts.append(studyThis, runThis, quizThis, btn("chipbtn", "+ Add material", () => go({ v: "import", sid, sec: sec.id })), btn("linkbtn", subjectOpenMore === sec.id ? "Close" : "Manage", () => { subjectOpenMore = subjectOpenMore === sec.id ? null : sec.id; subjectConfirm = null; renderSubject(); }));
     box.append(acts);
     if (subjectOpenMore === sec.id) box.append(manageSection(sid, s, sec));
     secs.append(box);
@@ -1341,12 +1345,14 @@ const LETTERS = "ABCDEFGH";
 const labelFor = (item) => `${secName(item.sec)}${item.gen ? " · " + GEN[item.gen].label : item.src ? " · " + item.src : ""}`;
 async function renderStudy() {
   const sid = route.sid; const s = subjects[sid]; if (!s) { go({ v: "home" }); return; }
-  topbar(s.name, () => backTo({ v: "subject", sid }), "Study");
+  topbar(s.name, () => backTo({ v: "subject", sid }), route.run ? "Go through all" : "Study");
   if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "study") return; }
-  if (!cur || !ITEMS.has(cur.id)) show(); else renderCur();
+  if (route.run && !S.run) { go({ v: "subject", sid }); return; }
+  if (!cur || !ITEMS.has(cur.id) || !!cur.run !== !!route.run) show(); else renderCur();
 }
 function studyShell() {
   const m = $("main"); m.replaceChildren();
+  if (RUNNING()) { runShellHead(m); const card = el("section", "card"); card.id = "card"; card.setAttribute("aria-live", "polite"); m.append(card); return card; }
   const c = counts();
   const hd = el("div", "stats"); hd.id = "studystats";
   const bar = el("div", "bar"); const bm = el("span", "m"); bm.style.width = c.t ? (c.m / c.t * 100) + "%" : "0"; const bl = el("span", "l"); bl.style.width = c.t ? (c.l / c.t * 100) + "%" : "0"; bar.append(bm, bl);
@@ -1357,12 +1363,12 @@ function studyShell() {
   m.append(bar, hd, card); return card;
 }
 function show(avoid) {
-  const id = nextId(avoid);
+  const run = RUNNING(); const id = run ? runNext() : nextId(avoid);
   if (!id) { cur = null; renderCur(); return; }
   const item = ITEMS.get(id); const s = st(id);
   const q = build(item, !!s, s && s.lf);
-  const status = !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
-  cur = { id, q, answered: false, picks: new Set(), status, dots: s ? s.c : 0 };
+  const status = run ? [`${S.run.i + 1} of ${S.run.ids.length}`, ""] : !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
+  cur = { id, q, answered: false, picks: new Set(), status, dots: s ? s.c : 0, run };
   renderCur();
 }
 function navRow() {
@@ -1424,6 +1430,60 @@ document.addEventListener("keydown", (e) => {
   if (cur.q.opts && i >= 0 && i < cur.q.opts.length) { e.preventDefault(); choose(i); }
 });
 
+// ================= Go through all (each question once, no repeats) =================
+// S.run = { ids, i, ok, miss, sec, missed, at }: same study screen, but the next question comes from a fixed, shuffled list.
+const RUNNING = () => route.v === "study" && !!route.run && !!(S && S.run);
+function runNext() {
+  const R = S.run; if (!R) return null;
+  while (R.i < R.ids.length) { const id = R.ids[R.i]; if (ITEMS.has(id) && !S.skip.includes(id)) return id; R.i++; }
+  persist(); return null;
+}
+function startRun(sid, sec, ids) {
+  const pool = ids || quizPool(sec);
+  if (!pool.length) { toast("No questions to go through yet."); return; }
+  S.run = { ids: shuffle(pool), i: 0, ok: 0, miss: [], sec: sec || null, missed: !!ids, at: Date.now() };
+  persist(); cur = null; go({ v: "study", sid, run: 1 });
+}
+function runPlace(ids) {
+  const R = S.run; if (!R) return;
+  ids.forEach((id, k) => { const at = Math.min(R.i + 1 + (k === 0 ? ri(1, 4) : ri(6, 11)), R.ids.length); R.ids.splice(at, 0, id); });
+}
+function runScope(R) { return R.missed ? "Missed from your last pass" : R.sec ? secName(R.sec) : "All checked subsections"; }
+function runDone(R) { return R && R.i >= R.ids.length; }
+function runShellHead(m) {
+  const R = S.run; const n = R.ids.length, done = Math.min(R.i, n), bad = R.miss.length;
+  const bar = el("div", "bar"); const bm = el("span", "m"); bm.style.width = n ? (done / n * 100) + "%" : "0"; bar.append(bm);
+  const hd = el("div", "stats"); hd.id = "studystats";
+  const add = (k, label, v) => { const sp = el("span"); if (k) { const i = el("i", "key"); i.style.background = k; sp.append(i); } sp.append(label + " ", Object.assign(el("b"), { textContent: v })); hd.append(sp); };
+  add("var(--accent)", "Done", `${done}/${n}`); add("var(--warn)", "Missed", bad); add(null, "Accuracy", done ? Math.round(R.ok / done * 100) + "%" : "–");
+  m.append(bar, hd);
+}
+function runFinished(card) {
+  const R = S.run; const n = R.ids.length, bad = R.miss.length; const d = el("div", "done");
+  d.append(el("h2", null, `You went through all ${n} questions`),
+    el("p", "note", `${R.ok} right, ${bad} missed (${n ? Math.round(R.ok / n * 100) : 0}%). ${runScope(R)}.`));
+  if (bad) d.append(btn("btn", `Go through the ${bad} you missed`, () => startRun(SID, null, [...new Set(R.miss)])));
+  d.append(btn(bad ? "btn ghost" : "btn", "Start a new pass", () => startRun(SID, R.missed ? null : R.sec)));
+  d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
+  card.append(navRow(), d);
+}
+function runPanel(sid, s, studyable) {
+  const box = el("div", "runbox"); const R = S.run; const pool = quizPool(null).length;
+  if (R && !runDone(R) && R.ids.length) {
+    box.append(el("p", "small muted", `Going through all: ${Math.min(R.i, R.ids.length)} of ${R.ids.length} done · ${runScope(R)}.`));
+    const r = el("div", "row"); r.append(btn("btn ghost", "Continue going through all", () => { cur = null; go({ v: "study", sid, run: 1 }); }), btn("btn ghost small", "Start a new pass", () => startRun(sid, null))); box.append(r);
+  } else {
+    const b = btn("btn ghost big", `Go through all · ${pool} question${pool === 1 ? "" : "s"}, no repeats`, () => startRun(sid, null)); b.id = "runall"; b.disabled = !pool; box.append(b);
+    box.append(el("p", "small muted", "Every question in the checked subsections once, in random order, with the answer after each one. Misses don't repeat; you can go back over them at the end."));
+    if (R && runDone(R) && R.ids.length) {
+      const r = el("div", "row small"); r.append(el("span", "grow muted", `Last pass: ${R.ok} of ${R.ids.length} right`));
+      if (R.miss.length) r.append(btn("linkbtn", `Go through the ${R.miss.length} missed`, () => startRun(sid, null, [...new Set(R.miss)])));
+      box.append(r);
+    }
+  }
+  return box;
+}
+
 // ================= "Add 2 more like this" =================
 function placeSoon(ids) {
   const unseen = []; S.order.forEach((id, i) => { if (!S.it[id] && active(id)) unseen.push(i); });
@@ -1457,7 +1517,7 @@ Reply with only JSON: {"questions":[2 questions, each in this shape: ${SHAPE[k]}
     const nAi = entries.filter((e) => e.src === "ai").length;
     msg.textContent = nAi === 2 ? "" : nAi === 1 ? "1 brand-new question; the other reuses this one's reworded versions." : "Couldn't write new ones right now, so I added this question's reworded versions again.";
   }
-  S.extra = [...S.extra, ...entries]; registerExtras(entries); placeSoon(ids); persist();
+  S.extra = [...S.extra, ...entries]; registerExtras(entries); placeSoon(ids); if (RUNNING()) runPlace(ids); persist();
   const done = base.gen ? "Added 2 more with new numbers." : entries.some((e) => e.src === "ai") ? "Added 2 more." : "Added 2 more in different wording.";
   msg.textContent = (msg.textContent ? msg.textContent + " " : "") + done + " They'll come up soon.";
   setTimeout(() => { b.disabled = false; }, 800);
@@ -1625,7 +1685,7 @@ function ready(q, a) {
 
 // ---- pictures ----
 function imgView(q, reveal) {
-  const src = IMGS[q.im]; if (!src) return null;
+  const src = IMGS[q.im] || (/\.(png|jpe?g|webp|gif)$/i.test(q.im || "") ? q.im : null); if (!src) return null;
   const w = el("div", "qimg"); const img = el("img"); img.src = src; img.alt = "Picture for this question"; w.append(img);
   (q.boxes || []).forEach((b, i) => {
     const d = el("div", "occ" + (i === q.hi ? " hi" : "") + (i === q.hi && reveal ? " open" : ""));
@@ -1770,6 +1830,7 @@ function describeResp(q, picks, resp) {
 // ---- study screen (all formats) ----
 function renderCur() {
   view = null; const card = studyShell();
+  if (!cur && RUNNING()) { runFinished(card); return; }
   if (!cur) {
     const c = counts(); const allDone = c.t && c.m === c.t; const d = el("div", "done");
     d.append(el("h2", null, allDone ? "Every question mastered" : "Nothing left to study here"),
@@ -1812,6 +1873,7 @@ function submit(giveUp) {
   record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
   const s = st(cur.id); cur.answered = true; cur.ok = ok;
   cur.note = ok ? (s.m ? "Mastered. You won't see this one again." : `${s.c} of ${MAX}. It will come back later.`) : `It comes back in ${RETRY} questions. Count reset to 0 of ${MAX}.`;
+  if (cur.run && RUNNING() && S.run.ids[S.run.i] === cur.id) { const R = S.run; R.i++; if (ok) R.ok++; else R.miss.push(cur.id); persist(); cur.note = ok ? `${R.i} of ${R.ids.length} done.` : `${R.i} of ${R.ids.length} done. Saved to your missed list for this pass.`; }
   H.push({ id: cur.id, q, picks: [...cur.picks], resp: ix ? cur.resp : null, ok, at: Date.now() }); if (H.length > 60) H = H.slice(-40); lsSet("md-h-" + SID, H.slice(-40));
   renderCur(); const nx = $("next"); if (nx) nx.focus({ preventScroll: true });
   if (ok && S.auto) setTimeout(() => { if (route.v === "study" && cur && cur.answered && view == null) show(cur.id); }, 900);

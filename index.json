@@ -4,10 +4,19 @@
    "id": "hsc0003",
    "name": "HSC 0003 Intro to Health Care",
    "file": "hsc0003.json",
-   "version": 1,
+   "version": 2,
    "count": 586,
    "desc": "Midterm question bank + math practice",
    "auto": true
+  },
+  {
+   "id": "hscbook",
+   "name": "HSC 0003 Textbook",
+   "file": "hscbook.json",
+   "version": 14,
+   "count": 1096,
+   "desc": "Textbook chapters \u00b7 Ch 1\u201312, 19\u201320",
+   "auto": false
   }
  ]
 }
