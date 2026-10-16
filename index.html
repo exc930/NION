@@ -478,6 +478,17 @@ input.blank.wrong { border-color: var(--bad); background: var(--bad-soft); color
 .opt .mto { display: block; font-size: .9rem; color: var(--accent-2); margin-top: 3px; }
 .opt .mto.none { color: var(--muted); }
 .solution { margin: 0; padding-left: 22px; display: grid; gap: 3px; color: var(--ok); font-size: .92rem; }
+
+/* ===== archived subjects ===== */
+.archsec { display: grid; gap: 8px; }
+.archtoggle { display: flex; align-items: baseline; gap: 10px; width: 100%; background: none; border: 0; padding: 4px 2px; cursor: pointer; color: var(--muted); font-family: var(--f-display); letter-spacing: .14em; text-transform: uppercase; font-size: .86rem; text-align: left; }
+.archtoggle .n { font-family: var(--f-mono); font-size: 1.1rem; color: var(--muted); }
+.archtoggle .chev { margin-left: auto; color: var(--accent-2); }
+.archrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(3, 5, 13, .55); }
+.archrow .nm { font-family: var(--f-display); font-size: .92rem; color: var(--ink); opacity: .85; }
+.archrow.confirm { background: var(--bad-soft); border-color: rgba(255, 59, 79, .45); }
+.btn.dangerish { color: #ff8b98; border-color: rgba(255, 59, 79, .6); box-shadow: 0 0 10px rgba(255, 59, 79, .18); text-shadow: none; }
+.archrow.confirm .grow { flex-basis: 100%; }
 .swipe-shade { position: fixed; inset: 0; z-index: -1; background: #000; opacity: 0; pointer-events: none; }
 .top, #main { will-change: auto; }
 </style>
@@ -875,7 +886,7 @@ async function installDeck(deck) {
   const old = subjects[sid] || {};
   const deckSecs = deck.sections.map((s) => ({ id: s.id, name: (old.sections || []).find((x) => x.id === s.id && x.renamed) ? old.sections.find((x) => x.id === s.id).name : s.name }));
   const extraSecs = (old.sections || []).filter((x) => !deck.sections.some((d) => d.id === x.id));
-  subjects[sid] = { name: old.renamed ? old.name : deck.name, renamed: old.renamed, sections: deckSecs.concat(extraSecs), count: list.reduce((n, p) => n + p.items.length, 0), at: old.at || Date.now(), order: old.order || Date.now(), ver: deck.version || 1, lib: !!deck.lib };
+  subjects[sid] = { name: old.renamed ? old.name : deck.name, renamed: old.renamed, sections: deckSecs.concat(extraSecs), count: list.reduce((n, p) => n + p.items.length, 0), at: old.at || Date.now(), order: old.order || Date.now(), ver: deck.version || 1, lib: !!deck.lib, ...(old.archived ? { archived: true } : {}) };
   cacheSubjects();
   if (SID === sid) { SID = null; S = null; cur = null; }
   return sid;
@@ -1140,9 +1151,10 @@ function renderHome() {
   m.append(hero);
   if (pendingRestore) m.append(restoreConfirm());
 
-  const ids = Object.keys(subjects).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
+  const all = Object.keys(subjects).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
+  const ids = all.filter((x) => !subjects[x].archived), arch = all.filter((x) => subjects[x].archived);
   const hh = el("div", "home-h"); hh.append(el("h2", null, "Your subjects")); if (ids.length) hh.append(el("span", "n", String(ids.length).padStart(2, "0"))); m.append(hh);
-  if (!ids.length) m.append(el("div", "panel empty", libraryState === "loading" || libraryState === "idle" ? "Tuning in your subjects…" : "No subjects yet. Add one below."));
+  if (!ids.length) m.append(el("div", "panel empty", arch.length ? "All your subjects are archived. Open Archived below to bring one back." : libraryState === "loading" || libraryState === "idle" ? "Tuning in your subjects…" : "No subjects yet. Add one below."));
   for (const sid of ids) {
     const s = subjects[sid]; const b = el("button", "subj"); b.type = "button";
     const p = lsGet("md-p-" + sid, null);
@@ -1159,6 +1171,7 @@ function renderHome() {
     m.append(b);
   }
 
+  if (arch.length) m.append(archivedSection(arch));
   const avail = (library || []).filter((e) => !subjects[e.id]);
   const add = el("section", "addsec"); add.append(el("h2", null, "Add a subject"));
   const ns = el("button", "newsubj"); ns.type = "button"; ns.id = "newsubj";
@@ -1182,6 +1195,45 @@ function renderHome() {
   const fi = el("input"); fi.type = "file"; fi.id = "openfile"; fi.accept = ".json,application/json"; fi.addEventListener("change", () => { const f = fi.files[0]; fi.value = ""; if (f) openFile(f); }); pk.append(fi);
   add.append(pk);
   m.append(add);
+}
+// ---- archive & delete ----
+let showArchived = false, homeConfirm = null;
+const subjPct = (sid) => { const p = lsGet("md-p-" + sid, null); const t = subjects[sid].count || 0; const mm = p ? Object.values(p.it || {}).filter((x) => x.m).length : 0; return t ? Math.min(100, Math.round(mm / t * 100)) : 0; };
+function archivedSection(arch) {
+  const w = el("section", "archsec");
+  const t = btn("archtoggle", null, () => { showArchived = !showArchived; homeConfirm = null; renderHome(); }); t.id = "archtoggle"; t.setAttribute("aria-expanded", String(showArchived));
+  t.append(el("span", null, "Archived"), el("span", "n", String(arch.length).padStart(2, "0")), el("span", "chev", showArchived ? "▾" : "▸")); w.append(t);
+  if (!showArchived) return w;
+  for (const sid of arch) {
+    const s = subjects[sid]; const r = el("div", "archrow");
+    if (homeConfirm === sid) {
+      r.classList.add("confirm"); r.append(el("span", "grow small", deleteText(s)), btn("btn danger small", "Delete forever", () => deleteSubjectNow(sid)), btn("btn ghost small", "Cancel", () => { homeConfirm = null; renderHome(); }));
+    } else {
+      const tx = el("div", "grow"); tx.append(el("div", "nm", s.name), el("div", "small muted", `${s.count || 0} questions · ${subjPct(sid)}% mastered`));
+      const del = btn("linkbtn", "Delete", () => { homeConfirm = sid; renderHome(); }); del.setAttribute("aria-label", "Delete " + s.name);
+      const un = btn("btn ghost small", "Unarchive", () => archiveSubject(sid, false)); un.setAttribute("aria-label", "Unarchive " + s.name);
+      r.append(tx, un, del);
+    }
+    w.append(r);
+  }
+  return w;
+}
+function deleteText(s) {
+  return s.lib ? `Delete "${s.name}" from this phone? Your progress in it is erased. You can add the course questions again from the library.` : `Delete "${s.name}" and its ${s.count || 0} question${s.count === 1 ? "" : "s"}? This can't be undone.`;
+}
+function archiveSubject(sid, on) {
+  const s = subjects[sid]; if (!s) return;
+  saveSubject(sid, { ...s, archived: on || undefined }); subjectConfirm = null; homeConfirm = null;
+  if (on) { go({ v: "home" }); toast(`"${s.name}" archived. Find it under Archived on the home screen.`); }
+  else { if (route.v === "home") renderHome(); else rerender(); toast(`"${s.name}" is back on your home screen.`); }
+}
+async function deleteSubjectNow(sid) {
+  const s = subjects[sid]; if (!s) return; const name = s.name;
+  if (QZ && QZ.sid === sid) QZ = null; if (SID === sid) { SID = null; S = null; cur = null; }
+  await removeSubject(sid); subjectConfirm = null; homeConfirm = null;
+  if (!Object.values(subjects).some((x) => x.archived)) showArchived = false;
+  if (route.v === "home") renderHome(); else go({ v: "home" });
+  toast(`"${name}" deleted.`);
 }
 function restoreConfirm() {
   const c = el("div", "confirm");
@@ -1227,6 +1279,7 @@ async function renderSubject() {
   sum.append(bar, stx, go1);
   if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections. Check or uncheck them below.`));
   m.append(sum);
+  if (s.archived) { const u = el("div", "panel install"); u.append(el("h3", null, "Archived"), el("p", "small muted", "This subject is hidden from your home screen. Its questions and progress are kept."), btn("btn", "Unarchive", () => archiveSubject(sid, false))); m.append(u); }
   if (hasUpdate(sid)) { const u = el("div", "panel install"); u.append(el("h3", null, "Updated questions available"), el("p", "small muted", "A newer version of this question set is in the library. Updating keeps your progress."));
     const ub = btn("btn", "Update now", async () => { ub.disabled = true; ub.textContent = "Downloading…"; try { await installDeck(await fetchDeck(libEntry(sid))); toast("Updated. Your progress is kept."); } catch (e) { toast("Couldn't download it. Check your internet connection."); } renderSubject(); }); u.append(ub); m.append(u); }
   m.append(quizPanel(sid, s));
@@ -1262,16 +1315,17 @@ async function renderSubject() {
   const sw = el("label", "row small"); const ab = el("input"); ab.type = "checkbox"; ab.id = "auto"; ab.checked = !!S.auto; ab.addEventListener("change", () => { S.auto = ab.checked; persist(); });
   sw.append(ab, "Go straight to the next question after a correct answer"); set.append(sw);
   if (subjectConfirm === "reset") set.append(confirmBox("Erase your progress in this subject? Your questions stay.", "Erase progress", () => { const ex = S.extra; S = freshState(); S.extra = ex; S = fixState(S); persist(true); H = []; lsSet("md-h-" + sid, H); subjectConfirm = null; renderSubject(); }));
-  else if (subjectConfirm === "delsubj") set.append(confirmBox(`Remove "${s.name}" and your progress in it from this phone? You can add it again from the library, but progress is lost unless you have a backup.`, "Remove", async () => { await removeSubject(sid); subjectConfirm = null; go({ v: "home" }); toast("Subject removed."); }));
+  else if (subjectConfirm === "delsubj") set.append(confirmBox(deleteText(s), "Delete forever", () => deleteSubjectNow(sid)));
   else if (subjectConfirm === "rename") {
     const f = el("form", "row"); const inp = el("input"); inp.type = "text"; inp.id = "rensubj"; inp.value = s.name; inp.className = "grow"; inp.setAttribute("aria-label", "Subject name");
     const sb = el("button", "btn", "Save"); sb.type = "submit"; f.append(inp, sb, btn("btn ghost", "Cancel", () => { subjectConfirm = null; renderSubject(); }));
     f.addEventListener("submit", async (e) => { e.preventDefault(); const name = inp.value.trim(); if (!name) return; saveSubject(sid, { ...s, name, renamed: true }); subjectConfirm = null; renderSubject(); });
     set.append(f);
   } else {
-    const r = el("div", "row");
+    let r = el("div", "row");
     r.append(btn("btn ghost small", "Start over", () => { subjectConfirm = "reset"; renderSubject(); }));
-    r.append(btn("btn ghost small", "Rename subject", () => { subjectConfirm = "rename"; renderSubject(); }), btn("btn ghost small", "Remove subject", () => { subjectConfirm = "delsubj"; renderSubject(); }));
+    r.append(btn("btn ghost small", "Rename subject", () => { subjectConfirm = "rename"; renderSubject(); }), btn("btn ghost small", s.archived ? "Unarchive subject" : "Archive subject", () => archiveSubject(sid, !s.archived)), btn("btn ghost small dangerish", "Delete subject", () => { subjectConfirm = "delsubj"; renderSubject(); }));
+    set.append(r); r = el("p", "small muted"); r.textContent = "Archive hides a subject from your home screen but keeps its questions and progress. Delete removes it for good.";
     set.append(r);
   }
   m.append(set);
