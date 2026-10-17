@@ -523,7 +523,7 @@ html[data-fs="s"] { font-size: 14.5px; } html[data-fs="l"] { font-size: 18px; } 
 .profhead { display: flex; align-items: center; gap: 14px; }
 .pname { font-family: var(--f-display); font-size: 1.1rem; letter-spacing: .03em; color: #fff; }
 .profedit { display: grid; gap: 8px; }
-.avgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; justify-items: center; }
+.avgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; justify-items: center; }
 .avpick { padding: 3px; border-radius: 50%; border: 2px solid transparent; background: none; cursor: pointer; }
 .avpick.on { border-color: var(--accent); box-shadow: var(--glow-pink); }
 .acct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -1231,17 +1231,9 @@ applyPrefs();
 // ---- profile ----
 const profile = () => lsGet("md-profile", null);
 function saveProfile(p) { lsSet("md-profile", { since: Date.now(), ...(profile() || {}), ...p }); }
-// Placeholder characters (simple original critters). Swap in real pictures by adding {src: "avatar-1.png"}.
-const AVATARS = [
-  { id: "a1", bg: "#ff3d8b", body: "#ffd1e6", ears: "cat" },
-  { id: "a2", bg: "#3d9bff", body: "#d6eaff", ears: "bear" },
-  { id: "a3", bg: "#7bdc3c", body: "#e3fbd2", ears: "antenna" },
-  { id: "a4", bg: "#b46cff", body: "#efe2ff", ears: "bunny" },
-  { id: "a5", bg: "#ffb35c", body: "#fff0dc", ears: "fox" },
-  { id: "a6", bg: "#5ef2c6", body: "#dcfff4", ears: "horns" },
-  { id: "a7", bg: "#ff3b4f", body: "#ffe0e3", ears: "bear" },
-  { id: "a8", bg: "#6fd8ff", body: "#e6f8ff", ears: "antenna" },
-];
+// Profile characters: pictures saved next to the app (avatar-01.jpg ... avatar-10.jpg).
+const AVATARS = ["Scarecrow", "Ghost", "Dark-haired girl", "Blonde girl", "Dark-haired boy", "Boy in a cap", "Black cat", "Tabby cat", "Black dog", "Skeleton"]
+  .map((name, i) => ({ id: "p" + (i + 1), name, src: "avatar-" + String(i + 1).padStart(2, "0") + ".jpg" }));
 function avatarEl(id, size) {
   const a = AVATARS.find((x) => x.id === id);
   const w = el("span", "av"); w.style.width = w.style.height = size + "px";
@@ -1397,7 +1389,7 @@ function renderSettings() {
   if (editing) {
     const f = el("form", "profedit"); let pick = p.av || AVATARS[0].id;
     const grid = el("div", "avgrid");
-    const drawGrid = () => { grid.replaceChildren(...AVATARS.map((a) => { const b = btn("avpick" + (a.id === pick ? " on" : ""), null, () => { pick = a.id; drawGrid(); }); b.type = "button"; b.append(avatarEl(a.id, 52)); b.setAttribute("aria-label", "Character " + a.id.slice(1)); b.setAttribute("aria-pressed", String(a.id === pick)); return b; })); };
+    const drawGrid = () => { grid.replaceChildren(...AVATARS.map((a) => { const b = btn("avpick" + (a.id === pick ? " on" : ""), null, () => { pick = a.id; drawGrid(); }); b.type = "button"; b.append(avatarEl(a.id, 46)); b.setAttribute("aria-label", a.name); b.setAttribute("aria-pressed", String(a.id === pick)); return b; })); };
     drawGrid();
     const inp = el("input"); inp.type = "text"; inp.id = "username"; inp.maxLength = 20; inp.value = p.name || ""; inp.placeholder = "Username"; inp.setAttribute("aria-label", "Username"); inp.autocomplete = "nickname";
     const sv = el("button", "btn", "Save profile"); sv.type = "submit";
