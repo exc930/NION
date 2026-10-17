@@ -17,6 +17,15 @@
    "count": 1096,
    "desc": "Textbook chapters \u00b7 Ch 1\u201312, 19\u201320",
    "auto": false
+  },
+  {
+   "id": "hscreview",
+   "name": "Professor's Midterm Review",
+   "file": "hscreview.json",
+   "version": 1,
+   "count": 329,
+   "desc": "The professor's review sheet \u00b7 16 topic areas, multiple choice",
+   "auto": true
   }
  ]
 }
