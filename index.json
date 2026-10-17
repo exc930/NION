@@ -35,6 +35,15 @@
    "count": 100,
    "desc": "The 100 real midterm questions, with harder practice versions",
    "auto": true
+  },
+  {
+   "id": "fcle",
+   "name": "FCLE \u00b7 Florida Civic Literacy Exam",
+   "file": "fcle.json",
+   "version": 1,
+   "count": 391,
+   "desc": "Official FLDOE outline \u00b7 principles, Constitution, documents, cases, laws",
+   "auto": true
   }
  ]
 }
