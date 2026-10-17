@@ -26,6 +26,15 @@
    "count": 329,
    "desc": "The professor's review sheet \u00b7 16 topic areas, multiple choice",
    "auto": true
+  },
+  {
+   "id": "hscexam",
+   "name": "HSC 0003 Midterm Exam",
+   "file": "hscexam.json",
+   "version": 1,
+   "count": 100,
+   "desc": "The 100 real midterm questions, with harder practice versions",
+   "auto": true
   }
  ]
 }
