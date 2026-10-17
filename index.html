@@ -534,7 +534,8 @@ html[data-fs="s"] { font-size: 14.5px; } html[data-fs="l"] { font-size: 18px; } 
 .themebtn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: rgba(3, 5, 13, .45); color: var(--ink); cursor: pointer; font: inherit; font-size: .92rem; text-align: left; }
 .themebtn.on { border-color: var(--accent); box-shadow: 0 0 12px rgba(var(--accent-rgb), .35); }
 .swatch { width: 22px; height: 22px; border-radius: 50%; flex: none; }
-.sp { display: grid; gap: 10px; }
+.sp { display: grid; gap: 10px; scroll-margin-top: calc(70px + env(safe-area-inset-top, 0px)); }
+details.fold { scroll-margin-top: calc(70px + env(safe-area-inset-top, 0px)); }
 .sp h3 { margin: 0; } .sp p { margin: 0; }
 .togrow { display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer; }
 .togrow + .togrow { border-top: 1px solid var(--line); padding-top: 12px; }
@@ -561,6 +562,10 @@ details.fold[open] > summary::after { transform: rotate(90deg); }
 .lfoot { margin-top: 6px; }
 .lforgot { display: grid; gap: 8px; max-width: 340px; padding: 12px; border-radius: 14px; background: var(--bad-soft); border: 1px solid rgba(255, 59, 79, .45); }
 .lock.shake { animation: lshake .35s; }
+/* no double-tap zoom on iPhone (pinch zoom still works); inputs stay at 16px+ so iOS doesn't zoom when typing */
+* { touch-action: manipulation; }
+.occedit { touch-action: none; }
+input, textarea, select { font-size: max(16px, 1em); }
 @keyframes lshake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
 </style>
 </head>
@@ -1150,7 +1155,7 @@ async function openSubject(sid) {
 function persist() { if (SID && S) lsSet("md-p-" + SID, S); }
 function saveSubject(sid, data) { subjects[sid] = data; cacheSubjects(); }
 const st = (id) => S.it[id];
-const active = (id) => { const it = ITEMS.get(id); return it && !S.off.includes(it.sec) && !(st(id) && st(id).m) && !S.skip.includes(id); };
+const active = (id) => { const it = ITEMS.get(id); return it && !S.off.includes(it.sec) && !(st(id) && st(id).m) && !S.skip.includes(id) && itemOK(it); };
 function counts(sec) {
   let m = 0, l = 0, t = 0;
   for (const id of S.order) { const it = ITEMS.get(id); if (!it || (sec && it.sec !== sec)) continue; t++; const s = st(id); if (s && s.m) m++; else if (s) l++; }
@@ -1402,6 +1407,7 @@ function renderSettings() {
   const stat = (v, l) => { const d = el("div", "astat"); d.append(el("b", null, String(v)), el("span", null, l)); acct.append(d); };
   stat(s.cur, s.cur === 1 ? "day streak" : "day streak"); stat(s.best, "best streak"); stat(st.answered, "answered"); stat(st.acc == null ? "–" : st.acc + "%", "accuracy"); stat(st.mastered, "mastered"); stat(st.subjects, st.subjects === 1 ? "subject" : "subjects");
   pp.append(acct); m.append(pp);
+  m.append(testingPanel());
 
   // Appearance
   const ap = el("div", "panel sp"); ap.append(el("h3", null, "Appearance"));
@@ -1444,6 +1450,7 @@ function renderSettings() {
   dp.append(fold("install", "Install on iPhone", isStandalone() ? "Installed" : "You're in the browser", ins));
   m.append(dp);
   if (settingsOpen === "profile") { const x = $("username"); if (x) setTimeout(() => x.focus(), 60); }
+  if (settingsOpen === "testing") { const t = $("testing"); if (t) setTimeout(() => t.scrollIntoView({ block: "start", behavior: "smooth" }), 80); }
   if (settingsOpen === "ai" && !apiKey()) { const f = $("fold-ai"); if (f) setTimeout(() => f.scrollIntoView({ block: "start", behavior: "smooth" }), 80); }
 }
 
@@ -1571,6 +1578,8 @@ async function renderSubject() {
   sum.append(bar, stx, go1);
   if (c.t) sum.append(runPanel(sid, s, studyable));
   if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections. Check or uncheck them below.`));
+  { const hid = S.order.filter((id) => { const it = ITEMS.get(id); return it && !it.extraOf && !itemOK(it); }).length;
+    if (hid) { const n = el("p", "small muted hidnote"); n.append(`${hid} question${hid === 1 ? " is" : "s are"} skipped because of your Testing options. `, btn("linkbtn", "Change them", () => { settingsOpen = "testing"; go({ v: "settings" }); })); sum.append(n); } }
   m.append(sum);
   if (s.archived) { const u = el("div", "panel install"); u.append(el("h3", null, "Archived"), el("p", "small muted", "This subject is hidden from your home screen. Its questions and progress are kept."), btn("btn", "Unarchive", () => archiveSubject(sid, false))); m.append(u); }
   if (hasUpdate(sid)) { const u = el("div", "panel install"); u.append(el("h3", null, "Updated questions available"), el("p", "small muted", "A newer version of this question set is in the library. Updating keeps your progress."));
@@ -1725,7 +1734,7 @@ document.addEventListener("keydown", (e) => {
 const RUNNING = () => route.v === "study" && !!route.run && !!(S && S.run);
 function runNext() {
   const R = S.run; if (!R) return null;
-  while (R.i < R.ids.length) { const id = R.ids[R.i]; if (ITEMS.has(id) && !S.skip.includes(id)) return id; R.i++; }
+  while (R.i < R.ids.length) { const id = R.ids[R.i]; if (ITEMS.has(id) && !S.skip.includes(id) && itemOK(ITEMS.get(id))) return id; R.i++; }
   persist(); return null;
 }
 function startRun(sid, sec, ids) {
@@ -1925,7 +1934,7 @@ function poolAnswers(item, right) {
   }
   return shuffle(out).slice(0, 3);
 }
-function build(item, seen, lastFmt) {
+function buildRaw(item, seen, lastFmt) {
   const k = item.k || "mc";
   if (item.gen) return buildBase(item, seen, lastFmt);
   let q;
@@ -1957,6 +1966,119 @@ function build(item, seen, lastFmt) {
   if (item.im) q.im = item.im;
   return q;
 }
+// ================= Testing options: which question types to use =================
+// Default is multiple choice only. Questions written in a type that's switched off are turned into
+// multiple choice when possible (matching, ordering, select-all, fill-in, true/false); otherwise skipped.
+const FORMATS = [
+  { id: "mc", name: "Multiple choice", note: "Pick the one right answer." },
+  { id: "tf", name: "True or false", note: "Decide if a statement is accurate." },
+  { id: "ms", name: "Select all that apply", note: "Choose every correct answer." },
+  { id: "fb", name: "Fill in the blank", note: "Type the missing word in a sentence." },
+  { id: "type", name: "Type the answer", note: "Type a short answer from memory." },
+  { id: "ord", name: "Put in order", note: "Arrange steps or stages in sequence." },
+  { id: "match", name: "Matching", note: "Pair each item with its partner." },
+  { id: "pic", name: "Picture questions", note: "Name the part under a highlighted box." },
+];
+const FMT_DEFAULT = { mc: true, tf: false, ms: false, fb: false, type: false, ord: false, match: false, pic: true };
+const fmtPrefs = () => ({ ...FMT_DEFAULT, ...(prefs().fmts || {}) });
+const fmtOn = (f) => !!fmtPrefs()[f];
+const okCache = new Map();
+let okCacheKey = "";
+const stripSelectAll = (t) => String(t || "").replace(/\s*\(?select all that apply\.?\)?\s*/i, " ").trim();
+// Can this item be shown with the chosen types (natively or converted to multiple choice)?
+function itemOK(item) {
+  if (!item) return false;
+  const key = JSON.stringify(fmtPrefs()) + (typeof SID !== "undefined" ? SID : ""); if (key !== okCacheKey) { okCache.clear(); okCacheKey = key; }
+  if (okCache.has(item.id)) return okCache.get(item.id);
+  const k = item.k || "mc"; let ok;
+  if (item.gen) ok = fmtOn("mc") || fmtOn("tf") || fmtOn("ms");
+  else if (k === "img") { const n = new Set((item.boxes || []).map((b) => normAns(b.t))).size; ok = fmtOn("pic") && (n >= 3 ? fmtOn("mc") || fmtOn("type") : fmtOn("type")); }
+  else if (k === "tf") ok = fmtOn("tf") || (fmtOn("mc") && tfMixed(item));
+  else if (k === "ms") ok = fmtOn("ms") || fmtOn("mc");
+  else if (k === "ord" || k === "match") ok = fmtOn(k) || fmtOn("mc");
+  else if (k === "fb") ok = fmtOn("fb") || (fmtOn("mc") && fbPool(item, (parseBlanks(item.q).blanks[0] || [""])[0]).length >= 2) || (fmtOn("type") && parseBlanks(item.q).blanks.length === 1);
+  else if (item.w && item.w.length) ok = fmtOn("mc") || (fmtOn("tf") && !!item.tf) || (fmtOn("ms") && !!item.ms);
+  else ok = (fmtOn("mc") && poolAnswers(item, item.a).length >= 2) || fmtOn("type");
+  okCache.set(item.id, ok); return ok;
+}
+function tfMixed(item) { const v = [item, ...(item.alt || [])]; return v.some((x) => x.a === "True") && v.some((x) => x.a === "False"); }
+function fbPool(item, right) {
+  const seen = new Set([normAns(right)]); const short = [], long = [];
+  for (const x of ITEMS.values()) {
+    if (x.extraOf || x.id === item.id || x.sec !== item.sec) continue;
+    const cands = x.k === "fb" ? parseBlanks(x.q).blanks.map((b) => b[0]) : (!x.k || x.k === "mc") && x.a ? [x.a] : [];
+    for (const t of cands) { const n = normAns(t); if (!n || seen.has(n)) continue; seen.add(n); (x.k === "fb" || String(t).length <= String(right).length * 2 + 6 ? short : long).push(t); }
+  }
+  return shuffle(short).concat(shuffle(long)).slice(0, 3);
+}
+function build(item, seen, lastFmt) {
+  let q = null;
+  for (let t = 0; t < 6; t++) { q = buildRaw(item, seen, lastFmt); if (fmtOn(q.fmt)) return q; }
+  if (fmtOn("mc")) { const c = toMC(item, q); if (c) { if (!c.sc && item.sc) c.sc = item.sc; return c; } }
+  if (fmtOn("type") && q.fmt === "fb" && q.blanks.length === 1) return { ...q, fmt: "type", stem: q.parts.join("_____"), parts: ["", ""] };
+  return q;
+}
+function mcQ(q, stem, right, rightWhy, wrongs) {
+  const opts = orderOpts([{ t: right, c: true, why: rightWhy }, ...wrongs.slice(0, 3).map(([t, why]) => ({ t, c: false, why }))]);
+  return { f: q.f, tag: ["Reworded", ""], st: q.st || null, im: q.im, sc: q.sc, fmt: "mc", stem, opts, conv: true };
+}
+function toMC(item, q) {
+  const k = item.k || "mc";
+  if (q.fmt === "match") {
+    const i = ri(0, q.pairs.length - 1); const [L, R] = q.pairs[i];
+    const others = shuffle(q.pairs.filter((_, j) => j !== i && normAns(q.pairs[j][1]) !== normAns(R)));
+    if (others.length < 1) return null;
+    return mcQ(q, `${q.stem} Which one goes with “${L}”?`, R, q.ex ? `“${L}” goes with “${R}.” ${q.ex}` : `“${L}” goes with “${R}.”`, others.map(([l, r]) => [r, `That one goes with “${l}.”`]));
+  }
+  if (q.fmt === "ord") {
+    const it = q.items; if (it.length < 3) return null;
+    const i = ri(0, it.length - 1);
+    const stem = i === 0 ? `${q.stem} Which comes first?` : `${q.stem} Which comes right after “${it[i - 1]}”?`;
+    const wr = shuffle(it.map((t, j) => [t, j]).filter(([, j]) => j !== i && j !== i - 1)).map(([t, j]) => [t, `That's step ${j + 1} of ${it.length}.`]);
+    if (wr.length < 1) return null;
+    return mcQ(q, stem, it[i], `It's step ${i + 1} of ${it.length}. ${q.ex || ""}`.trim(), wr);
+  }
+  if (q.fmt === "ms") {
+    const T = q.opts.filter((o) => o.c), F = q.opts.filter((o) => !o.c); const base = stripSelectAll(q.stem);
+    if (F.length >= 2 || (F.length === 1 && T.length === 1)) { const r = T[ri(0, T.length - 1)]; return mcQ(q, `${base} (Pick the one that's correct.)`, r.t, r.why || q.ex, F.map((o) => [o.t, o.why])); }
+    if (F.length === 1 && T.length >= 2) return mcQ(q, `${base} (Pick the one that does NOT belong.)`, F[0].t, F[0].why || "This one doesn't belong.", shuffle(T).map((o) => [o.t, "This one does belong, so it isn't the answer. " + (o.why || "")]));
+    return null;
+  }
+  if (q.fmt === "fb" || (q.fmt === "type" && q.blanks && k !== "img")) {
+    const i = ri(0, q.blanks.length - 1); const right = q.blanks[i][0];
+    let stem = q.stem || ""; if (q.parts && q.parts.length > 2) stem = q.parts.map((p, j) => (j % 2 ? (((j - 1) / 2) === i ? "_____" : q.blanks[(j - 1) / 2][0]) : p)).join("");
+    else if (q.fmt === "fb") stem = q.parts.join("_____");
+    const pool = k === "fb" ? fbPool(item, right) : poolAnswers(item, right); if (pool.length < 2) return null;
+    return mcQ(q, stem, right, q.ex || "", pool.map((t) => [t, "That's the answer to a different question."]));
+  }
+  if (q.fmt === "tf" && k === "tf") {
+    const v = [item, ...(item.alt || [])]; const T = shuffle(v.filter((x) => x.a === "True")), F = shuffle(v.filter((x) => x.a === "False"));
+    if (!T.length || !F.length) return null;
+    const why = (x) => x.ex || x.ww || "";
+    if (F.length === 1 && T.length >= 2) return mcQ(q, "Which statement is NOT accurate?", F[0].q, why(F[0]), T.map((x) => [x.q, "This statement is accurate. " + why(x)]));
+    return mcQ(q, "Which statement is accurate?", T[0].q, why(T[0]), F.map((x) => [x.q, why(x)]));
+  }
+  return null;
+}
+function testingPanel() {
+  const fp = fmtPrefs(); const p = el("div", "panel sp"); p.id = "testing";
+  p.append(el("h3", null, "Testing options"), el("p", "small muted", "Choose how questions are asked. Questions written another way are turned into one of your chosen types when possible, or skipped."));
+  const row = el("div", "row");
+  row.append(btn("btn ghost small", "Select all", () => { const o = {}; FORMATS.forEach((f) => (o[f.id] = true)); setPref("fmts", o); renderSettings(); }),
+    btn("btn ghost small", "Multiple choice only", () => { setPref("fmts", { ...FMT_DEFAULT }); renderSettings(); }));
+  p.append(row);
+  for (const f of FORMATS) {
+    const l = el("label", "togrow"); const c = el("input"); c.type = "checkbox"; c.className = "switch"; c.id = "fmt-" + f.id; c.checked = !!fp[f.id];
+    c.addEventListener("change", () => {
+      const o = { ...fmtPrefs(), [f.id]: c.checked };
+      if (!FORMATS.some((x) => x.id !== "pic" && o[x.id])) { c.checked = true; toast("Keep at least one question type on."); return; }
+      setPref("fmts", o); if (typeof cur !== "undefined") cur = null;
+    });
+    const t = el("span", "grow"); t.append(el("span", "tl", f.name), el("span", "small muted", f.note)); l.append(t, c); p.append(l);
+  }
+  return p;
+}
+
 function gradeAns(q, a) {
   a = a || [];
   if (q.opts) { const p = new Set(a); return p.size > 0 && q.opts.every((o, j) => o.c === p.has(j)); }
@@ -2188,7 +2310,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden && QZ 
 const qzElapsed = () => (QZ ? QZ.elapsed + (QZ.paused || !QZ.runSince ? 0 : Date.now() - QZ.runSince) : 0);
 const fmtTime = (ms) => { const s = Math.round(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`; };
 function quizPool(sec) {
-  return S.order.filter((id) => { const it = ITEMS.get(id); return it && !it.extraOf && !S.skip.includes(id) && (sec ? it.sec === sec : !S.off.includes(it.sec)); });
+  return S.order.filter((id) => { const it = ITEMS.get(id); return it && !it.extraOf && !S.skip.includes(id) && itemOK(it) && (sec ? it.sec === sec : !S.off.includes(it.sec)); });
 }
 function startQuiz(sid, sec) {
   const pool = quizPool(sec); if (!pool.length) { toast("No questions to quiz you on yet."); return; }
