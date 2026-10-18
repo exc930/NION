@@ -40,9 +40,9 @@
    "id": "fcle",
    "name": "FCLE \u00b7 Florida Civic Literacy Exam",
    "file": "fcle.json",
-   "version": 1,
-   "count": 391,
-   "desc": "Official FLDOE outline \u00b7 principles, Constitution, documents, cases, laws",
+   "version": 2,
+   "count": 667,
+   "desc": "4 competencies \u00b7 every topic in the FLDOE Supplemental Guide \u00b7 official sample items first",
    "auto": true
   }
  ]
