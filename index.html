@@ -583,6 +583,56 @@ input, textarea, select { font-size: max(16px, 1em); }
 .starbox { border-top: 1px solid var(--line); padding-top: 10px; }
 .scenario.passage { color: var(--ink); }
 .scenario.passage b { color: var(--muted); font-family: var(--f-body, inherit); font-weight: 600; font-size: .85rem; margin-bottom: 6px; }
+/* study buddy */
+.buddycard { display: flex; align-items: center; gap: 16px; margin: 2px 0 20px; position: relative; padding: 4px 2px 8px; }
+.buddy { position: relative; width: var(--bs); height: var(--bs); flex: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.buddy .bframe { width: 100%; height: 100%; border-radius: 30%; overflow: hidden; border: 3px solid rgba(var(--accent-rgb), .95); background: #0b0f1d;
+  box-shadow: 0 0 0 5px rgba(var(--accent-rgb), .16), 0 12px 32px rgba(var(--accent-rgb), .38); transform-origin: 50% 90%; }
+.buddy .bframe .av { border-radius: 0; width: 100% !important; height: 100% !important; }
+.buddy .bshadow { position: absolute; left: 18%; right: 18%; bottom: -12px; height: 9px; border-radius: 50%; background: rgba(0, 0, 0, .55); filter: blur(3px); }
+.buddy.idle .bframe { animation: bfloat 3.4s ease-in-out infinite; }
+.buddy.idle .bshadow { animation: bshade 3.4s ease-in-out infinite; }
+.buddy.hop .bframe { animation: bhop .65s cubic-bezier(.3, 1.6, .5, 1); }
+.buddy.shake .bframe { animation: bshake .55s ease; }
+.buddy.cheer .bframe { animation: bcheer .9s cubic-bezier(.3, 1.6, .5, 1); }
+.buddy.cheer::before, .buddy.cheer::after { content: "✦"; position: absolute; font-size: calc(var(--bs) * .26); color: #ffd76a; text-shadow: 0 0 10px rgba(255, 215, 106, .8); animation: bspark 1.2s ease-out forwards; pointer-events: none; }
+.buddy.cheer::before { left: -12%; top: 4%; }
+.buddy.cheer::after { right: -12%; top: 26%; animation-delay: .15s; color: var(--accent-2); }
+.buddy.ghosty .bframe { border-style: dashed; box-shadow: none; }
+@keyframes bfloat { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-8px) rotate(1.5deg); } }
+@keyframes bshade { 0%, 100% { transform: scaleX(1); opacity: .55; } 50% { transform: scaleX(.78); opacity: .3; } }
+@keyframes bhop { 0% { transform: none; } 30% { transform: translateY(-18px) scale(1.06, .95); } 62% { transform: translateY(0) scale(.95, 1.06); } 100% { transform: none; } }
+@keyframes bshake { 0%, 100% { transform: none; } 18% { transform: translateX(-7px) rotate(-5deg); } 38% { transform: translateX(7px) rotate(5deg); } 58% { transform: translateX(-4px) rotate(-2deg); } 78% { transform: translateX(3px); } }
+@keyframes bcheer { 0% { transform: scale(.55) rotate(-10deg); opacity: 0; } 55% { transform: scale(1.12) rotate(4deg); opacity: 1; } 100% { transform: none; } }
+@keyframes bspark { 0% { transform: scale(0) rotate(0); opacity: 0; } 40% { transform: scale(1.2) rotate(40deg); opacity: 1; } 100% { transform: scale(.7) translateY(-14px) rotate(90deg); opacity: 0; } }
+.bubble { position: relative; flex: 1; min-width: 0; display: grid; gap: 8px; justify-items: start; background: var(--surface); border: 1px solid rgba(var(--accent-rgb), .4); border-radius: 18px; padding: 12px 14px; box-shadow: 0 6px 22px rgba(0, 0, 0, .25); }
+.bubble::before { content: ""; position: absolute; left: -8px; top: calc(50% - 8px); width: 14px; height: 14px; background: var(--surface); border-left: 1px solid rgba(var(--accent-rgb), .4); border-bottom: 1px solid rgba(var(--accent-rgb), .4); transform: rotate(45deg); }
+.bubble.up::before { left: calc(50% - 7px); top: -8px; border-bottom: 0; border-top: 1px solid rgba(var(--accent-rgb), .4); }
+.bubble .btxt { line-height: 1.35; }
+.bubble.big .btxt { font-family: var(--f-display); font-size: 1.12rem; font-weight: 700; color: var(--ink); }
+.bubble .bsub { font-size: .92rem; color: var(--muted); line-height: 1.4; }
+.bcol { display: grid; justify-items: center; gap: 16px; flex: none; }
+.bchange { font-size: .8rem; }
+.breact { display: flex; align-items: center; gap: 14px; margin: 4px 0 2px; }
+.breact .bubble { padding: 9px 13px; animation: bpop .35s ease-out; }
+.breact.bad .bubble, .breact.bad .bubble::before { border-color: rgba(255, 179, 92, .55); }
+.breact.master .bubble, .breact.streak .bubble { border-color: #ffd76a; }
+.breact.master .bubble::before, .breact.streak .bubble::before { border-color: #ffd76a; }
+@keyframes bpop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.bcheer { display: grid; justify-items: center; gap: 18px; margin: 4px 0 8px; }
+.bcheer .bubble { flex: none; max-width: 92%; justify-items: center; text-align: center; }
+.profhead .buddy .bframe { border-width: 2px; }
+.avprev { display: flex; align-items: center; gap: 16px; position: relative; padding: 6px 0 22px; }
+.avprev .avname { position: absolute; left: 0; bottom: -2px; width: 132px; text-align: center; font-size: .82rem; color: var(--muted); }
+.avgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.avpick { display: grid; justify-items: center; gap: 6px; padding: 10px 4px 8px; border-radius: 18px; border: 2px solid var(--line); width: 100%; color: var(--ink); }
+.avpick .av { border-radius: 26%; }
+.avpick .avlbl { font-size: .74rem; line-height: 1.2; text-align: center; color: var(--muted); }
+.avpick.on { background: rgba(var(--accent-rgb), .12); }
+.avpick.on .avlbl { color: var(--ink); font-weight: 700; }
+.syncform, .syncsetup { display: grid; gap: 10px; }
+.errline { color: var(--bad); margin: 0; }
+@media (prefers-reduced-motion: reduce) { .buddy .bframe, .buddy .bshadow, .buddy::before, .buddy::after, .breact .bubble { animation: none !important; } }
 </style>
 </head>
 <body>
@@ -944,7 +994,252 @@ const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) {
 const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const uidGen = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
-const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); markChanged(k); } catch (e) {} };
+// ================= Sync across devices (Supabase: one row of app data per account) =================
+// Every saved setting/progress key gets a "last changed" time (md-mt). A sync pulls the account's copy, merges it with
+// this device's copy key by key (progress is merged question by question), saves the result here and pushes it back.
+// The passcode, API key and a few device-only keys never leave the device.
+var SYNC_BUILTIN = { url: "__SYNC_URL__", key: "__SYNC_KEY__" };
+var syncApplying = false, syncBusy = false, syncAgain = false, syncTimer = null, syncPoll = null, syncMsg = "";
+const SYNC_LOCAL = /^md-(apikey|lock|model|booted|lastbackup|packs-|mt$|mtp$|sync|grpopen-)/;
+const syncable = (k) => typeof k === "string" && k.startsWith("md-") && !SYNC_LOCAL.test(k);
+function syncCfg() {
+  const s = lsGetRaw("md-sync") || {};
+  const url = (SYNC_BUILTIN.url.startsWith("http") ? SYNC_BUILTIN.url : s.url || "").replace(/\/+$/, "");
+  const key = SYNC_BUILTIN.key.startsWith("__") ? s.key || "" : SYNC_BUILTIN.key;
+  return { url, key, builtIn: SYNC_BUILTIN.url.startsWith("http"), s };
+}
+function lsGetRaw(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function lsSetRaw(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+const syncSt = () => lsGetRaw("md-sync") || {};
+function setSyncSt(p) { lsSetRaw("md-sync", { ...syncSt(), ...p }); }
+const signedIn = () => { const s = syncSt(); const c = syncCfg(); return !!(c.url && c.key && s.access && s.uid); };
+function markChanged(k) {
+  if (syncApplying || !syncable(k)) return;
+  const mt = lsGetRaw("md-mt") || {}; mt[k] = Date.now(); lsSetRaw("md-mt", mt); scheduleSync();
+}
+function markPacks(sid) { if (syncApplying) return; const m = lsGetRaw("md-mtp") || {}; m[sid] = Date.now(); lsSetRaw("md-mtp", m); scheduleSync(); }
+function markAllChanged() {
+  const mt = lsGetRaw("md-mt") || {}; const now = Date.now();
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (syncable(k)) mt[k] = now; }
+  lsSetRaw("md-mt", mt); const m = lsGetRaw("md-mtp") || {}; for (const sid of Object.keys(subjects)) m[sid] = now; lsSetRaw("md-mtp", m); scheduleSync();
+}
+function tombstone(sid) { const t = lsGet("md-tomb", {}); t[sid] = Date.now(); lsSet("md-tomb", t); }
+function scheduleSync(ms) { if (!signedIn()) return; clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(), ms == null ? 2500 : ms); }
+
+// ---- server calls (Supabase Auth + REST) ----
+async function sbFetch(path, opt = {}, auth = true) {
+  const c = syncCfg(); if (!c.url || !c.key) throw new Error("not set up");
+  if (auth) await ensureFresh();
+  const h = { apikey: c.key, "Content-Type": "application/json", ...(opt.headers || {}) };
+  if (auth) h.Authorization = "Bearer " + syncSt().access;
+  let r = await fetch(c.url + path, { ...opt, headers: h });
+  if (auth && r.status === 401 && syncSt().refresh) { await refreshToken(); h.Authorization = "Bearer " + syncSt().access; r = await fetch(c.url + path, { ...opt, headers: h }); }
+  return r;
+}
+function keepSession(j) {
+  if (!j || !j.access_token) return false;
+  setSyncSt({ access: j.access_token, refresh: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000, uid: j.user && j.user.id, email: j.user && j.user.email });
+  return true;
+}
+async function ensureFresh() { const s = syncSt(); if (s.refresh && (!s.exp || s.exp - Date.now() < 90e3)) await refreshToken(); }
+async function refreshToken() {
+  const s = syncSt(); const c = syncCfg();
+  const r = await fetch(c.url + "/auth/v1/token?grant_type=refresh_token", { method: "POST", headers: { apikey: c.key, "Content-Type": "application/json" }, body: JSON.stringify({ refresh_token: s.refresh }) });
+  if (r.ok) { keepSession(await r.json()); return; }
+  if (r.status === 400 || r.status === 401) { setSyncSt({ access: null, refresh: null, uid: null }); syncMsg = "Signed out. Sign in again to keep syncing."; }
+  throw new Error("refresh");
+}
+async function authErr(r) { let j = {}; try { j = await r.json(); } catch (e) {} return j.msg || j.error_description || j.message || j.error || ("Error " + r.status); }
+async function syncSignIn(email, password, create) {
+  const path = create ? "/auth/v1/signup" : "/auth/v1/token?grant_type=password";
+  const r = await sbFetch(path, { method: "POST", body: JSON.stringify({ email, password }) }, false);
+  if (!r.ok) throw new Error(await authErr(r));
+  const j = await r.json();
+  if (!keepSession(j.access_token ? j : j.session || null)) return "confirm";
+  if (!syncSt().last) markAllChanged();
+  await syncNow(true); startSyncLoop(); return "ok";
+}
+function syncSignOut() { setSyncSt({ access: null, refresh: null, uid: null, rev: null, last: null }); clearInterval(syncPoll); syncPoll = null; }
+
+// ---- merging ----
+function mergeProgress(a, b) {
+  if (!a || a.v !== 1) return b; if (!b || b.v !== 1) return a;
+  const [N, O] = (a.at || 0) >= (b.at || 0) ? [a, b] : [b, a];
+  const n = Math.max(a.n || 0, b.n || 0);
+  const shift = (rec, side) => { if (!rec || rec.due == null) return rec; return { ...rec, due: n + (rec.due - (side.n || 0)) }; };
+  const it = {};
+  for (const id of new Set([...Object.keys(N.it || {}), ...Object.keys(O.it || {})])) {
+    const x = (N.it || {})[id], y = (O.it || {})[id];
+    const tot = (r) => (r ? (r.ok || 0) + (r.bad || 0) : -1);
+    it[id] = tot(y) > tot(x) ? shift(y, O) : shift(x, N);
+  }
+  const byId = (l) => { const m = new Map(); for (const e of l || []) m.set(e.id || JSON.stringify(e), e); return m; };
+  const extra = [...new Map([...byId(O.extra), ...byId(N.extra)]).values()];
+  const quizzes = [...new Map([...(O.quizzes || []), ...(N.quizzes || [])].map((q) => [q.at, q])).values()].sort((p, q) => p.at - q.at).slice(-50);
+  const runOf = (s) => s.run || null; const ra = runOf(N), rb = runOf(O);
+  const run = !ra ? rb : !rb ? ra : ((rb.at || 0) > (ra.at || 0) || ((rb.at || 0) === (ra.at || 0) && (rb.i || 0) > (ra.i || 0)) ? rb : ra);
+  const out = { ...N, n, it, extra, at: Math.max(a.at || 0, b.at || 0) };
+  if (quizzes.length) out.quizzes = quizzes; if (run) out.run = run;
+  return out;
+}
+function mergeDoc(L, R) {
+  const out = {}; const keys = new Set([...Object.keys(L), ...Object.keys(R)]);
+  const P = (raw) => { try { return JSON.parse(raw); } catch (e) { return null; } };
+  for (const k of keys) {
+    const a = L[k], b = R[k];
+    if (!a || !b) { out[k] = a || b; continue; }
+    if (a[1] === b[1]) { out[k] = [Math.max(a[0], b[0]), a[1]]; continue; }
+    const t = Math.max(a[0], b[0]); const newer = a[0] > b[0] ? a : b;
+    let v;
+    if (k.startsWith("md-p-")) v = mergeProgress(P(a[1]), P(b[1]));
+    else if (k === "md-days") v = [...new Set([...(P(a[1]) || []), ...(P(b[1]) || [])])].sort().slice(-800);
+    else if (k === "md-reports") v = [...new Map([...(P(b[1]) || []), ...(P(a[1]) || [])].map((r) => [r.id || r.at || JSON.stringify(r), r])).values()];
+    else if (k === "md-tomb") { const x = P(a[1]) || {}, y = P(b[1]) || {}; v = { ...x }; for (const [s, ts] of Object.entries(y)) v[s] = Math.max(v[s] || 0, ts); }
+    else if (k === "md-subjects") { const x = P(a[1]) || {}, y = P(b[1]) || {}; const [nw, ol] = a[0] > b[0] ? [x, y] : [y, x]; v = { ...ol, ...nw }; }
+    else { out[k] = newer; continue; }
+    out[k] = [t, JSON.stringify(v)];
+  }
+  // deleted subjects stay deleted unless they were added again later
+  if (out["md-subjects"] && out["md-tomb"]) {
+    const sj = P(out["md-subjects"][1]) || {}, tb = P(out["md-tomb"][1]) || {}; let ch = false;
+    for (const [sid, ts] of Object.entries(tb)) if (sj[sid] && (sj[sid].at || 0) < ts) { delete sj[sid]; ch = true; }
+    if (ch) out["md-subjects"] = [out["md-subjects"][0], JSON.stringify(sj)];
+  }
+  return out;
+}
+function localDoc() {
+  const mt = lsGetRaw("md-mt") || {}; const d = {};
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (syncable(k)) { const v = localStorage.getItem(k); if (v != null) d[k] = [mt[k] || 1, v]; } }
+  return d;
+}
+async function applyDoc(doc) {
+  const changed = [];
+  syncApplying = true;
+  try {
+    const mt = lsGetRaw("md-mt") || {};
+    for (const [k, [t, raw]] of Object.entries(doc)) { if (localStorage.getItem(k) !== raw) { try { localStorage.setItem(k, raw); changed.push(k); } catch (e) {} } mt[k] = t; }
+    lsSetRaw("md-mt", mt);
+  } finally { syncApplying = false; }
+  if (!changed.length) return changed;
+  subjects = lsGet("md-subjects", {}); reports = lsGet("md-reports", []); applyPrefs();
+  if (SID && changed.includes("md-p-" + SID) && route.v !== "study" && route.v !== "quiz") { SID = null; S = null; cur = null; }
+  if (SID && !subjects[SID]) { SID = null; S = null; cur = null; }
+  return changed;
+}
+// Library subjects come from the library; only questions you made yourself are uploaded.
+async function packsForUpload(sid) {
+  const s = subjects[sid]; if (!s) return null; const list = await loadPacks(sid);
+  return s.lib ? list.filter((p) => p.own) : list;
+}
+async function syncPacks() {
+  const st = syncSt(); const mtp = lsGetRaw("md-mtp") || {};
+  const r = await sbFetch("/rest/v1/nion_packs?select=sid,t"); if (!r.ok) throw new Error("packs " + r.status);
+  const remote = Object.fromEntries((await r.json()).map((x) => [x.sid, x.t]));
+  for (const sid of Object.keys(subjects)) {
+    const lt = mtp[sid] || 1; const have = !!(await loadPacks(sid)).length;
+    if (remote[sid] != null && (remote[sid] > lt || !have)) {
+      const g = await sbFetch("/rest/v1/nion_packs?select=data,t&sid=eq." + encodeURIComponent(sid)); const row = g.ok ? (await g.json())[0] : null;
+      if (row && Array.isArray(row.data)) {
+        syncApplying = true;
+        try { const s = subjects[sid]; const cur0 = await loadPacks(sid); await savePacks(sid, s.lib ? cur0.filter((p) => !p.own).concat(row.data) : row.data); }
+        finally { syncApplying = false; }
+        mtp[sid] = row.t;
+      }
+    } else if (remote[sid] == null || lt > remote[sid]) {
+      const data = await packsForUpload(sid); if (!data || (!data.length && remote[sid] == null)) continue;
+      const u = await sbFetch("/rest/v1/nion_packs?on_conflict=user_id,sid", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ user_id: st.uid, sid, t: lt, data }) });
+      if (u.ok) mtp[sid] = lt;
+    }
+  }
+  lsSetRaw("md-mtp", mtp);
+}
+async function fillLibraryPacks() {
+  for (const sid of Object.keys(subjects)) {
+    const s = subjects[sid]; if (!s.lib) continue;
+    const list = await loadPacks(sid); if (list.some((p) => !p.own)) continue;
+    try { if (!library) await loadLibrary(); const e = libEntry(sid); if (!e) continue; const own = list.filter((p) => p.own); const d = await fetchDeck(e);
+      syncApplying = true; try { await installDeck(d); if (own.length) await savePacks(sid, (await loadPacks(sid)).concat(own)); } finally { syncApplying = false; } } catch (e) {}
+  }
+}
+async function syncNow(force) {
+  if (!signedIn()) return;
+  if (syncBusy) { syncAgain = true; return; }
+  syncBusy = true; let pulled = [];
+  try {
+    for (let tries = 0; tries < 4; tries++) {
+      const g = await sbFetch("/rest/v1/nion_sync?select=data,rev"); if (!g.ok) throw new Error("get " + g.status);
+      const row = (await g.json())[0] || null; const R = (row && row.data && row.data.k) || {};
+      const merged = mergeDoc(localDoc(), R);
+      pulled = pulled.concat(await applyDoc(merged));
+      if (row && JSON.stringify(merged) === JSON.stringify(R)) { setSyncSt({ rev: row.rev }); break; }
+      const body = { data: { v: 1, k: merged }, rev: row ? row.rev + 1 : 1, updated_at: new Date().toISOString() };
+      const w = row
+        ? await sbFetch(`/rest/v1/nion_sync?user_id=eq.${syncSt().uid}&rev=eq.${row.rev}`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify(body) })
+        : await sbFetch("/rest/v1/nion_sync", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ user_id: syncSt().uid, ...body }) });
+      if (w.ok) { const got = await w.json().catch(() => []); if (got && got.length) { setSyncSt({ rev: body.rev }); break; } }
+      else if (w.status !== 409) throw new Error("put " + w.status);
+    }
+    await syncPacks(); await fillLibraryPacks();
+    setSyncSt({ last: Date.now() }); syncMsg = "";
+    const shown = pulled.filter((k) => k !== "md-tomb");
+    if (shown.length && !force && ["home", "settings", "subject"].includes(route.v)) { rerender(); toast("Updated from your other device."); }
+    else if (shown.length && force) rerender();
+  } catch (e) { syncMsg = navigator.onLine === false ? "Offline. Changes will sync when you're back online." : "Couldn't sync just now. It will try again."; }
+  finally { syncBusy = false; if (syncAgain) { syncAgain = false; scheduleSync(800); } }
+}
+async function checkRemote() {
+  if (!signedIn() || document.hidden) return;
+  try { const r = await sbFetch("/rest/v1/nion_sync?select=rev"); if (!r.ok) return; const row = (await r.json())[0]; if (row && row.rev !== syncSt().rev) syncNow(); } catch (e) {}
+}
+function startSyncLoop() { if (syncPoll || !signedIn()) return; syncPoll = setInterval(checkRemote, 15000); }
+document.addEventListener("visibilitychange", () => { if (!document.hidden && signedIn()) syncNow(); });
+window.addEventListener("online", () => { if (signedIn()) syncNow(); });
+setTimeout(() => { if (signedIn()) { startSyncLoop(); syncNow(); } }, 600);
+
+// ---- settings panel ----
+let syncForm = { email: "", busy: false, err: "", info: "" };
+function syncPanel() {
+  const p = el("div", "panel sp"); p.id = "sync"; const c = syncCfg(); const s = syncSt();
+  p.append(el("h3", null, "Sync across devices"));
+  if (signedIn()) {
+    p.append(el("p", "small", `Signed in as ${s.email || "your account"}. Your progress, profile, character, settings and your own subjects stay the same on every device where you sign in.`));
+    p.append(el("p", "small muted", syncMsg || (s.last ? `Last synced ${new Date(s.last).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}.` : "Syncing…")));
+    const r = el("div", "row");
+    const now = btn("btn small", "Sync now", async () => { now.disabled = true; now.textContent = "Syncing…"; await syncNow(true); renderSettings(); }); now.id = "syncnow";
+    r.append(now, btn("btn ghost small", "Sign out", () => { syncSignOut(); renderSettings(); toast("Signed out. Everything stays on this device."); }));
+    p.append(r, el("p", "small muted", "Your passcode and AI key stay on each device and aren't uploaded."));
+    return p;
+  }
+  p.append(el("p", "small muted", "Sign in with the same account on your phone and on the website to keep your progress, profile and settings the same on both."));
+  if (!c.url || !c.key) {
+    const f = el("form", "syncsetup"); const u = el("input"); u.type = "url"; u.id = "syncurl"; u.placeholder = "Project URL (https://….supabase.co)"; u.value = c.s.url || "";
+    const k = el("input"); k.type = "text"; k.id = "synckey"; k.placeholder = "Publishable (anon) key"; k.value = c.s.key || ""; k.autocomplete = "off"; k.spellcheck = false;
+    const b = el("button", "btn small", "Save"); b.type = "submit"; f.append(el("p", "small", "Sync needs a free Supabase project. Paste its URL and key here (one time per device)."), u, k, b);
+    f.addEventListener("submit", (e) => { e.preventDefault(); const url = u.value.trim(), key = k.value.trim(); if (!/^https:\/\//.test(url) || key.length < 20) { toast("Check the URL and key."); return; } setSyncSt({ url, key }); renderSettings(); });
+    p.append(f); return p;
+  }
+  const f = el("form", "syncform"); const em = el("input"); em.type = "email"; em.id = "syncemail"; em.placeholder = "Email"; em.autocomplete = "email"; em.value = syncForm.email || s.email || "";
+  const pw = el("input"); pw.type = "password"; pw.id = "syncpw"; pw.placeholder = "Password (8+ characters)"; pw.autocomplete = "current-password";
+  const go1 = el("button", "btn", syncForm.busy ? "Signing in…" : "Sign in"); go1.type = "submit"; go1.id = "syncin"; go1.disabled = syncForm.busy;
+  const mk = btn("btn ghost", "Create account", () => run(true)); mk.id = "syncnew"; mk.disabled = syncForm.busy;
+  const run = async (create) => {
+    const email = em.value.trim(), password = pw.value; syncForm.email = email;
+    if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 8) { syncForm.err = "Enter your email and a password of at least 8 characters."; renderSettings(); return; }
+    syncForm = { ...syncForm, busy: true, err: "", info: "" }; renderSettings();
+    try { const res = await syncSignIn(email, password, create); syncForm.busy = false; if (res === "confirm") syncForm.info = "Check your email and tap the confirmation link, then sign in here."; else toast("Signed in. This device is now synced."); }
+    catch (e) { syncForm.busy = false; syncForm.err = /invalid login/i.test(e.message) ? "That email and password don't match an account." : /registered|exists/i.test(e.message) ? "That email already has an account. Use Sign in." : e.message || "Couldn't sign in."; }
+    renderSettings();
+  };
+  f.addEventListener("submit", (e) => { e.preventDefault(); run(false); });
+  const r = el("div", "row"); r.append(go1, mk); f.append(em, pw, r);
+  if (syncForm.err) f.append(el("p", "small errline", syncForm.err));
+  if (syncForm.info) f.append(el("p", "small", syncForm.info));
+  p.append(f);
+  if (!c.builtIn) p.append(btn("linkbtn small", "Change server", () => { setSyncSt({ url: "", key: "" }); renderSettings(); }));
+  return p;
+}
+
 let toastT; function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 3200); }
 
 // ================= Store (everything lives on this phone) =================
@@ -964,7 +1259,7 @@ async function loadPacks(sid) {
   return packs[sid];
 }
 async function savePacks(sid, list) {
-  packs[sid] = list;
+  packs[sid] = list; markPacks(sid);
   try { await IDB.set("packs-" + sid, list); } catch (e) { lsSet("md-packs-" + sid, list); }
 }
 function validDeck(d) { return d && d.format === "mastery-deck" && typeof d.name === "string" && Array.isArray(d.sections) && d.sections.every((s) => s && s.id && Array.isArray(s.items)); }
@@ -984,6 +1279,7 @@ async function installDeck(deck) {
   return sid;
 }
 async function removeSubject(sid) {
+  tombstone(sid);
   try { await IDB.del("packs-" + sid); } catch (e) {}
   delete packs[sid]; delete subjects[sid]; cacheSubjects();
   ["md-packs-", "md-p-", "md-h-", "md-quiz-"].forEach((k) => { try { localStorage.removeItem(k + sid); } catch (e) {} });
@@ -1030,7 +1326,7 @@ async function restoreBackup(d) {
   for (const [k, v] of Object.entries(d.ls || {})) { try { localStorage.setItem(k, v); } catch (e) {} }
   subjects = d.subjects || {}; cacheSubjects();
   for (const [sid, list] of Object.entries(d.packs || {})) await savePacks(sid, list);
-  reports = lsGet("md-reports", []); SID = null; S = null; cur = null; QZ = null; applyPrefs();
+  reports = lsGet("md-reports", []); SID = null; S = null; cur = null; QZ = null; applyPrefs(); markAllChanged();
 }
 let pendingRestore = null;
 async function openFile(file) {
@@ -1234,7 +1530,7 @@ function buildBase(item, seen, lastFmt) {
 
 // ================= Profile, preferences, sounds, reminders, passcode =================
 // Everything here is saved on this phone only (localStorage).
-const PREF_DEFAULTS = { theme: "woods", fs: "m", sound: true, remind: true };
+const PREF_DEFAULTS = { theme: "woods", fs: "m", sound: true, remind: true, mascot: true };
 const prefs = () => ({ ...PREF_DEFAULTS, ...lsGet("md-prefs", {}) });
 function setPref(k, v) { const p = prefs(); p[k] = v; lsSet("md-prefs", p); applyPrefs(); }
 const THEMES = [
@@ -1406,16 +1702,20 @@ function renderSettings() {
   const head = el("div", "profhead");
   const nm = el("div", "grow"); nm.append(el("div", "pname", p.name || "No username yet"), el("div", "small muted", p.since ? "On Nion since " + new Date(p.since).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Pick a character and a username."));
   const editing = profileEdit || (!p.name && settingsOpen === "profile");
-  head.append(avatarEl(p.av, 64), nm, btn("btn ghost small", editing ? "Close" : p.name ? "Edit" : "Set up", () => { if (editing) { profileEdit = false; settingsOpen = null; } else profileEdit = true; renderSettings(); }));
+  head.append(buddyFig(p.av, 84), nm, btn("btn ghost small", editing ? "Close" : p.name ? "Edit" : "Set up", () => { if (editing) { profileEdit = false; settingsOpen = null; } else profileEdit = true; renderSettings(); }));
   pp.append(head);
   if (editing) {
     const f = el("form", "profedit"); let pick = p.av || AVATARS[0].id;
-    const grid = el("div", "avgrid");
-    const drawGrid = () => { grid.replaceChildren(...AVATARS.map((a) => { const b = btn("avpick" + (a.id === pick ? " on" : ""), null, () => { pick = a.id; drawGrid(); }); b.type = "button"; b.append(avatarEl(a.id, 46)); b.setAttribute("aria-label", a.name); b.setAttribute("aria-pressed", String(a.id === pick)); return b; })); };
+    const grid = el("div", "avgrid"); const prev = el("div", "avprev");
+    const drawGrid = () => {
+      const a0 = AVATARS.find((a) => a.id === pick) || AVATARS[0];
+      prev.replaceChildren(buddyFig(pick, 132, "hop"), bubble(buddyLine("tap", {}, pick), "left"), el("span", "avname", a0.name));
+      grid.replaceChildren(...AVATARS.map((a) => { const b = btn("avpick" + (a.id === pick ? " on" : ""), null, () => { pick = a.id; drawGrid(); }); b.type = "button"; b.append(avatarEl(a.id, 76), el("span", "avlbl", a.name)); b.setAttribute("aria-label", a.name); b.setAttribute("aria-pressed", String(a.id === pick)); return b; }));
+    };
     drawGrid();
     const inp = el("input"); inp.type = "text"; inp.id = "username"; inp.maxLength = 20; inp.value = p.name || ""; inp.placeholder = "Username"; inp.setAttribute("aria-label", "Username"); inp.autocomplete = "nickname";
     const sv = el("button", "btn", "Save profile"); sv.type = "submit";
-    f.append(el("span", "small muted", "Character"), grid, el("span", "small muted", "Username"), inp, sv);
+    f.append(el("span", "small muted", "Character"), prev, grid, el("span", "small muted", "Username"), inp, sv);
     f.addEventListener("submit", (e) => { e.preventDefault(); const name = inp.value.trim().slice(0, 20); if (!name) { inp.focus(); toast("Type a username."); return; } saveProfile({ name, av: pick }); profileEdit = false; settingsOpen = null; toast("Profile saved."); renderSettings(); });
     pp.append(f);
   }
@@ -1424,6 +1724,7 @@ function renderSettings() {
   const stat = (v, l) => { const d = el("div", "astat"); d.append(el("b", null, String(v)), el("span", null, l)); acct.append(d); };
   stat(s.cur, s.cur === 1 ? "day streak" : "day streak"); stat(s.best, "best streak"); stat(st.answered, "answered"); stat(st.acc == null ? "–" : st.acc + "%", "accuracy"); stat(st.mastered, "mastered"); stat(st.subjects, st.subjects === 1 ? "subject" : "subjects");
   pp.append(acct); m.append(pp);
+  m.append(syncPanel());
   m.append(testingPanel());
 
   // Appearance
@@ -1435,8 +1736,9 @@ function renderSettings() {
   ap.append(fs, el("p", "small muted fsdemo", "This is how question text will look.")); m.append(ap);
 
   // Sound, reminders, passcode
-  const op = el("div", "panel sp"); op.append(el("h3", null, "Sound and reminders"));
+  const op = el("div", "panel sp"); op.append(el("h3", null, "Study buddy, sound and reminders"));
   const tog = (id, label, note, val, fn) => { const l = el("label", "togrow"); const c = el("input"); c.type = "checkbox"; c.id = id; c.checked = val; c.className = "switch"; c.addEventListener("change", () => fn(c.checked)); const t = el("span", "grow"); t.append(el("span", "tl", label), el("span", "small muted", note)); l.append(t, c); return l; };
+  op.append(tog("mascot", "Study buddy", "Your character shows up big on the home screen and reacts when you answer.", pr.mascot !== false, (v) => setPref("mascot", v)));
   op.append(tog("sound", "Sound effects", "A short chime for right answers and a low tone for misses.", pr.sound, (v) => { setPref("sound", v); if (v) playSound("ok"); }));
   op.append(tog("remind", "Study reminders", "When you open Nion, a note on the home screen shows your streak and whether you've studied today. Nion can't send notifications while it's closed.", pr.remind, (v) => setPref("remind", v)));
   m.append(op);
@@ -1455,7 +1757,7 @@ function renderSettings() {
   const fold = (id, title, sub, body) => { const d = el("details", "fold"); d.id = "fold-" + id; if (settingsOpen === id) d.open = true; const sm = el("summary"); sm.append(el("span", "tl", title), el("span", "small muted", sub)); d.append(sm, body); d.addEventListener("toggle", () => { if (d.open) settingsOpen = id; }); return d; };
   const last = lsGet("md-lastbackup", 0);
   const bk = el("div", "foldbody");
-  bk.append(el("p", "small muted", `Your subjects and progress live only on this phone. Save a backup to Files or iCloud Drive every week or so. ${last ? "Last backup: " + new Date(last).toLocaleDateString([], { month: "short", day: "numeric" }) + "." : "No backup yet."}`), btn("btn", "Save a backup", () => saveBackup()));
+  bk.append(el("p", "small muted", `${signedIn() ? "Your progress also syncs to your account." : "Your subjects and progress live only on this device unless you turn on Sync above."} Save a backup to Files or iCloud Drive every week or so. ${last ? "Last backup: " + new Date(last).toLocaleDateString([], { month: "short", day: "numeric" }) + "." : "No backup yet."}`), btn("btn", "Save a backup", () => saveBackup()));
   const pk = el("label", "pick"); pk.append("Open a backup file", el("small", null, "nion-backup-….json"));
   const fi = el("input"); fi.type = "file"; fi.id = "restorefile"; fi.accept = ".json,application/json"; fi.addEventListener("change", () => { const f = fi.files[0]; fi.value = ""; if (f) openFile(f); }); pk.append(fi);
   bk.append(el("p", "small muted", "To restore, open a backup file, for example on a new phone."), pk);
@@ -1495,9 +1797,9 @@ function renderHome() {
   const m = $("main"); m.replaceChildren();
   const hero = el("header", "hero");
   const word = el("h1", "logo"); const img = el("img"); img.src = NION_LOGO; img.alt = "Nion"; img.width = 760; img.height = 587; word.append(img);
-  hero.append(avatarBtn(), word, gearBtn());
+  hero.append(...(buddyOn() ? [] : [avatarBtn()]), word, gearBtn());
   m.append(hero);
-  { const rb = reminderBanner(); if (rb) m.append(rb); }
+  if (buddyOn()) m.append(buddyCard()); else { const rb = reminderBanner(); if (rb) m.append(rb); }
   if (pendingRestore) m.append(restoreConfirm());
 
   const all = Object.keys(subjects).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
@@ -1799,6 +2101,7 @@ function runFinished(card) {
   if (bad) d.append(btn("btn", `Go through the ${bad} you missed`, () => startRun(SID, null, [...new Set(R.miss)])));
   d.append(btn(bad ? "btn ghost" : "btn", "Start a new pass", () => (R.label && R.pool ? startRun(SID, null, R.pool, R.label) : startRun(SID, R.missed ? null : R.sec))));
   d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
+  { const bc = buddyCheer(bad ? (R.ok / Math.max(1, n) >= 0.8 ? buddyLine("done") : "Good effort! Let's go over the ones you missed.") : "Perfect pass! Every single one right."); if (bc) d.prepend(bc); }
   card.append(navRow(), d);
 }
 function runPanel(sid, s, studyable) {
@@ -1862,6 +2165,84 @@ function renderSecList(secs, s, secBox) {
   }
   const rest = s.sections.filter((x) => !x.group || !groups.some((g) => g.id === x.group));
   if (rest.length) { const h = el("div", "grp other"); const hd = el("div", "ghead"); hd.append(el("span", "nm", "Other subsections")); h.append(hd); rest.forEach((sec) => h.append(secBox(sec, s.sections.indexOf(sec)))); secs.append(h); }
+}
+
+// ================= Study buddy: your profile character as a mascot =================
+const BUDDY = {
+  any: {
+    ok: ["Nice one!", "You got it!", "That's right!", "Exactly!", "Sharp!"],
+    bad: ["Not this time. You'll see it again soon.", "Close! Read the explanation and it'll stick.", "Misses help you learn. Keep going.", "Tricky one. We'll come back to it."],
+    master: ["Mastered! That one's yours now.", "Locked in for good!"],
+    streak: ["{n} in a row!", "{n} straight. You're on a roll!"],
+    done: ["You made it through!", "That's a wrap!"],
+    tap: ["Let's learn something.", "One question at a time.", "I believe in you.", "Ready when you are."],
+  },
+  p1: { ok: ["Well, I'll be. Spot on!", "Right as rain!", "That's a fine crop of brains."], bad: ["Shucks. It'll grow on you.", "Even scarecrows miss sometimes."], master: ["Harvested for good!"], streak: ["{n} in a row! Hotter than a hayfire."], done: ["Harvest's in!"], tap: ["Crows don't scare me, and tests won't scare you.", "Let's plant some knowledge."] },
+  p2: { ok: ["Boo-yah!", "Spook-tacular!", "Ghoul job!"], bad: ["Don't let it haunt you.", "Boo... I mean, try again."], master: ["That one will never haunt you again."], streak: ["{n} in a row! Frightfully good."], done: ["Ghouls just wanna have fun, and you won!"], tap: ["I'm transparent about it: you're doing great.", "Don't ghost your studies."] },
+  p3: { ok: ["Yes! Knew you had it.", "Nailed it."], bad: ["So close. Next time.", "That one's sneaky."], master: ["Gone from 'huh?' to mastered!"], streak: ["{n} in a row! Who are you?!"], done: ["We did it!"], tap: ["Quiz me too, I dare you.", "Let's crush this."] },
+  p4: { ok: ["Brilliant!", "Look at you go!"], bad: ["Oops! Shake it off.", "We'll get it next round."], master: ["Mastered! Gold star."], streak: ["{n} in a row! Sparkly."], done: ["Finished! Treat yourself."], tap: ["Bows on, brains on.", "You've totally got this."] },
+  p5: { ok: ["Nailed it!", "Too easy for you."], bad: ["Ugh, that one. It'll come back.", "Rough one. Shake it off."], master: ["Mastered. Moving on."], streak: ["{n} in a row! Unstoppable."], done: ["Done and done."], tap: ["Studying is kind of cool, honestly.", "What's next?"] },
+  p6: { ok: ["Home run!", "Bullseye!"], bad: ["Swing and a miss. Next pitch!", "We'll get it on the next try."], master: ["Out of the park. Mastered!"], streak: ["{n} in a row! Hat trick and then some."], done: ["Game over, you win!"], tap: ["Cap on, let's go.", "Ready for the next round?"] },
+  p7: { ok: ["Purr-fect.", "Feline good about that one."], bad: ["Hiss. Shake it off.", "Even cats land wrong sometimes."], master: ["Nine lives, zero misses on that one."], streak: ["{n} in a row. Cat-astrophically good."], done: ["Fur-midable work."], tap: ["I'd knock your phone off the table, but you're studying.", "Black cats are good luck for tests."] },
+  p8: { ok: ["Meow that's how it's done!", "Claw-some!"], bad: ["Paws and think it over.", "That one scratched you. It'll heal."], master: ["Mastered! Time for a cat nap."], streak: ["{n} in a row! Purring over here."], done: ["Purr-fect finish."], tap: ["I'm not lazy, I'm saving energy for the exam.", "Feed me answers."] },
+  p9: { ok: ["Good job! Who's a smart human?", "Fetched it!"], bad: ["Ruff one. We'll dig it up again.", "That's okay! Wanna try again later?"], master: ["Mastered! *happy tail wags*"], streak: ["{n} in a row! Zoomies!"], done: ["You did it! Walk time?"], tap: ["Belly rub after this section?", "I'm so proud of you. Always."] },
+  p10: { ok: ["Now that's in your bones!", "Bone-afide genius."], bad: ["No bones about it, that was tricky.", "It'll come back to you. I always do."], master: ["Rattled off perfectly. Mastered!"], streak: ["{n} in a row! Spine-tingling."], done: ["You studied to the bone!"], tap: ["I have no body to study with but you.", "Let's get skull-ed up."] },
+};
+let buddyRunN = 0, buddyLast = "";
+const buddyOn = () => prefs().mascot !== false;
+function buddyLine(kind, vars, av) {
+  const id = av || (profile() || {}).av; const own = (BUDDY[id] || {})[kind] || []; const any = BUDDY.any[kind] || [];
+  let pool = own.length && Math.random() < 0.75 ? own : own.concat(any); pool = pool.filter((x) => x !== buddyLast); if (!pool.length) pool = any;
+  let t = pool[ri(0, pool.length - 1)]; buddyLast = t;
+  for (const [k, v] of Object.entries(vars || {})) t = t.split("{" + k + "}").join(v);
+  return t;
+}
+function buddyFig(av, size, mood) {
+  const f = el("div", "buddy" + (mood ? " " + mood : "")); f.style.setProperty("--bs", size + "px");
+  const fr = el("div", "bframe"); fr.append(avatarEl(av, size)); f.append(fr, el("span", "bshadow"));
+  return f;
+}
+function bubble(text, cls) { const b = el("div", "bubble" + (cls ? " " + cls : "")); b.append(el("span", "btxt", text)); return b; }
+function greetWord() { const h = new Date().getHours(); return h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
+function buddyCard() {
+  const p = profile() || {}; const card = el("section", "buddycard"); card.id = "buddycard";
+  if (!p.av) {
+    const fig = buddyFig(null, 120, "idle"); fig.classList.add("ghosty");
+    const b = bubble("Pick a study buddy! Choose a character and a username, and they'll cheer you on.");
+    b.append(btn("btn small", "Choose your character", () => { settingsOpen = "profile"; profileEdit = true; go({ v: "settings" }); }));
+    card.append(fig, b); return card;
+  }
+  const s = streaks(); const st = accountStats(); const remind = prefs().remind;
+  const fig = buddyFig(p.av, 146, "idle"); fig.setAttribute("role", "button"); fig.tabIndex = 0; fig.setAttribute("aria-label", "Tap your study buddy");
+  const b = bubble(`${greetWord()}${p.name ? ", " + p.name : ""}!`, "big");
+  const sub = el("span", "bsub");
+  if (!remind || (!st.answered && !s.cur)) sub.textContent = st.answered ? buddyLine("tap") : "Pick a subject below and let's start.";
+  else if (s.today) sub.textContent = s.cur > 1 ? `🔥 ${s.cur}-day streak. You studied today!` : "You studied today. Nice work!";
+  else sub.textContent = s.cur ? `🔥 Keep your ${s.cur}-day streak alive: study a few questions today.` : "You haven't studied yet today.";
+  b.append(sub);
+  if (remind && !s.today && st.last && subjects[st.last]) b.append(btn("btn small", "Study now", () => go({ v: "study", sid: st.last })));
+  const poke = () => { sub.textContent = buddyLine("tap", { name: p.name || "" }); fig.classList.remove("hop"); void fig.offsetWidth; fig.classList.add("hop"); };
+  fig.addEventListener("click", poke); fig.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); poke(); } });
+  const edit = btn("linkbtn bchange", "Change", () => { settingsOpen = "profile"; profileEdit = true; go({ v: "settings" }); }); edit.setAttribute("aria-label", "Change your character");
+  const col = el("div", "bcol"); col.append(fig, edit); card.append(col, b); return card;
+}
+// small reaction under an answered question
+function buddyReact() {
+  const p = profile() || {}; if (!buddyOn() || !p.av || !cur) return null;
+  if (!cur.bl) {
+    const s = st(cur.id) || {};
+    buddyRunN = cur.ok ? buddyRunN + 1 : 0;
+    const kind = !cur.ok ? "bad" : s.m ? "master" : (buddyRunN >= 3 && (buddyRunN === 3 || buddyRunN % 5 === 0)) ? "streak" : "ok";
+    cur.bl = { kind, text: buddyLine(kind, { n: buddyRunN }), fresh: true };
+  }
+  const mood = cur.bl.fresh ? { bad: "shake", master: "cheer", streak: "cheer" }[cur.bl.kind] || "hop" : ""; cur.bl.fresh = false;
+  const r = el("div", "breact " + cur.bl.kind); r.append(buddyFig(p.av, 58, mood), bubble(cur.bl.text, "left"));
+  return r;
+}
+function buddyCheer(text) {
+  const p = profile() || {}; if (!buddyOn() || !p.av) return null;
+  const r = el("div", "bcheer"); r.append(buddyFig(p.av, 104, "cheer"), bubble(text || buddyLine("done"), "up"));
+  return r;
 }
 
 // ================= "Add 2 more like this" =================
@@ -2330,6 +2711,7 @@ function renderCur() {
       el("p", "note", allDone ? `You got all ${c.t} questions right three times. Start a fresh round to practice again.` : "Check more subsections on the subject page, or add more material."));
     if (allDone) d.append(btn("btn", "Start a fresh round", () => { const ex = S.extra; S = freshState(); S.extra = ex; S = fixState(S); persist(true); show(); }));
     d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
+    if (allDone) { const bc = buddyCheer("Every question mastered. I'm so proud!"); if (bc) d.prepend(bc); }
     card.append(navRow(), d); return;
   }
   const item = ITEMS.get(cur.id); const q = cur.q; const ix = !q.opts;
@@ -2348,6 +2730,7 @@ function renderCur() {
     const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
     act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), nx);
   }
+  { const br = cur.answered ? buddyReact() : null; if (br) card.append(br); }
   card.append(act, bottomRow({ id: cur.id, q, answered: cur.answered, picks: cur.picks, resp: cur.resp, live: true }));
 }
 function renderReview(idx) {
@@ -2475,6 +2858,7 @@ function renderResults() {
   const st2 = el("div", "stats"); const add = (l, v) => { const sp = el("span"); sp.append(l + " ", Object.assign(el("b"), { textContent: v })); st2.append(sp); };
   add("Time", fmtTime(r.ms)); add("Per question", fmtTime(r.ms / r.n)); if (r.answered < r.n) add("Skipped", r.n - r.answered);
   top.append(st2);
+  { const bc = buddyCheer(pct >= 90 ? `${pct}%! Outstanding.` : pct >= 70 ? buddyLine("done") : "We'll get there. Let's look at the misses below."); if (bc) top.prepend(bc); }
   const prev = (S.quizzes || []).filter((x) => x.at !== r.at && (x.sec || null) === (QZ.sec || null)).slice(-1)[0];
   if (prev) { const pp = Math.round(prev.correct / prev.n * 100); top.append(el("span", "small muted", `Last time: ${pp}% in ${fmtTime(prev.ms)} (${pct - pp >= 0 ? "+" : ""}${pct - pp} points)`)); }
   const missedIds = QZ.items.filter((_, k) => !isRight(k)).map((x) => x.id);
