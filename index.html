@@ -633,6 +633,21 @@ input, textarea, select { font-size: max(16px, 1em); }
 .syncform, .syncsetup { display: grid; gap: 10px; }
 .errline { color: var(--bad); margin: 0; }
 @media (prefers-reduced-motion: reduce) { .buddy .bframe, .buddy .bshadow, .buddy::before, .buddy::after, .breact .bubble { animation: none !important; } }
+/* collapsible subsections */
+.sechead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sec { gap: 6px; }
+.sec .head, .grp .ghead { display: flex; gap: 10px; align-items: center; }
+.sec .head input, .grp .ghead input { flex: none; margin: 0; }
+.rowtoggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 6px 0; margin: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.rowtoggle .nm { flex: 1; min-width: 0; }
+.rowtoggle .chev { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; font-size: 1.15rem; line-height: 1; color: var(--muted); transition: transform .18s ease; }
+.open > .head .rowtoggle .chev, .open > .ghead .rowtoggle .chev { transform: rotate(90deg); color: var(--accent); }
+.rowtoggle:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 8px; }
+.sec .bar, .grp > .bar { margin-left: 30px; }
+.grp > .gdesc { margin-left: 30px; }
+.grp .gsub { font-size: .74rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding-top: 4px; }
+.grp.other > .ghead { padding: 6px 0; }
+@media (prefers-reduced-motion: reduce) { .rowtoggle .chev { transition: none; } }
 </style>
 </head>
 <body>
@@ -1793,6 +1808,7 @@ const isStandalone = () => window.navigator.standalone === true || (window.match
 const GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
 function gearBtn() { const g = btn("gear", null, () => { settingsOpen = null; profileEdit = false; go({ v: "settings" }); }); g.innerHTML = GEAR; g.setAttribute("aria-label", "Settings"); g.id = "gearbtn"; return g; }
 function renderHome() {
+  uiOpen.clear(); subjectOpenMore = null;
   $("topbar").parentElement.hidden = true;
   const m = $("main"); m.replaceChildren();
   const hero = el("header", "hero");
@@ -1921,21 +1937,23 @@ async function renderSubject() {
     const ub = btn("btn", "Update now", async () => { ub.disabled = true; ub.textContent = "Downloading…"; try { await installDeck(await fetchDeck(libEntry(sid))); toast("Updated. Your progress is kept."); } catch (e) { toast("Couldn't download it. Check your internet connection."); } renderSubject(); }); u.append(ub); m.append(u); }
   m.append(quizPanel(sid, s));
 
-  const secs = el("div", "panel"); secs.append(el("h3", null, "Subsections"));
+  const secs = el("div", "panel"); { const anyOpen = uiOpen.size > 0; const sh = el("div", "sechead"); const xa = btn("linkbtn small", anyOpen ? "Collapse all" : "Expand all", () => expandAllUI(s, !anyOpen)); xa.id = "expandall"; sh.append(el("h3", null, "Subsections"), xa); secs.append(sh); }
   const secBox = (sec, i) => {
-    const cc = counts(sec.id); const off = S.off.includes(sec.id); const box = el("div", "sec" + (off ? " off" : ""));
-    const head = el("div", "head"); const lab = el("label"); const cb = el("input"); cb.type = "checkbox"; cb.id = "sc" + i; cb.checked = !off;
+    const cc = counts(sec.id); const off = S.off.includes(sec.id); const isOpen = uiOpen.has("s:" + sec.id) || subjectOpenMore === sec.id;
+    const box = el("div", "sec" + (off ? " off" : "") + (isOpen ? " open" : "")); box.id = "sec-" + sec.id;
+    const head = el("div", "head"); const cb = el("input"); cb.type = "checkbox"; cb.id = "sc" + i; cb.checked = !off; cb.setAttribute("aria-label", "Include " + sec.name);
     cb.addEventListener("change", () => { S.off = cb.checked ? S.off.filter((x) => x !== sec.id) : [...S.off, sec.id]; persist(); renderSubject(); });
-    lab.append(cb, el("span", "nm", sec.name)); head.append(lab, el("span", "num", `${cc.m}/${cc.t}`)); box.append(head);
-    const b = el("div", "bar"); const x1 = el("span", "m"); x1.style.width = cc.t ? (cc.m / cc.t * 100) + "%" : "0"; const x2 = el("span", "l"); x2.style.width = cc.t ? (cc.l / cc.t * 100) + "%" : "0"; b.append(x1, x2); box.append(b);
-    const acts = el("div", "acts");
-    const studyThis = btn("chipbtn", "Study only this", () => { S.off = s.sections.filter((y) => y.id !== sec.id).map((y) => y.id); persist(); go({ v: "study", sid }); });
-    studyThis.disabled = !cc.t;
-    const quizThis = btn("chipbtn", "Quiz me", () => startQuiz(sid, sec.id)); quizThis.disabled = !cc.t;
-    const runThis = btn("chipbtn", "Go through all", () => startRun(sid, sec.id)); runThis.disabled = !cc.t;
-    acts.append(studyThis, runThis, quizThis, btn("chipbtn", "+ Add material", () => go({ v: "import", sid, sec: sec.id })), btn("linkbtn", subjectOpenMore === sec.id ? "Close" : "Manage", () => { subjectOpenMore = subjectOpenMore === sec.id ? null : sec.id; subjectConfirm = null; renderSubject(); }));
-    box.append(acts);
-    if (subjectOpenMore === sec.id) box.append(manageSection(sid, s, sec));
+    head.append(cb, rowToggle("st-" + i, sec.name, `${cc.m}/${cc.t}`, isOpen, () => { if (isOpen && subjectOpenMore === sec.id) subjectOpenMore = null; toggleUI("s:" + sec.id); })); box.append(head, barOf(cc.m, cc.l, cc.t));
+    if (isOpen) {
+      const acts = el("div", "acts");
+      const studyThis = btn("chipbtn", "Study only this", () => { S.off = s.sections.filter((y) => y.id !== sec.id).map((y) => y.id); persist(); go({ v: "study", sid }); });
+      studyThis.disabled = !cc.t;
+      const quizThis = btn("chipbtn", "Quiz me", () => startQuiz(sid, sec.id)); quizThis.disabled = !cc.t;
+      const runThis = btn("chipbtn", "Go through all", () => startRun(sid, sec.id)); runThis.disabled = !cc.t;
+      acts.append(studyThis, runThis, quizThis, btn("chipbtn", "+ Add material", () => go({ v: "import", sid, sec: sec.id })), btn("linkbtn", subjectOpenMore === sec.id ? "Close" : "Manage", () => { subjectOpenMore = subjectOpenMore === sec.id ? null : sec.id; subjectConfirm = null; renderSubject(); }));
+      box.append(acts);
+      if (subjectOpenMore === sec.id) box.append(manageSection(sid, s, sec));
+    }
     return box;
   };
   renderSecList(secs, s, secBox);
@@ -2128,17 +2146,15 @@ const secGroup = (secId) => { const s = subjects[SID]; const x = s && s.sections
 const grpSecIds = (gid) => { const s = subjects[SID]; return s ? s.sections.filter((y) => y.group === gid).map((y) => y.id) : []; };
 const inSec = (secId, key) => (String(key).startsWith("g:") ? secGroup(secId) === key.slice(2) : secId === key);
 const grpName = (key) => { const g = subjGroups().find((x) => x.id === String(key).slice(2)); return g ? g.name : "Group"; };
-// Groups marked open:true in the deck start open until you close them.
-function grpOpenSet(sid) {
-  const o = new Set(lsGet("md-grpopen-" + sid, [])); const shut = new Set(lsGet("md-grpopen-" + sid + "-x", []));
-  for (const g of (subjects[sid] && subjects[sid].groups) || []) if (g.open && !shut.has(g.id)) o.add(g.id);
-  return o;
+// What's expanded on the subject page. Everything starts collapsed each time you open a subject from the home screen.
+const uiOpen = new Set();
+function toggleUI(k) { uiOpen.has(k) ? uiOpen.delete(k) : uiOpen.add(k); renderSubject(); }
+function expandAllUI(s, open) { uiOpen.clear(); if (open) { (s.groups || []).forEach((g) => uiOpen.add("g:" + g.id)); s.sections.forEach((x) => uiOpen.add("s:" + x.id)); } renderSubject(); }
+function rowToggle(id, name, num, isOpen, fn) {
+  const tg = btn("rowtoggle", null, fn); tg.id = id; tg.setAttribute("aria-expanded", String(isOpen));
+  tg.append(el("span", "nm", name), el("span", "num", num), el("span", "chev", "›")); return tg;
 }
-function setGrpOpen(sid, gid, open) {
-  const o = new Set(lsGet("md-grpopen-" + sid, [])); const shut = new Set(lsGet("md-grpopen-" + sid + "-x", []));
-  if (open) { o.add(gid); shut.delete(gid); } else { o.delete(gid); shut.add(gid); }
-  lsSet("md-grpopen-" + sid, [...o]); lsSet("md-grpopen-" + sid + "-x", [...shut]);
-}
+function barOf(m, l, t) { const b = el("div", "bar"); const x1 = el("span", "m"); x1.style.width = t ? (m / t * 100) + "%" : "0"; const x2 = el("span", "l"); x2.style.width = t ? (l / t * 100) + "%" : "0"; b.append(x1, x2); return b; }
 function starIds() { return S.order.filter((id) => { const it = ITEMS.get(id); return it && it.star && !it.extraOf && itemOK(it); }); }
 function starPanel(sid, s) {
   const ids = starIds(); if (!ids.length) return null;
@@ -2150,30 +2166,29 @@ function starPanel(sid, s) {
 function renderSecList(secs, s, secBox) {
   const groups = s.groups || []; const sid = SID;
   if (!groups.length) { s.sections.forEach((sec, i) => secs.append(secBox(sec, i))); return; }
-  const open = grpOpenSet(sid);
   for (const g of groups) {
     const list = s.sections.filter((x) => x.group === g.id); if (!list.length) continue;
     const ids = list.map((x) => x.id); const offN = ids.filter((x) => S.off.includes(x)).length;
     let m = 0, l = 0, t = 0; for (const x of ids) { const c = counts(x); m += c.m; l += c.l; t += c.t; }
-    const isOpen = open.has(g.id);
+    const isOpen = uiOpen.has("g:" + g.id);
     const box = el("div", "grp" + (offN === ids.length ? " off" : "") + (isOpen ? " open" : "")); box.id = "grp-" + g.id;
-    const head = el("div", "ghead"); const lab = el("label"); const cb = el("input"); cb.type = "checkbox"; cb.id = "gc-" + g.id;
+    const head = el("div", "ghead"); const cb = el("input"); cb.type = "checkbox"; cb.id = "gc-" + g.id; cb.setAttribute("aria-label", "Include " + g.name);
     cb.checked = offN < ids.length; cb.indeterminate = offN > 0 && offN < ids.length;
     cb.addEventListener("change", () => { S.off = cb.checked ? S.off.filter((x) => !ids.includes(x)) : [...new Set([...S.off, ...ids])]; persist(); renderSubject(); });
-    lab.append(cb, el("span", "nm", g.name)); head.append(lab, el("span", "num", `${m}/${t}`)); box.append(head);
-    if (g.desc) box.append(el("p", "small muted gdesc", g.desc));
-    const b = el("div", "bar"); const x1 = el("span", "m"); x1.style.width = t ? (m / t * 100) + "%" : "0"; const x2 = el("span", "l"); x2.style.width = t ? (l / t * 100) + "%" : "0"; b.append(x1, x2); box.append(b);
-    const acts = el("div", "acts");
-    const st1 = btn("chipbtn", "Study only this", () => { S.off = s.sections.filter((y) => y.group !== g.id).map((y) => y.id); persist(); go({ v: "study", sid }); }); st1.disabled = !t;
-    const ru = btn("chipbtn", "Go through all", () => startRun(sid, "g:" + g.id)); ru.disabled = !t;
-    const qz = btn("chipbtn", "Quiz me", () => startQuiz(sid, "g:" + g.id)); qz.disabled = !t;
-    const tg = btn("linkbtn gtoggle", isOpen ? `Hide ${list.length} topics` : `Show ${list.length} topics`, () => { setGrpOpen(sid, g.id, !isOpen); renderSubject(); }); tg.id = "gt-" + g.id;
-    acts.append(st1, ru, qz, tg); box.append(acts);
-    if (isOpen) { const inner = el("div", "gsecs"); list.forEach((sec) => inner.append(secBox(sec, s.sections.indexOf(sec)))); box.append(inner); }
+    head.append(cb, rowToggle("gt-" + g.id, g.name, `${m}/${t}`, isOpen, () => toggleUI("g:" + g.id))); box.append(head, barOf(m, l, t));
+    if (isOpen) {
+      if (g.desc) box.append(el("p", "small muted gdesc", g.desc));
+      const acts = el("div", "acts");
+      const st1 = btn("chipbtn", "Study only this", () => { S.off = s.sections.filter((y) => y.group !== g.id).map((y) => y.id); persist(); go({ v: "study", sid }); }); st1.disabled = !t;
+      const ru = btn("chipbtn", "Go through all", () => startRun(sid, "g:" + g.id)); ru.disabled = !t;
+      const qz = btn("chipbtn", "Quiz me", () => startQuiz(sid, "g:" + g.id)); qz.disabled = !t;
+      acts.append(st1, ru, qz); box.append(acts);
+      const inner = el("div", "gsecs"); inner.append(el("span", "gsub", `${list.length} topics`)); list.forEach((sec) => inner.append(secBox(sec, s.sections.indexOf(sec)))); box.append(inner);
+    }
     secs.append(box);
   }
   const rest = s.sections.filter((x) => !x.group || !groups.some((g) => g.id === x.group));
-  if (rest.length) { const h = el("div", "grp other"); const hd = el("div", "ghead"); hd.append(el("span", "nm", "Other subsections")); h.append(hd); rest.forEach((sec) => h.append(secBox(sec, s.sections.indexOf(sec)))); secs.append(h); }
+  if (rest.length) { const h = el("div", "grp other open"); const hd = el("div", "ghead"); hd.append(el("span", "nm", "Other subsections")); h.append(hd); rest.forEach((sec) => h.append(secBox(sec, s.sections.indexOf(sec)))); secs.append(h); }
 }
 
 // ================= Study buddy: your profile character as a mascot =================
