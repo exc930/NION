@@ -645,7 +645,10 @@ input, textarea, select { font-size: max(16px, 1em); }
 .rowtoggle:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 8px; }
 .sec .bar, .grp > .bar { margin-left: 30px; }
 .grp > .gdesc { margin-left: 30px; }
-.grp .gsub { font-size: .74rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding-top: 4px; }
+.grp .gsecs .thead .rowtoggle { padding: 8px 0 4px; }
+.grp .gsecs .thead .nm { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.grp .gsecs .thead .num { font-size: .72rem; }
+.grp .gsecs.open > .thead .rowtoggle .chev { transform: rotate(90deg); color: var(--accent); }
 .grp.other > .ghead { padding: 6px 0; }
 @media (prefers-reduced-motion: reduce) { .rowtoggle .chev { transition: none; } }
 </style>
@@ -2149,7 +2152,7 @@ const grpName = (key) => { const g = subjGroups().find((x) => x.id === String(ke
 // What's expanded on the subject page. Everything starts collapsed each time you open a subject from the home screen.
 const uiOpen = new Set();
 function toggleUI(k) { uiOpen.has(k) ? uiOpen.delete(k) : uiOpen.add(k); renderSubject(); }
-function expandAllUI(s, open) { uiOpen.clear(); if (open) { (s.groups || []).forEach((g) => uiOpen.add("g:" + g.id)); s.sections.forEach((x) => uiOpen.add("s:" + x.id)); } renderSubject(); }
+function expandAllUI(s, open) { uiOpen.clear(); if (open) { (s.groups || []).forEach((g) => { uiOpen.add("g:" + g.id); uiOpen.add("t:" + g.id); }); s.sections.forEach((x) => uiOpen.add("s:" + x.id)); } renderSubject(); }
 function rowToggle(id, name, num, isOpen, fn) {
   const tg = btn("rowtoggle", null, fn); tg.id = id; tg.setAttribute("aria-expanded", String(isOpen));
   tg.append(el("span", "nm", name), el("span", "num", num), el("span", "chev", "›")); return tg;
@@ -2183,7 +2186,10 @@ function renderSecList(secs, s, secBox) {
       const ru = btn("chipbtn", "Go through all", () => startRun(sid, "g:" + g.id)); ru.disabled = !t;
       const qz = btn("chipbtn", "Quiz me", () => startQuiz(sid, "g:" + g.id)); qz.disabled = !t;
       acts.append(st1, ru, qz); box.append(acts);
-      const inner = el("div", "gsecs"); inner.append(el("span", "gsub", `${list.length} topics`)); list.forEach((sec) => inner.append(secBox(sec, s.sections.indexOf(sec)))); box.append(inner);
+      const tOpen = uiOpen.has("t:" + g.id); const inner = el("div", "gsecs" + (tOpen ? " open" : ""));
+      const th = el("div", "head thead"); th.append(rowToggle("tt-" + g.id, `${list.length} topics`, tOpen ? "" : "Tap to show", tOpen, () => toggleUI("t:" + g.id))); inner.append(th);
+      if (tOpen) list.forEach((sec) => inner.append(secBox(sec, s.sections.indexOf(sec))));
+      box.append(inner);
     }
     secs.append(box);
   }
