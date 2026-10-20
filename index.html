@@ -2128,8 +2128,17 @@ const secGroup = (secId) => { const s = subjects[SID]; const x = s && s.sections
 const grpSecIds = (gid) => { const s = subjects[SID]; return s ? s.sections.filter((y) => y.group === gid).map((y) => y.id) : []; };
 const inSec = (secId, key) => (String(key).startsWith("g:") ? secGroup(secId) === key.slice(2) : secId === key);
 const grpName = (key) => { const g = subjGroups().find((x) => x.id === String(key).slice(2)); return g ? g.name : "Group"; };
-function grpOpenSet(sid) { return new Set(lsGet("md-grpopen-" + sid, [])); }
-function setGrpOpen(sid, gid, open) { const o = grpOpenSet(sid); open ? o.add(gid) : o.delete(gid); lsSet("md-grpopen-" + sid, [...o]); }
+// Groups marked open:true in the deck start open until you close them.
+function grpOpenSet(sid) {
+  const o = new Set(lsGet("md-grpopen-" + sid, [])); const shut = new Set(lsGet("md-grpopen-" + sid + "-x", []));
+  for (const g of (subjects[sid] && subjects[sid].groups) || []) if (g.open && !shut.has(g.id)) o.add(g.id);
+  return o;
+}
+function setGrpOpen(sid, gid, open) {
+  const o = new Set(lsGet("md-grpopen-" + sid, [])); const shut = new Set(lsGet("md-grpopen-" + sid + "-x", []));
+  if (open) { o.add(gid); shut.delete(gid); } else { o.delete(gid); shut.add(gid); }
+  lsSet("md-grpopen-" + sid, [...o]); lsSet("md-grpopen-" + sid + "-x", [...shut]);
+}
 function starIds() { return S.order.filter((id) => { const it = ITEMS.get(id); return it && it.star && !it.extraOf && itemOK(it); }); }
 function starPanel(sid, s) {
   const ids = starIds(); if (!ids.length) return null;
