@@ -601,7 +601,7 @@ input, textarea, select { font-size: max(16px, 1em); }
 .buddy.free .bstack img.on { opacity: 1; }
 .buddy.free.floaty .bshadow { left: 26%; right: 26%; bottom: -20px; }
 .buddy.free.grounded .bstack { transform-origin: 50% 96%; }
-.buddy.free.grounded .bshadow { left: 30%; right: 30%; bottom: 9%; height: 10px; opacity: .7; }
+.buddy.free.grounded .bshadow { left: 30%; right: 30%; bottom: var(--shy, 4%); height: 10px; opacity: .7; }
 .profhead .buddy.free .bstack, .breact .buddy.free .bstack { transform: scale(1.25); }
 @keyframes bbreathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.024); } }
 .buddy.hop .bframe { animation: bhop .65s cubic-bezier(.3, 1.6, .5, 1); }
@@ -2247,14 +2247,15 @@ const BUDDY_MOTION = { p2: { float: true } };
 // frames blend from one to the next in a loop. hold = ms per pose, fade = ms of each blend.
 const BUDDY_FRAMES = {
   p2: { frames: ["ghost-1.webp", "ghost-2.webp", "ghost-3.webp", "ghost-4.webp", "ghost-5.webp"], hold: 1500, fade: 900, glow: "rgba(150, 235, 225, .45)" },
-  p1: { frames: ["scarecrow-1.webp", "scarecrow-2.webp", "scarecrow-3.webp", "scarecrow-4.webp", "scarecrow-5.webp", "scarecrow-6.webp"], hold: 1300, fade: 750, glow: "rgba(255, 140, 60, .32)" },
+  p3: { frames: ["girl1-1.webp", "girl1-2.webp", "girl1-3.webp", "girl1-4.webp", "girl1-5.webp"], hold: 1400, fade: 700, glow: "rgba(255, 60, 90, .28)", shadow: 1 },
+  p1: { frames: ["scarecrow-1.webp", "scarecrow-2.webp", "scarecrow-3.webp", "scarecrow-4.webp", "scarecrow-5.webp", "scarecrow-6.webp"], hold: 1300, fade: 750, glow: "rgba(255, 140, 60, .32)", shadow: 9 },
 };
 function buddyFig(av, size, mood) {
   const mo = BUDDY_MOTION[av] || {}; const an = BUDDY_FRAMES[av];
   const f = el("div", "buddy" + (mood ? " " + mood : "") + (mo.float ? " floaty" : " grounded") + (an ? " free" : "")); f.style.setProperty("--bs", size + "px");
   const fr = el("div", "bframe");
   if (an) {
-    const st = el("div", "bstack"); st.dataset.hold = an.hold; st.style.setProperty("--fade", an.fade + "ms"); if (an.glow) st.style.setProperty("--glow", an.glow);
+    const st = el("div", "bstack"); st.dataset.hold = an.hold; st.style.setProperty("--fade", an.fade + "ms"); if (an.glow) st.style.setProperty("--glow", an.glow); if (an.shadow != null) f.style.setProperty("--shy", an.shadow + "%");
     an.frames.forEach((u, k) => { const im = el("img", k === 0 ? "on" : ""); im.src = u; im.alt = ""; im.decoding = "async"; st.append(im); });
     fr.append(st); buddyTicker();
   } else fr.append(avatarEl(av, size));
