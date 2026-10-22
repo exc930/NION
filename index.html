@@ -1588,12 +1588,13 @@ applyPrefs();
 
 // ---- profile ----
 // Characters you can pick right now (the others come back as their animations are added).
-const AVATAR_ON = ["p1", "p2"];
+const AVATAR_ON = ["p1", "p2", "stef", "mario"];
 const profile = () => { const p = lsGet("md-profile", null); return p && p.av && !AVATAR_ON.includes(p.av) ? { ...p, av: null } : p; };
 function saveProfile(p) { lsSet("md-profile", { since: Date.now(), ...(profile() || {}), ...p }); }
 // Profile characters: pictures saved next to the app (avatar-01.jpg ... avatar-10.jpg).
 const AVATARS = ["Scarecrow", "Ghost", "Dark-haired girl", "Blonde girl", "Dark-haired boy", "Boy in a cap", "Black cat", "Tabby cat", "Black dog", "Skeleton"]
-  .map((name, i) => ({ id: "p" + (i + 1), name, src: "avatar-" + String(i + 1).padStart(2, "0") + ".jpg" }));
+  .map((name, i) => ({ id: "p" + (i + 1), name, src: "avatar-" + String(i + 1).padStart(2, "0") + ".jpg" }))
+  .concat([{ id: "stef", name: "Stef", src: "avatar-stef.jpg" }, { id: "mario", name: "Mario", src: "avatar-mario.jpg" }]);
 const pickable = () => AVATARS.filter((a) => AVATAR_ON.includes(a.id));
 function avatarEl(id, size) {
   const a = AVATARS.find((x) => x.id === id);
@@ -2242,6 +2243,8 @@ const BUDDY = {
   p8: { ok: ["Meow that's how it's done!", "Claw-some!"], bad: ["Paws and think it over.", "That one scratched you. It'll heal."], master: ["Mastered! Time for a cat nap."], streak: ["{n} in a row! Purring over here."], done: ["Purr-fect finish."], tap: ["I'm not lazy, I'm saving energy for the exam.", "Feed me answers."] },
   p9: { ok: ["Good job! Who's a smart human?", "Fetched it!"], bad: ["Ruff one. We'll dig it up again.", "That's okay! Wanna try again later?"], master: ["Mastered! *happy tail wags*"], streak: ["{n} in a row! Zoomies!"], done: ["You did it! Walk time?"], tap: ["Belly rub after this section?", "I'm so proud of you. Always."] },
   p10: { ok: ["Now that's in your bones!", "Bone-afide genius."], bad: ["No bones about it, that was tricky.", "It'll come back to you. I always do."], master: ["Rattled off perfectly. Mastered!"], streak: ["{n} in a row! Spine-tingling."], done: ["You studied to the bone!"], tap: ["I have no body to study with but you.", "Let's get skull-ed up."] },
+  stef: { ok: ["Yesss, nailed it!", "Look at you go!", "Easy peasy."], bad: ["Oops! Shake it off.", "That one's tricky. You'll get it next time."], master: ["Mastered! Treat yourself to a coffee."], streak: ["{n} in a row! You're on fire!"], done: ["We did it! Snack break?"], tap: ["Coffee and quizzes, my favorite combo.", "Headphones on, let's focus.", "You've totally got this."] },
+  mario: { ok: ["Nice one.", "Called it.", "Too easy for you."], bad: ["Eh, happens. It'll come back around.", "No sweat. Next one's yours."], master: ["Locked in. Mastered."], streak: ["{n} in a row. Smooth."], done: ["That's a wrap. Coffee's on me."], tap: ["Chillin'. Ready when you are.", "One question at a time.", "We got this."] },
 };
 let buddyRunN = 0, buddyLast = "";
 const buddyOn = () => prefs().mascot !== false;
@@ -2268,6 +2271,26 @@ const BUDDY_FRAMES = {
       master: { frames: ["girl1-joy-8.webp", "girl1-joy-2.webp", "girl1-joy-7.webp"], fps: 3, loops: 0 },
       done: { frames: ["girl1-joy-2.webp", "girl1-joy-8.webp", "girl1-joy-6.webp", "girl1-joy-12.webp", "girl1-joy-4.webp", "girl1-joy-3.webp"], fps: 3, loops: 0 },
       bad: { pick: ["girl1-4.webp"] },
+    } },
+  stef: { frames: ["stef-sit1.webp", "stef-sit3.webp", "stef-sit1.webp", "stef-sit5.webp", "stef-sit4.webp", "stef-sit2.webp"], hold: 3000, fade: 600, glow: "rgba(255, 120, 170, .28)", shadow: 2,
+    acts: {
+      enter: { frames: ["stef-stand1.webp", "stef-stand2.webp", "stef-stand3.webp", "stef-stand6.webp", "stef-stand1.webp", "stef-stand2.webp", "stef-stand3.webp", "stef-stand6.webp"], fps: 4, loops: 1, walk: true },
+      tap: { pick: ["stef-face1.webp", "stef-face3.webp", "stef-face5.webp", "stef-face8.webp", "stef-stand5.webp", "stef-stand3.webp"], hold: 1500 },
+      ok: { pick: ["stef-stand3.webp", "stef-stand5.webp", "stef-face1.webp", "stef-face3.webp", "stef-face8.webp", "stef-face5.webp"] },
+      streak: { frames: ["stef-stand4.webp", "stef-stand5.webp", "stef-stand4.webp", "stef-stand3.webp"], fps: 3, loops: 0 },
+      master: { frames: ["stef-stand4.webp", "stef-face8.webp", "stef-stand5.webp"], fps: 2.5, loops: 0 },
+      done: { frames: ["stef-stand4.webp", "stef-stand3.webp", "stef-stand5.webp", "stef-stand4.webp", "stef-face3.webp"], fps: 2.5, loops: 0 },
+      bad: { pick: ["stef-face6.webp", "stef-face2.webp", "stef-face7.webp"] },
+    } },
+  mario: { frames: ["mario-stand1.webp", "mario-stand4.webp", "mario-stand1.webp", "mario-stand8.webp", "mario-stand7.webp"], hold: 2600, fade: 600, glow: "rgba(255, 110, 60, .26)", shadow: 2,
+    acts: {
+      enter: { frames: ["mario-walk1.webp", "mario-walk2.webp", "mario-walk3.webp", "mario-walk4.webp", "mario-walk5.webp", "mario-walk6.webp", "mario-walk7.webp"], fps: 7, loops: 2, walk: true },
+      tap: { pick: ["mario-stand2.webp", "mario-stand3.webp", "mario-stand5.webp", "mario-face4.webp", "mario-face1.webp"], hold: 1500 },
+      ok: { pick: ["mario-face4.webp", "mario-face1.webp", "mario-face8.webp", "mario-face5.webp", "mario-face3.webp"] },
+      streak: { frames: ["mario-stand6.webp", "mario-stand2.webp", "mario-stand6.webp", "mario-stand3.webp"], fps: 3, loops: 0 },
+      master: { frames: ["mario-stand6.webp", "mario-face4.webp", "mario-stand3.webp"], fps: 2.5, loops: 0 },
+      done: { frames: ["mario-stand6.webp", "mario-stand3.webp", "mario-stand5.webp", "mario-stand6.webp", "mario-face4.webp"], fps: 2.5, loops: 0 },
+      bad: { pick: ["mario-face6.webp", "mario-face7.webp", "mario-face2.webp"] },
     } },
   p1: { frames: ["scarecrow-1.webp", "scarecrow-2.webp", "scarecrow-3.webp", "scarecrow-4.webp", "scarecrow-5.webp", "scarecrow-6.webp"], hold: 1300, fade: 750, glow: "rgba(255, 140, 60, .32)", shadow: 9 },
 };
