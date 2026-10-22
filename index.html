@@ -595,6 +595,12 @@ input, textarea, select { font-size: max(16px, 1em); }
 .buddy.floaty .bshadow { bottom: -18px; }
 .buddy.idle.grounded .bframe { animation: bbreathe 4.2s ease-in-out infinite; }
 .buddy.grounded .bshadow { bottom: -7px; height: 8px; left: 12%; right: 12%; opacity: .6; }
+.buddy.free .bframe { border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; }
+.buddy.free .bstack { position: relative; width: 100%; height: 100%; transform: scale(1.18); transform-origin: 50% 60%; filter: drop-shadow(0 0 calc(var(--bs) * .06) var(--glow, rgba(255, 255, 255, .25))); }
+.buddy.free .bstack img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity var(--fade, 800ms) ease-in-out; }
+.buddy.free .bstack img.on { opacity: 1; }
+.buddy.free.floaty .bshadow { left: 26%; right: 26%; bottom: -20px; }
+.profhead .buddy.free .bstack, .breact .buddy.free .bstack { transform: scale(1.25); }
 @keyframes bbreathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.024); } }
 .buddy.hop .bframe { animation: bhop .65s cubic-bezier(.3, 1.6, .5, 1); }
 .buddy.shake .bframe { animation: bshake .55s ease; }
@@ -2234,33 +2240,34 @@ function buddyLine(kind, vars, av) {
   return t;
 }
 // How each character moves. Only the ghost floats; everyone else stands on the ground.
-// frames: picture files played in order like a flipbook (added per character as they're drawn).
 const BUDDY_MOTION = { p2: { float: true } };
-const BUDDY_FRAMES = {};   // e.g. p2: { frames: ["ghost-01.png", ...], fps: 8 }
+// Characters drawn as animation frames (transparent pictures). They show as a free-standing figure, and the
+// frames blend from one to the next in a loop. hold = ms per pose, fade = ms of each blend.
+const BUDDY_FRAMES = {
+  p2: { frames: ["ghost-1.webp", "ghost-2.webp", "ghost-3.webp", "ghost-4.webp", "ghost-5.webp"], hold: 1500, fade: 900, glow: "rgba(150, 235, 225, .45)" },
+};
 function buddyFig(av, size, mood) {
-  const mo = BUDDY_MOTION[av] || {}; const fr0 = BUDDY_FRAMES[av];
-  const f = el("div", "buddy" + (mood ? " " + mood : "") + (mo.float ? " floaty" : " grounded")); f.style.setProperty("--bs", size + "px");
-  const fr = el("div", "bframe"); const pic = avatarEl(av, size); fr.append(pic); f.append(fr, el("span", "bshadow"));
-  if (fr0 && fr0.frames && fr0.frames.length > 1) { const im = pic.querySelector("img"); if (im) { im.dataset.frames = fr0.frames.join("|"); im.dataset.fps = fr0.fps || 8; im.src = fr0.frames[0]; buddyTicker(); } }
+  const mo = BUDDY_MOTION[av] || {}; const an = BUDDY_FRAMES[av];
+  const f = el("div", "buddy" + (mood ? " " + mood : "") + (mo.float ? " floaty" : " grounded") + (an ? " free" : "")); f.style.setProperty("--bs", size + "px");
+  const fr = el("div", "bframe");
+  if (an) {
+    const st = el("div", "bstack"); st.dataset.hold = an.hold; st.style.setProperty("--fade", an.fade + "ms"); if (an.glow) st.style.setProperty("--glow", an.glow);
+    an.frames.forEach((u, k) => { const im = el("img", k === 0 ? "on" : ""); im.src = u; im.alt = ""; im.decoding = "async"; st.append(im); });
+    fr.append(st); buddyTicker();
+  } else fr.append(avatarEl(av, size));
+  f.append(fr, el("span", "bshadow"));
   return f;
 }
-// One shared timer flips every animated character on screen to its next frame.
+// One shared timer moves every animated character on screen to its next pose.
 let buddyTick = null;
 function buddyTicker() {
-  if (buddyTick) return;
-  const reduce = matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; if (reduce) return;
-  const t0 = performance.now(); const pre = new Set();
-  const step = (now) => {
-    const ims = document.querySelectorAll(".buddy img[data-frames]");
-    if (!ims.length) { buddyTick = null; return; }
-    for (const im of ims) {
-      const fr = im.dataset.frames.split("|"); const fps = +im.dataset.fps || 8; const k = Math.floor((now - t0) / 1000 * fps) % fr.length;
-      if (!pre.has(fr[0])) { fr.forEach((u) => { const i = new Image(); i.src = u; }); pre.add(fr[0]); }
-      if (im.dataset.k !== String(k)) { im.dataset.k = String(k); im.src = fr[k]; }
-    }
-    buddyTick = requestAnimationFrame(step);
-  };
-  buddyTick = requestAnimationFrame(step);
+  if (buddyTick || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+  const t0 = performance.now();
+  buddyTick = setInterval(() => {
+    const sts = document.querySelectorAll(".buddy .bstack"); if (!sts.length) { clearInterval(buddyTick); buddyTick = null; return; }
+    const now = performance.now();
+    for (const st of sts) { const ims = st.children; const k = Math.floor((now - t0) / (+st.dataset.hold || 1500)) % ims.length; if (!ims[k].classList.contains("on")) { for (const im of ims) im.classList.remove("on"); ims[k].classList.add("on"); } }
+  }, 120);
 }
 function bubble(text, cls) { const b = el("div", "bubble" + (cls ? " " + cls : "")); b.append(el("span", "btxt", text)); return b; }
 function greetWord() { const h = new Date().getHours(); return h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
