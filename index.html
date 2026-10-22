@@ -596,10 +596,18 @@ input, textarea, select { font-size: max(16px, 1em); }
 .buddy.idle.grounded .bframe { animation: bbreathe 4.2s ease-in-out infinite; }
 .buddy.grounded .bshadow { bottom: -7px; height: 8px; left: 12%; right: 12%; opacity: .6; }
 .buddy.free .bframe { border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; }
+.buddy.free .bframe { position: relative; }
 .buddy.free .bstack { position: relative; width: 100%; height: 100%; transform: scale(1.18); transform-origin: 50% 60%; filter: drop-shadow(0 0 calc(var(--bs) * .06) var(--glow, rgba(255, 255, 255, .25))); }
 .buddy.free .bstack img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity var(--fade, 800ms) ease-in-out; }
 .buddy.free .bstack img.on { opacity: 1; }
 .buddy.free.floaty .bshadow { left: 26%; right: 26%; bottom: -20px; }
+.buddy .bflip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scale(1.18); transform-origin: 50% 96%; filter: drop-shadow(0 0 calc(var(--bs) * .06) var(--glow, rgba(255, 255, 255, .25))); }
+.buddy.acting .bstack { visibility: hidden; }
+.buddy.acting .bframe { animation: none !important; }
+.buddy.walkin .bframe { animation: bwalkin var(--walk, 1.5s) linear var(--walkd, 0s) both !important; }
+@keyframes bwalkin { from { transform: translateX(-130%); } to { transform: none; } }
+.buddy .bshadow { transition: opacity .4s; }
+.buddy.walkin .bshadow { opacity: 0 !important; }
 .buddy.free.grounded .bstack { transform-origin: 50% 96%; }
 .buddy.free.grounded .bshadow { left: 30%; right: 30%; bottom: var(--shy, 4%); height: 10px; opacity: .7; }
 .profhead .buddy.free .bstack, .breact .buddy.free .bstack { transform: scale(1.25); }
@@ -636,7 +644,7 @@ input, textarea, select { font-size: max(16px, 1em); }
 .profhead .buddy .bframe { border-width: 2px; }
 .avprev { display: flex; align-items: center; gap: 16px; position: relative; padding: 6px 0 22px; }
 .avprev .avname { position: absolute; left: 0; bottom: -2px; width: 132px; text-align: center; font-size: .82rem; color: var(--muted); }
-.avgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.avgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .avpick { display: grid; justify-items: center; gap: 6px; padding: 10px 4px 8px; border-radius: 18px; border: 2px solid var(--line); width: 100%; color: var(--ink); }
 .avpick .av { border-radius: 26%; }
 .avpick .avlbl { font-size: .74rem; line-height: 1.2; text-align: center; color: var(--muted); }
@@ -1579,11 +1587,14 @@ function applyPrefs() {
 applyPrefs();
 
 // ---- profile ----
-const profile = () => lsGet("md-profile", null);
+// Characters you can pick right now (the others come back as their animations are added).
+const AVATAR_ON = ["p1", "p2"];
+const profile = () => { const p = lsGet("md-profile", null); return p && p.av && !AVATAR_ON.includes(p.av) ? { ...p, av: null } : p; };
 function saveProfile(p) { lsSet("md-profile", { since: Date.now(), ...(profile() || {}), ...p }); }
 // Profile characters: pictures saved next to the app (avatar-01.jpg ... avatar-10.jpg).
 const AVATARS = ["Scarecrow", "Ghost", "Dark-haired girl", "Blonde girl", "Dark-haired boy", "Boy in a cap", "Black cat", "Tabby cat", "Black dog", "Skeleton"]
   .map((name, i) => ({ id: "p" + (i + 1), name, src: "avatar-" + String(i + 1).padStart(2, "0") + ".jpg" }));
+const pickable = () => AVATARS.filter((a) => AVATAR_ON.includes(a.id));
 function avatarEl(id, size) {
   const a = AVATARS.find((x) => x.id === id);
   const w = el("span", "av"); w.style.width = w.style.height = size + "px";
@@ -1737,12 +1748,12 @@ function renderSettings() {
   head.append(buddyFig(p.av, 84), nm, btn("btn ghost small", editing ? "Close" : p.name ? "Edit" : "Set up", () => { if (editing) { profileEdit = false; settingsOpen = null; } else profileEdit = true; renderSettings(); }));
   pp.append(head);
   if (editing) {
-    const f = el("form", "profedit"); let pick = p.av || AVATARS[0].id;
+    const f = el("form", "profedit"); let pick = p.av || pickable()[0].id;
     const grid = el("div", "avgrid"); const prev = el("div", "avprev");
     const drawGrid = () => {
-      const a0 = AVATARS.find((a) => a.id === pick) || AVATARS[0];
+      const a0 = AVATARS.find((a) => a.id === pick) || pickable()[0];
       prev.replaceChildren(buddyFig(pick, 132, "hop"), bubble(buddyLine("tap", {}, pick), "left"), el("span", "avname", a0.name));
-      grid.replaceChildren(...AVATARS.map((a) => { const b = btn("avpick" + (a.id === pick ? " on" : ""), null, () => { pick = a.id; drawGrid(); }); b.type = "button"; b.append(avatarEl(a.id, 76), el("span", "avlbl", a.name)); b.setAttribute("aria-label", a.name); b.setAttribute("aria-pressed", String(a.id === pick)); return b; }));
+      grid.replaceChildren(...pickable().map((a) => { const b = btn("avpick" + (a.id === pick ? " on" : ""), null, () => { pick = a.id; drawGrid(); }); b.type = "button"; b.append(avatarEl(a.id, 76), el("span", "avlbl", a.name)); b.setAttribute("aria-label", a.name); b.setAttribute("aria-pressed", String(a.id === pick)); return b; }));
     };
     drawGrid();
     const inp = el("input"); inp.type = "text"; inp.id = "username"; inp.maxLength = 20; inp.value = p.name || ""; inp.placeholder = "Username"; inp.setAttribute("aria-label", "Username"); inp.autocomplete = "nickname";
@@ -2247,21 +2258,51 @@ const BUDDY_MOTION = { p2: { float: true } };
 // frames blend from one to the next in a loop. hold = ms per pose, fade = ms of each blend.
 const BUDDY_FRAMES = {
   p2: { frames: ["ghost-1.webp", "ghost-2.webp", "ghost-3.webp", "ghost-4.webp", "ghost-5.webp"], hold: 1500, fade: 900, glow: "rgba(150, 235, 225, .45)" },
-  p3: { frames: ["girl1-1.webp", "girl1-2.webp", "girl1-3.webp", "girl1-4.webp", "girl1-5.webp"], hold: 1400, fade: 700, glow: "rgba(255, 60, 90, .28)", shadow: 1 },
+  p3: {frames: ["girl1-1.webp", "girl1-2.webp", "girl1-3.webp", "girl1-4.webp", "girl1-5.webp"], hold: 1400, fade: 700, glow: "rgba(255, 60, 90, .28)", shadow: 1,
+    // extra moves: enter = walks onto the home screen, tap = a happy pose, ok/master/streak/done = happy poses, bad = the sad pose
+    acts: {
+      enter: { frames: ["girl1-walk-1.webp", "girl1-walk-2.webp", "girl1-walk-3.webp", "girl1-walk-4.webp", "girl1-walk-5.webp", "girl1-walk-6.webp"], fps: 8, loops: 3, walk: true },
+      tap: { pick: ["girl1-joy-1.webp", "girl1-joy-3.webp", "girl1-joy-4.webp", "girl1-joy-5.webp", "girl1-joy-9.webp", "girl1-joy-10.webp", "girl1-joy-11.webp"], hold: 1400 },
+      ok: { pick: ["girl1-joy-1.webp", "girl1-joy-3.webp", "girl1-joy-5.webp", "girl1-joy-7.webp", "girl1-joy-9.webp", "girl1-joy-10.webp", "girl1-joy-11.webp"] },
+      streak: { frames: ["girl1-joy-4.webp", "girl1-joy-6.webp", "girl1-joy-12.webp", "girl1-joy-10.webp"], fps: 4, loops: 0 },
+      master: { frames: ["girl1-joy-8.webp", "girl1-joy-2.webp", "girl1-joy-7.webp"], fps: 3, loops: 0 },
+      done: { frames: ["girl1-joy-2.webp", "girl1-joy-8.webp", "girl1-joy-6.webp", "girl1-joy-12.webp", "girl1-joy-4.webp", "girl1-joy-3.webp"], fps: 3, loops: 0 },
+      bad: { pick: ["girl1-4.webp"] },
+    } },
   p1: { frames: ["scarecrow-1.webp", "scarecrow-2.webp", "scarecrow-3.webp", "scarecrow-4.webp", "scarecrow-5.webp", "scarecrow-6.webp"], hold: 1300, fade: 750, glow: "rgba(255, 140, 60, .32)", shadow: 9 },
 };
-function buddyFig(av, size, mood) {
+const reduceMotion = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+function buddyFig(av, size, mood, act) {
   const mo = BUDDY_MOTION[av] || {}; const an = BUDDY_FRAMES[av];
   const f = el("div", "buddy" + (mood ? " " + mood : "") + (mo.float ? " floaty" : " grounded") + (an ? " free" : "")); f.style.setProperty("--bs", size + "px");
   const fr = el("div", "bframe");
   if (an) {
-    const st = el("div", "bstack"); st.dataset.hold = an.hold; st.style.setProperty("--fade", an.fade + "ms"); if (an.glow) st.style.setProperty("--glow", an.glow); if (an.shadow != null) f.style.setProperty("--shy", an.shadow + "%");
+    const st = el("div", "bstack"); st.dataset.hold = an.hold; st.style.setProperty("--fade", an.fade + "ms"); if (an.glow) f.style.setProperty("--glow", an.glow); if (an.shadow != null) f.style.setProperty("--shy", an.shadow + "%");
     an.frames.forEach((u, k) => { const im = el("img", k === 0 ? "on" : ""); im.src = u; im.alt = ""; im.decoding = "async"; st.append(im); });
-    fr.append(st); buddyTicker();
+    const fl = el("img", "bflip"); fl.alt = ""; fl.hidden = true; fr.append(st, fl); buddyTicker();
   } else fr.append(avatarEl(av, size));
   f.append(fr, el("span", "bshadow"));
+  if (act) playAct(f, av, act);
   return f;
 }
+// Play one of a character's extra moves. "pick" shows one pose; "frames" flips through poses (loops: 0 = keep going).
+function playAct(fig, av, act, done, startMs) {
+  const a = ((BUDDY_FRAMES[av] || {}).acts || {})[act]; const fl = fig.querySelector(".bflip");
+  if (!a || !fl) { if (done) done(); return false; }
+  clearInterval(fig._act); clearTimeout(fig._act); fig.classList.remove("walkin");
+  const list = a.pick ? [a.pick[ri(0, a.pick.length - 1)]] : a.frames;
+  list.forEach((u) => { const i = new Image(); i.src = u; });
+  fl.src = list[0]; fl.hidden = false; fig.classList.add("acting");
+  const end = () => { clearInterval(fig._act); clearTimeout(fig._act); fig.classList.remove("acting", "walkin"); fl.hidden = true; if (done) done(); };
+  if (a.pick && a.hold) { fig._act = setTimeout(end, a.hold); return true; }
+  if (list.length < 2 || reduceMotion()) { if (a.pick || a.loops === 0) return true; setTimeout(end, 900); return true; }
+  const total = a.loops ? list.length * a.loops : Infinity; let k = Math.floor((startMs || 0) / 1000 * a.fps); if (k >= total) { end(); return true; } fl.src = list[k % list.length];
+  if (a.walk) { fig.style.setProperty("--walk", (total / a.fps) + "s"); fig.style.setProperty("--walkd", (-(startMs || 0) / 1000) + "s"); void fig.offsetWidth; fig.classList.add("walkin"); }
+  fig._act = setInterval(() => { k++; if (k >= total) { end(); return; } fl.src = list[k % list.length]; }, 1000 / a.fps);
+  return true;
+}
+const buddyActs = (av) => (BUDDY_FRAMES[av] || {}).acts || {};
+let buddyEnterAt = 0;
 // One shared timer moves every animated character on screen to its next pose.
 let buddyTick = null;
 function buddyTicker() {
@@ -2292,7 +2333,9 @@ function buddyCard() {
   else sub.textContent = s.cur ? `🔥 Keep your ${s.cur}-day streak alive: study a few questions today.` : "You haven't studied yet today.";
   b.append(sub);
   if (remind && !s.today && st.last && subjects[st.last]) b.append(btn("btn small", "Study now", () => go({ v: "study", sid: st.last })));
-  const poke = () => { sub.textContent = buddyLine("tap", { name: p.name || "" }); fig.classList.remove("hop"); void fig.offsetWidth; fig.classList.add("hop"); };
+  const poke = () => { sub.textContent = buddyLine("tap", { name: p.name || "" }); if (fig.classList.contains("acting")) return; if (!playAct(fig, p.av, "tap")) { fig.classList.remove("hop"); void fig.offsetWidth; fig.classList.add("hop"); } };
+  { const en = buddyActs(p.av).enter; if (en && !reduceMotion()) { const dur = en.frames.length * en.loops / en.fps * 1000; const now = performance.now();
+      if (!buddyEnterAt) buddyEnterAt = now; const into = now - buddyEnterAt; if (into < dur) playAct(fig, p.av, "enter", null, into); } }
   fig.addEventListener("click", poke); fig.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); poke(); } });
   const edit = btn("linkbtn bchange", "Change", () => { settingsOpen = "profile"; profileEdit = true; go({ v: "settings" }); }); edit.setAttribute("aria-label", "Change your character");
   const col = el("div", "bcol"); col.append(fig, edit); card.append(col, b); return card;
@@ -2307,12 +2350,13 @@ function buddyReact() {
     cur.bl = { kind, text: buddyLine(kind, { n: buddyRunN }), fresh: true };
   }
   const mood = cur.bl.fresh ? { bad: "shake", master: "cheer", streak: "cheer" }[cur.bl.kind] || "hop" : ""; cur.bl.fresh = false;
-  const r = el("div", "breact " + cur.bl.kind); r.append(buddyFig(p.av, 58, mood), bubble(cur.bl.text, "left"));
+  const ac = buddyActs(p.av); const act = ac[cur.bl.kind] ? cur.bl.kind : cur.bl.kind !== "bad" && ac.ok ? "ok" : null;
+  const r = el("div", "breact " + cur.bl.kind); r.append(buddyFig(p.av, act ? 72 : 58, act && cur.bl.kind !== "bad" ? "" : mood, act), bubble(cur.bl.text, "left"));
   return r;
 }
 function buddyCheer(text) {
   const p = profile() || {}; if (!buddyOn() || !p.av) return null;
-  const r = el("div", "bcheer"); r.append(buddyFig(p.av, 104, "cheer"), bubble(text || buddyLine("done"), "up"));
+  const r = el("div", "bcheer"); r.append(buddyFig(p.av, 120, "cheer", buddyActs(p.av).done ? "done" : null), bubble(text || buddyLine("done"), "up"));
   return r;
 }
 
