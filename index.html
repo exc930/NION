@@ -590,8 +590,12 @@ input, textarea, select { font-size: max(16px, 1em); }
   box-shadow: 0 0 0 5px rgba(var(--accent-rgb), .16), 0 12px 32px rgba(var(--accent-rgb), .38); transform-origin: 50% 90%; }
 .buddy .bframe .av { border-radius: 0; width: 100% !important; height: 100% !important; }
 .buddy .bshadow { position: absolute; left: 18%; right: 18%; bottom: -12px; height: 9px; border-radius: 50%; background: rgba(0, 0, 0, .55); filter: blur(3px); }
-.buddy.idle .bframe { animation: bfloat 3.4s ease-in-out infinite; }
-.buddy.idle .bshadow { animation: bshade 3.4s ease-in-out infinite; }
+.buddy.idle.floaty .bframe { animation: bfloat 3.4s ease-in-out infinite; }
+.buddy.idle.floaty .bshadow { animation: bshade 3.4s ease-in-out infinite; }
+.buddy.floaty .bshadow { bottom: -18px; }
+.buddy.idle.grounded .bframe { animation: bbreathe 4.2s ease-in-out infinite; }
+.buddy.grounded .bshadow { bottom: -7px; height: 8px; left: 12%; right: 12%; opacity: .6; }
+@keyframes bbreathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.024); } }
 .buddy.hop .bframe { animation: bhop .65s cubic-bezier(.3, 1.6, .5, 1); }
 .buddy.shake .bframe { animation: bshake .55s ease; }
 .buddy.cheer .bframe { animation: bcheer .9s cubic-bezier(.3, 1.6, .5, 1); }
@@ -2229,10 +2233,34 @@ function buddyLine(kind, vars, av) {
   for (const [k, v] of Object.entries(vars || {})) t = t.split("{" + k + "}").join(v);
   return t;
 }
+// How each character moves. Only the ghost floats; everyone else stands on the ground.
+// frames: picture files played in order like a flipbook (added per character as they're drawn).
+const BUDDY_MOTION = { p2: { float: true } };
+const BUDDY_FRAMES = {};   // e.g. p2: { frames: ["ghost-01.png", ...], fps: 8 }
 function buddyFig(av, size, mood) {
-  const f = el("div", "buddy" + (mood ? " " + mood : "")); f.style.setProperty("--bs", size + "px");
-  const fr = el("div", "bframe"); fr.append(avatarEl(av, size)); f.append(fr, el("span", "bshadow"));
+  const mo = BUDDY_MOTION[av] || {}; const fr0 = BUDDY_FRAMES[av];
+  const f = el("div", "buddy" + (mood ? " " + mood : "") + (mo.float ? " floaty" : " grounded")); f.style.setProperty("--bs", size + "px");
+  const fr = el("div", "bframe"); const pic = avatarEl(av, size); fr.append(pic); f.append(fr, el("span", "bshadow"));
+  if (fr0 && fr0.frames && fr0.frames.length > 1) { const im = pic.querySelector("img"); if (im) { im.dataset.frames = fr0.frames.join("|"); im.dataset.fps = fr0.fps || 8; im.src = fr0.frames[0]; buddyTicker(); } }
   return f;
+}
+// One shared timer flips every animated character on screen to its next frame.
+let buddyTick = null;
+function buddyTicker() {
+  if (buddyTick) return;
+  const reduce = matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; if (reduce) return;
+  const t0 = performance.now(); const pre = new Set();
+  const step = (now) => {
+    const ims = document.querySelectorAll(".buddy img[data-frames]");
+    if (!ims.length) { buddyTick = null; return; }
+    for (const im of ims) {
+      const fr = im.dataset.frames.split("|"); const fps = +im.dataset.fps || 8; const k = Math.floor((now - t0) / 1000 * fps) % fr.length;
+      if (!pre.has(fr[0])) { fr.forEach((u) => { const i = new Image(); i.src = u; }); pre.add(fr[0]); }
+      if (im.dataset.k !== String(k)) { im.dataset.k = String(k); im.src = fr[k]; }
+    }
+    buddyTick = requestAnimationFrame(step);
+  };
+  buddyTick = requestAnimationFrame(step);
 }
 function bubble(text, cls) { const b = el("div", "bubble" + (cls ? " " + cls : "")); b.append(el("span", "btxt", text)); return b; }
 function greetWord() { const h = new Date().getHours(); return h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
