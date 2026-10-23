@@ -1041,7 +1041,7 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); mark
 // The passcode, API key and a few device-only keys never leave the device.
 var SYNC_BUILTIN = { url: "__SYNC_URL__", key: "__SYNC_KEY__" };
 var syncApplying = false, syncBusy = false, syncAgain = false, syncTimer = null, syncPoll = null, syncMsg = "";
-const SYNC_LOCAL = /^md-(apikey|lock|model|booted|lastbackup|packs-|mt$|mtp$|sync|grpopen-)/;
+const SYNC_LOCAL = /^md-(apikey|lock|model|booted|lastbackup|packs-|mt$|mtp$|sync|grpopen-|sitpos-)/;
 const syncable = (k) => typeof k === "string" && k.startsWith("md-") && !SYNC_LOCAL.test(k);
 function syncCfg() {
   const s = lsGetRaw("md-sync") || {};
@@ -2272,7 +2272,7 @@ const BUDDY_FRAMES = {
       done: { frames: ["girl1-joy-2.webp", "girl1-joy-8.webp", "girl1-joy-6.webp", "girl1-joy-12.webp", "girl1-joy-4.webp", "girl1-joy-3.webp"], fps: 3, loops: 0 },
       bad: { pick: ["girl1-4.webp"] },
     } },
-  stef: { frames: ["stef-sit1.webp", "stef-sit3.webp", "stef-sit1.webp", "stef-sit5.webp", "stef-sit4.webp", "stef-sit2.webp"], hold: 3000, fade: 600, glow: "rgba(255, 120, 170, .28)", shadow: 2,
+  stef: { settle: true, frames: ["stef-sit1.webp", "stef-sit3.webp", "stef-sit5.webp", "stef-sit4.webp", "stef-sit2.webp"], hold: 3000, fade: 600, glow: "rgba(255, 120, 170, .28)", shadow: 2,
     acts: {
       enter: { frames: ["stef-stand1.webp", "stef-stand2.webp", "stef-stand3.webp", "stef-stand6.webp", "stef-stand1.webp", "stef-stand2.webp", "stef-stand3.webp", "stef-stand6.webp"], fps: 4, loops: 1, walk: true },
       tap: { pick: ["stef-face1.webp", "stef-face3.webp", "stef-face5.webp", "stef-face8.webp", "stef-stand5.webp", "stef-stand3.webp"], hold: 1500 },
@@ -2282,7 +2282,7 @@ const BUDDY_FRAMES = {
       done: { frames: ["stef-stand4.webp", "stef-stand3.webp", "stef-stand5.webp", "stef-stand4.webp", "stef-face3.webp"], fps: 2.5, loops: 0 },
       bad: { pick: ["stef-face6.webp", "stef-face2.webp", "stef-face7.webp"] },
     } },
-  mario: { frames: ["mario-sit2.webp", "mario-sit6.webp", "mario-sit5.webp"], hold: 3000, fade: 600, glow: "rgba(255, 110, 60, .26)", shadow: 2,
+  mario: { settle: true, frames: ["mario-sit2.webp", "mario-sit6.webp", "mario-sit5.webp"], hold: 3000, fade: 600, glow: "rgba(255, 110, 60, .26)", shadow: 2,
     acts: {
       enter: { frames: ["mario-walk1.webp", "mario-walk2.webp", "mario-walk3.webp", "mario-walk4.webp", "mario-walk5.webp", "mario-walk6.webp", "mario-walk7.webp"], fps: 7, loops: 2, walk: true },
       tap: { pick: ["mario-stand4.webp", "mario-stand6.webp", "mario-stand7.webp", "mario-face4.webp", "mario-face1.webp", "mario-face5.webp"], hold: 1500 },
@@ -2295,13 +2295,24 @@ const BUDDY_FRAMES = {
   p1: { frames: ["scarecrow-1.webp", "scarecrow-2.webp", "scarecrow-3.webp", "scarecrow-4.webp", "scarecrow-5.webp", "scarecrow-6.webp"], hold: 1300, fade: 750, glow: "rgba(255, 140, 60, .32)", shadow: 9 },
 };
 const reduceMotion = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+// Characters marked settle:true hold one sitting pose per visit to the home screen; the next visit uses the next pose.
+const sitKey = (av) => "md-sitpos-" + av;
+function sitPose(av) { const n = ((BUDDY_FRAMES[av] || {}).frames || [1]).length; let i = 0; try { i = +localStorage.getItem(sitKey(av)) || 0; } catch (e) {} return ((i % n) + n) % n; }
+let sitVisit = null;
+function nextSitPose(av) {
+  if (sitVisit === route) return; sitVisit = route;   // same visit (a re-render): keep the pose
+  const n = ((BUDDY_FRAMES[av] || {}).frames || [1]).length; let i = null;
+  try { i = localStorage.getItem(sitKey(av)); } catch (e) {}
+  i = i == null ? ri(0, n - 1) : (+i + 1) % n;
+  try { localStorage.setItem(sitKey(av), String(i)); } catch (e) {}
+}
 function buddyFig(av, size, mood, act) {
   const mo = BUDDY_MOTION[av] || {}; const an = BUDDY_FRAMES[av];
   const f = el("div", "buddy" + (mood ? " " + mood : "") + (mo.float ? " floaty" : " grounded") + (an ? " free" : "")); f.style.setProperty("--bs", size + "px");
   const fr = el("div", "bframe");
   if (an) {
     const st = el("div", "bstack"); st.dataset.hold = an.hold; st.style.setProperty("--fade", an.fade + "ms"); if (an.glow) f.style.setProperty("--glow", an.glow); if (an.shadow != null) f.style.setProperty("--shy", an.shadow + "%");
-    an.frames.forEach((u, k) => { const im = el("img", k === 0 ? "on" : ""); im.src = u; im.alt = ""; im.decoding = "async"; st.append(im); });
+    (an.settle ? [an.frames[sitPose(av)]] : an.frames).forEach((u, k) => { const im = el("img", k === 0 ? "on" : ""); im.src = u; im.alt = ""; im.decoding = "async"; st.append(im); });
     const fl = el("img", "bflip"); fl.alt = ""; fl.hidden = true; fr.append(st, fl); buddyTicker();
   } else fr.append(avatarEl(av, size));
   f.append(fr, el("span", "bshadow"));
@@ -2348,6 +2359,7 @@ function buddyCard() {
     card.append(fig, b); return card;
   }
   const s = streaks(); const st = accountStats(); const remind = prefs().remind;
+  if ((BUDDY_FRAMES[p.av] || {}).settle) nextSitPose(p.av);
   const fig = buddyFig(p.av, 146, "idle"); fig.setAttribute("role", "button"); fig.tabIndex = 0; fig.setAttribute("aria-label", "Tap your study buddy");
   const b = bubble(`${greetWord()}${p.name ? ", " + p.name : ""}!`, "big");
   const sub = el("span", "bsub");
