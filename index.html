@@ -1594,7 +1594,9 @@ function saveProfile(p) { lsSet("md-profile", { since: Date.now(), ...(profile()
 // Profile characters: pictures saved next to the app (avatar-01.jpg ... avatar-10.jpg).
 const AVATARS = ["Scarecrow", "Ghost", "Dark-haired girl", "Blonde girl", "Dark-haired boy", "Boy in a cap", "Black cat", "Tabby cat", "Black dog", "Skeleton"]
   .map((name, i) => ({ id: "p" + (i + 1), name, src: "avatar-" + String(i + 1).padStart(2, "0") + ".jpg" }))
-  .concat([{ id: "stef", name: "Stef", src: "avatar-stef.jpg" }, { id: "mario", name: "Mario", src: "avatar-mario.jpg" }]);
+  .concat([{ id: "stef", name: "Stef", src: "avatar-stef-v2.jpg" }, { id: "mario", name: "Mario", src: "avatar-mario-v2.jpg" }]);
+// new portraits for the scarecrow and ghost
+AVATARS[0].src = "avatar-scarecrow.jpg"; AVATARS[1].src = "avatar-ghost.jpg";
 const pickable = () => AVATARS.filter((a) => AVATAR_ON.includes(a.id));
 function avatarEl(id, size) {
   const a = AVATARS.find((x) => x.id === id);
