@@ -2282,14 +2282,14 @@ const BUDDY_FRAMES = {
       done: { frames: ["stef-stand4.webp", "stef-stand3.webp", "stef-stand5.webp", "stef-stand4.webp", "stef-face3.webp"], fps: 2.5, loops: 0 },
       bad: { pick: ["stef-face6.webp", "stef-face2.webp", "stef-face7.webp"] },
     } },
-  mario: { frames: ["mario-stand1.webp", "mario-stand4.webp", "mario-stand1.webp", "mario-stand8.webp", "mario-stand7.webp"], hold: 2600, fade: 600, glow: "rgba(255, 110, 60, .26)", shadow: 2,
+  mario: { frames: ["mario-sit1.webp", "mario-sit3.webp", "mario-sit6.webp", "mario-sit1.webp", "mario-sit5.webp"], hold: 3000, fade: 600, glow: "rgba(255, 110, 60, .26)", shadow: 2,
     acts: {
       enter: { frames: ["mario-walk1.webp", "mario-walk2.webp", "mario-walk3.webp", "mario-walk4.webp", "mario-walk5.webp", "mario-walk6.webp", "mario-walk7.webp"], fps: 7, loops: 2, walk: true },
-      tap: { pick: ["mario-stand2.webp", "mario-stand3.webp", "mario-stand5.webp", "mario-face4.webp", "mario-face1.webp"], hold: 1500 },
+      tap: { pick: ["mario-stand4.webp", "mario-stand6.webp", "mario-stand7.webp", "mario-face4.webp", "mario-face1.webp", "mario-face5.webp"], hold: 1500 },
       ok: { pick: ["mario-face4.webp", "mario-face1.webp", "mario-face8.webp", "mario-face5.webp", "mario-face3.webp"] },
-      streak: { frames: ["mario-stand6.webp", "mario-stand2.webp", "mario-stand6.webp", "mario-stand3.webp"], fps: 3, loops: 0 },
-      master: { frames: ["mario-stand6.webp", "mario-face4.webp", "mario-stand3.webp"], fps: 2.5, loops: 0 },
-      done: { frames: ["mario-stand6.webp", "mario-stand3.webp", "mario-stand5.webp", "mario-stand6.webp", "mario-face4.webp"], fps: 2.5, loops: 0 },
+      streak: { frames: ["mario-stand6.webp", "mario-face4.webp", "mario-stand6.webp", "mario-face5.webp"], fps: 3, loops: 0 },
+      master: { frames: ["mario-stand6.webp", "mario-face4.webp", "mario-stand7.webp"], fps: 2.5, loops: 0 },
+      done: { frames: ["mario-stand6.webp", "mario-stand7.webp", "mario-stand4.webp", "mario-stand6.webp", "mario-face4.webp"], fps: 2.5, loops: 0 },
       bad: { pick: ["mario-face6.webp", "mario-face7.webp", "mario-face2.webp"] },
     } },
   p1: { frames: ["scarecrow-1.webp", "scarecrow-2.webp", "scarecrow-3.webp", "scarecrow-4.webp", "scarecrow-5.webp", "scarecrow-6.webp"], hold: 1300, fade: 750, glow: "rgba(255, 140, 60, .32)", shadow: 9 },
@@ -2325,7 +2325,7 @@ function playAct(fig, av, act, done, startMs) {
   return true;
 }
 const buddyActs = (av) => (BUDDY_FRAMES[av] || {}).acts || {};
-let buddyEnterAt = 0;
+const buddyEnterAt = {};
 // One shared timer moves every animated character on screen to its next pose.
 let buddyTick = null;
 function buddyTicker() {
@@ -2358,7 +2358,7 @@ function buddyCard() {
   if (remind && !s.today && st.last && subjects[st.last]) b.append(btn("btn small", "Study now", () => go({ v: "study", sid: st.last })));
   const poke = () => { sub.textContent = buddyLine("tap", { name: p.name || "" }); if (fig.classList.contains("acting")) return; if (!playAct(fig, p.av, "tap")) { fig.classList.remove("hop"); void fig.offsetWidth; fig.classList.add("hop"); } };
   { const en = buddyActs(p.av).enter; if (en && !reduceMotion()) { const dur = en.frames.length * en.loops / en.fps * 1000; const now = performance.now();
-      if (!buddyEnterAt) buddyEnterAt = now; const into = now - buddyEnterAt; if (into < dur) playAct(fig, p.av, "enter", null, into); } }
+      if (!buddyEnterAt[p.av]) buddyEnterAt[p.av] = now; const into = now - buddyEnterAt[p.av]; if (into < dur) playAct(fig, p.av, "enter", null, into); } }
   fig.addEventListener("click", poke); fig.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); poke(); } });
   const edit = btn("linkbtn bchange", "Change", () => { settingsOpen = "profile"; profileEdit = true; go({ v: "settings" }); }); edit.setAttribute("aria-label", "Change your character");
   const col = el("div", "bcol"); col.append(fig, edit); card.append(col, b); return card;
