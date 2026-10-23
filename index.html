@@ -2277,7 +2277,7 @@ const BUDDY_FRAMES = {
   stef: { settle: true, frames: ["stef-sit1.webp", "stef-sit3.webp", "stef-sit5.webp", "stef-sit4.webp", "stef-sit2.webp"], hold: 3000, fade: 600, glow: "rgba(255, 120, 170, .28)", shadow: 2,
     acts: {
       enter: { frames: ["stef-stand1.webp", "stef-stand2.webp", "stef-stand3.webp", "stef-stand6.webp", "stef-stand1.webp", "stef-stand2.webp", "stef-stand3.webp", "stef-stand6.webp"], fps: 4, loops: 1, walk: true },
-      tap: { pick: ["stef-stand9.webp", "stef-face1.webp", "stef-face3.webp", "stef-face5.webp", "stef-face8.webp", "stef-stand5.webp", "stef-stand3.webp"], hold: 1500 },
+      tap: { pick: ["stef-stand9.webp", "stef-stand5.webp"], hold: 1500 },  // only poses you approved
       ok: { pick: ["stef-stand9.webp", "stef-stand3.webp", "stef-stand5.webp", "stef-face1.webp", "stef-face3.webp", "stef-face8.webp", "stef-face5.webp"] },
       streak: { frames: ["stef-stand4.webp", "stef-stand9.webp", "stef-stand5.webp", "stef-stand4.webp", "stef-stand3.webp"], fps: 3, loops: 0 },
       master: { frames: ["stef-stand4.webp", "stef-face8.webp", "stef-stand5.webp"], fps: 2.5, loops: 0 },
@@ -2287,7 +2287,6 @@ const BUDDY_FRAMES = {
   mario: { settle: true, frames: ["mario-sit2.webp", "mario-sit6.webp", "mario-sit5.webp"], hold: 3000, fade: 600, glow: "rgba(255, 110, 60, .26)", shadow: 2,
     acts: {
       enter: { frames: ["mario-walk1.webp", "mario-walk2.webp", "mario-walk3.webp", "mario-walk4.webp", "mario-walk5.webp", "mario-walk6.webp", "mario-walk7.webp"], fps: 7, loops: 2, walk: true },
-      tap: { pick: ["mario-stand4.webp", "mario-stand6.webp", "mario-stand7.webp", "mario-face4.webp", "mario-face1.webp", "mario-face5.webp"], hold: 1500 },
       ok: { pick: ["mario-face4.webp", "mario-face1.webp", "mario-face8.webp", "mario-face5.webp", "mario-face3.webp"] },
       streak: { frames: ["mario-stand6.webp", "mario-face4.webp", "mario-stand6.webp", "mario-face5.webp"], fps: 3, loops: 0 },
       master: { frames: ["mario-stand6.webp", "mario-face4.webp", "mario-stand7.webp"], fps: 2.5, loops: 0 },
