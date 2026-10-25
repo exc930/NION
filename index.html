@@ -1998,22 +1998,29 @@ function leaving() {
 function go(r) {
   leaving();
   const prev = route; route = r; navIdx++; maxIdx = navIdx;
-  try { history.pushState({ r, i: navIdx, prev }, ""); } catch (e) {}
+  try { navPush({ r, i: navIdx, prev }); } catch (e) {}
   window.scrollTo(0, 0); rerender();
 }
 // Back buttons in the top bar act like a real "back" when they lead to the page you came from.
 function backTo(target) {
-  const st = history.state;
-  if (st && sameRoute(st.prev, target)) history.back(); else go(target);
+  const st = navState();
+  if (st && sameRoute(st.prev, target)) navGo(-1); else go(target);
 }
-let pendingAnim = null; // "back" | "fwd" | null — set by the swipe so popstate knows how to animate
-addEventListener("popstate", (e) => {
-  const st = e.state; if (!st || !st.r) return;
+// The app keeps its own list of pages instead of the browser's history: the iPhone's built-in swipe
+// (which slides a snapshot of the whole page, background and all) then has nothing to show.
+const NAV = { stack: [{ r: { v: "home" }, i: 0, prev: null }], pos: 0 };
+const navState = () => NAV.stack[NAV.pos];
+function navPush(st) { NAV.stack = NAV.stack.slice(0, NAV.pos + 1); NAV.stack.push(st); NAV.pos = NAV.stack.length - 1; }
+function navReplace(st) { NAV.stack[NAV.pos] = st; }
+function navGo(d) { const p = NAV.pos + d; if (p < 0 || p >= NAV.stack.length) return false; NAV.pos = p; onNav(NAV.stack[p]); return true; }
+let pendingAnim = null; // "back" | "fwd" | null — set by the swipe so the page change knows how to animate
+function onNav(st) {
+  if (!st || !st.r) return;
   const dir = pendingAnim || (st.i < navIdx ? "back" : "fwd"); pendingAnim = null;
   leaving(); route = st.r; navIdx = st.i; if (navIdx > maxIdx) maxIdx = navIdx; window.scrollTo(0, 0); rerender();
   slideIn(dir);
-});
-try { history.replaceState({ r: route, i: 0, prev: null }, ""); } catch (e) {}
+}
+try { navReplace({ r: route, i: 0, prev: null }); } catch (e) {}
 
 const pageEls = () => [document.querySelector(".top"), document.getElementById("main")].filter(Boolean);
 function setX(x, ms) { for (const e of pageEls()) { e.style.transition = ms ? `transform ${ms}ms cubic-bezier(.2,.8,.2,1)` : "none"; e.style.transform = x ? `translateX(${x}px)` : ""; } }
@@ -2024,7 +2031,7 @@ function slideIn(dir) {
 }
 (() => {
   const EDGE = 28; let s = null;
-  const canBack = () => history.state && history.state.i > 0;
+  const canBack = () => navState() && navState().i > 0;
   const canFwd = () => navIdx < maxIdx;
   const shade = document.createElement("div"); shade.className = "swipe-shade"; shade.hidden = true; document.body.append(shade);
   addEventListener("touchstart", (e) => {
@@ -2032,7 +2039,6 @@ function slideIn(dir) {
     const t = e.touches[0]; const w = innerWidth;
     // In Safari itself the browser already has its own swipe-back, so only add ours in the installed app.
     const standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
-    if (!standalone) { s = null; return; }
     if (t.clientX <= EDGE && canBack()) s = { dir: "back", x0: t.clientX, y0: t.clientY, t0: Date.now(), dx: 0, locked: false };
     else if (t.clientX >= w - EDGE && canFwd()) s = { dir: "fwd", x0: t.clientX, y0: t.clientY, t0: Date.now(), dx: 0, locked: false };
     else s = null;
@@ -2057,10 +2063,10 @@ function slideIn(dir) {
     setX(g.dir === "back" ? w : -w, 180); shade.style.transition = "opacity 180ms"; shade.style.opacity = "0";
     setTimeout(() => {
       shade.hidden = true; shade.style.transition = "";
-      pendingAnim = g.dir; const before = history.state && history.state.i;
-      if (g.dir === "back") history.back(); else history.forward();
+      pendingAnim = g.dir; const before = navState() && navState().i;
+      if (g.dir === "back") navGo(-1); else navGo(1);
       // Nothing to go forward to: put the page back.
-      setTimeout(() => { if (pendingAnim && history.state && history.state.i === before) { pendingAnim = null; setX(0, 220); setTimeout(() => setX(0, 0), 240); } }, 350);
+      setTimeout(() => { if (pendingAnim && navState() && navState().i === before) { pendingAnim = null; setX(0, 220); setTimeout(() => setX(0, 0), 240); } }, 350);
     }, 170);
   };
   addEventListener("touchend", end, { passive: true });
@@ -2201,7 +2207,7 @@ applyPrefs();
 // ---- profile ----
 // Characters you can pick right now (the others come back as their animations are added).
 const AVATAR_ON = ["anubis", "p1", "p2", "stef", "mario"];
-const profile = () => { const p = lsGet("md-profile", null); return p && p.av && !AVATAR_ON.includes(p.av) ? { ...p, av: null } : p; };
+const profile = () => { const p = lsGet("md-profile", null); return { ...(p || {}), av: "anubis" }; };
 function saveProfile(p) { lsSet("md-profile", { since: Date.now(), ...(profile() || {}), ...p }); }
 // Profile characters: pictures saved next to the app (avatar-01.jpg ... avatar-10.jpg).
 const AVATARS = ["Scarecrow", "Ghost", "Dark-haired girl", "Blonde girl", "Dark-haired boy", "Boy in a cap", "Black cat", "Tabby cat", "Black dog", "Skeleton"]
@@ -2359,7 +2365,7 @@ function renderSettings() {
   // Profile + account info
   const pp = el("div", "panel sp prof"); pp.id = "profile";
   const head = el("div", "profhead");
-  const nm = el("div", "grow"); nm.append(el("div", "pname", p.name || "No username yet"), el("div", "small muted", p.since ? "On Nion since " + new Date(p.since).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Pick a character and a username."));
+  const nm = el("div", "grow"); nm.append(el("div", "pname", p.name || "No username yet"), el("div", "small muted", p.since ? "On Nion since " + new Date(p.since).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Pick a username."));
   const editing = profileEdit || (!p.name && settingsOpen === "profile");
   head.append(buddyFig(p.av, 84), nm, btn("btn ghost small", editing ? "Close" : p.name ? "Edit" : "Set up", () => { if (editing) { profileEdit = false; settingsOpen = null; } else profileEdit = true; renderSettings(); }));
   pp.append(head);
@@ -2374,8 +2380,8 @@ function renderSettings() {
     drawGrid();
     const inp = el("input"); inp.type = "text"; inp.id = "username"; inp.maxLength = 20; inp.value = p.name || ""; inp.placeholder = "Username"; inp.setAttribute("aria-label", "Username"); inp.autocomplete = "nickname";
     const sv = el("button", "btn", "Save profile"); sv.type = "submit";
-    f.append(el("span", "small muted", "Character"), prev, grid, el("span", "small muted", "Username"), inp, sv);
-    f.addEventListener("submit", (e) => { e.preventDefault(); const name = inp.value.trim().slice(0, 20); if (!name) { inp.focus(); toast("Type a username."); return; } saveProfile({ name, av: pick }); profileEdit = false; settingsOpen = null; toast("Profile saved."); renderSettings(); });
+    f.append(el("span", "small muted", "Username"), inp, sv);
+    f.addEventListener("submit", (e) => { e.preventDefault(); const name = inp.value.trim().slice(0, 20); if (!name) { inp.focus(); toast("Type a username."); return; } saveProfile({ name, av: "anubis" }); profileEdit = false; settingsOpen = null; toast("Profile saved."); renderSettings(); });
     pp.append(f);
   }
   const s = streaks(), st = accountStats();
@@ -2395,9 +2401,8 @@ function renderSettings() {
   m.append(testingPanel());
 
   // Sound, reminders, passcode
-  const op = el("div", "panel sp"); op.append(el("h3", null, "Study buddy, sound and reminders"));
+  const op = el("div", "panel sp"); op.append(el("h3", null, "Sound and reminders"));
   const tog = (id, label, note, val, fn) => { const l = el("label", "togrow"); const c = el("input"); c.type = "checkbox"; c.id = id; c.checked = val; c.className = "switch"; c.addEventListener("change", () => fn(c.checked)); const t = el("span", "grow"); t.append(el("span", "tl", label), el("span", "small muted", note)); l.append(t, c); return l; };
-  op.append(tog("mascot", "Study buddy", "Your character shows up big on the home screen and reacts when you answer.", pr.mascot !== false, (v) => setPref("mascot", v)));
   op.append(tog("sound", "Sound effects", "A short chime for right answers and a low tone for misses.", pr.sound, (v) => { setPref("sound", v); if (v) playSound("ok"); }));
   op.append(tog("remind", "Study reminders", "When you open Nion, a note on the home screen shows your streak and whether you've studied today. Nion can't send notifications while it's closed.", pr.remind, (v) => setPref("remind", v)));
   m.append(op);
@@ -2868,7 +2873,7 @@ const BUDDY = {
   mario: { ok: ["Nice one.", "Called it.", "Too easy for you."], bad: ["Eh, happens. It'll come back around.", "No sweat. Next one's yours."], master: ["Locked in. Mastered."], streak: ["{n} in a row. Smooth."], done: ["That's a wrap. Coffee's on me."], tap: ["Chillin'. Ready when you are.", "One question at a time.", "We got this."] },
 };
 let buddyRunN = 0, buddyLast = "";
-const buddyOn = () => prefs().mascot !== false;
+const buddyOn = () => true;
 function buddyLine(kind, vars, av) {
   const id = av || (profile() || {}).av; const own = (BUDDY[id] || {})[kind] || []; const any = BUDDY.any[kind] || [];
   let pool = own.length && Math.random() < 0.75 ? own : own.concat(any); pool = pool.filter((x) => x !== buddyLast); if (!pool.length) pool = any;
@@ -3131,7 +3136,7 @@ function startStudy(sid, replace) {
   if (!ids.length) { toast("Nothing due right now. " + nextReviewText()); if (replace) go({ v: "subject", sid }); return; }
   S.run = { ids: shuffle(ids), i: 0, ok: 0, miss: [], sec: null, missed: false, label: "Study session", pool: null, study: 1, at: Date.now() };
   persist(); cur = null;
-  if (replace) { route = { v: "study", sid, run: 1 }; try { history.replaceState({ r: route, i: navIdx, prev: (history.state || {}).prev }, ""); } catch (e) {} rerender(); }
+  if (replace) { route = { v: "study", sid, run: 1 }; try { navReplace({ r: route, i: navIdx, prev: (navState() || {}).prev }); } catch (e) {} rerender(); }
   else go({ v: "study", sid, run: 1 });
 }
 function startReview(R) {
@@ -4107,8 +4112,8 @@ async function refreshLocal(sid) {
 
 // Swap the current page for another without adding a history step (so swiping back skips it).
 function replaceRoute(r) {
-  leaving(); const st = history.state || {}; route = r;
-  try { history.replaceState({ r, i: navIdx, prev: st.prev || null }, ""); } catch (e) {}
+  leaving(); const st = navState() || {}; route = r;
+  try { navReplace({ r, i: navIdx, prev: st.prev || null }); } catch (e) {}
   window.scrollTo(0, 0); rerender();
 }
 
@@ -4153,7 +4158,7 @@ async function renderImport() {
   if (SID !== sid || !S) await openSubject(sid);
   if (!imp || imp.sid !== sid) imp = { sid, sec: route.sec || (s.sections[0] && s.sections[0].id), mode: null, mats: [], results: null, picked: new Set(), status: "", failed: [] };
   if (!s.sections.some((x) => x.id === imp.sec)) imp.sec = s.sections[0] && s.sections[0].id;
-  topbar(s.name, () => { if (imp && imp.ctl) imp.ctl.abort(); imp = null; const st = history.state; if (st && sameRoute(st.prev, { v: "subject", sid })) history.back(); else replaceRoute({ v: "subject", sid }); }, "Add material");
+  topbar(s.name, () => { if (imp && imp.ctl) imp.ctl.abort(); imp = null; const st = navState(); if (st && sameRoute(st.prev, { v: "subject", sid })) navGo(-1); else replaceRoute({ v: "subject", sid }); }, "Add material");
   const m = $("main"); m.replaceChildren();
 
   const where = el("div", "panel"); where.append(el("h3", null, "Add to subsection"));
