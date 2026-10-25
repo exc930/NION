@@ -1239,6 +1239,11 @@ html[data-theme="arcade"] .bubble .btn::before { content: "▶ "; }
 html[data-theme="arcade"] .bchange { color: var(--cyan); font-family: var(--f-mono); font-size: 1.05rem; }
 @media (prefers-reduced-motion: reduce) { html[data-theme="arcade"] :is(.logo::after, .subj .go, .home-h h2::before) { animation: none; } }
 
+/* Characters paused on the home screen while their animations are rebuilt: greeting only */
+#buddycard .bcol { display: none !important; }
+#buddycard { display: block; }
+#buddycard .bubble { max-width: none; width: 100%; margin: 0; }
+#buddycard .bubble::before { display: none; }
 </style>
 </head>
 <body>
