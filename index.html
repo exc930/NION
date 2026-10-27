@@ -1340,6 +1340,19 @@ html[data-theme="cafe"] .verdict.ok { color: #2f6e3a; }
 /* Medical: the beating heart is for the home screen; on other pages it fades back so it never sits under text */
 html[data-theme="medical"] body:not(:has(.hero))::after { opacity: .18; }
 .whyctx { margin: 0 0 6px; }
+.studybox { display: grid; gap: 8px; margin-top: 10px; }
+.studybox .qzslider { margin: 2px 0 8px; }
+.studybox .btn { width: 100%; }
+#whybtn { margin-left: auto; }
+#whybtn + #next { margin-left: 8px; }
+.helprow { display: flex; gap: 14px; margin-right: auto; }
+.hintbox { margin: 4px 0 10px; padding: 8px 12px; border-radius: 10px; border: 1px dashed var(--accent); color: var(--ink); background: var(--well, rgba(255,255,255,.06)); font-size: .92rem; }
+.opt.elim { opacity: .35; text-decoration: line-through; }
+.roundintro h2 { margin-bottom: 6px; }
+.roundsum { display: grid; gap: 6px; margin: 8px auto 10px; max-width: 340px; text-align: left; }
+.roundsum .rs { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-radius: 10px; background: var(--well, rgba(255,255,255,.06)); }
+.roundsum .rs b { color: var(--accent); }
+.chip.recall { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -2635,11 +2648,9 @@ async function renderSubject() {
   const bar = el("div", "bar"); const bm = el("span", "m"); bm.style.width = c.t ? (c.m / c.t * 100) + "%" : "0"; const bl = el("span", "l"); bl.style.width = c.t ? (c.l / c.t * 100) + "%" : "0"; bar.append(bm, bl);
   const stx = el("div", "stats"); const add = (k, label, v) => { const sp = el("span"); if (k) { const i = el("i", "key"); i.style.background = k; sp.append(i); } sp.append(label + " ", Object.assign(el("b"), { textContent: v })); stx.append(sp); };
   add("var(--accent)", "Mastered", `${c.m}/${c.t}`); add("var(--warn)", "Learning", c.l); add("var(--new)", "Not seen", c.n);
-  const plan = c.t ? sessionPlan() : null;
-  const go1 = c.t ? btn("btn big", plan.ids.length ? `Study · ${plan.ids.length} questions` : "All caught up", () => startStudy(sid)) : btn("btn big", "+ Add material", () => go({ v: "import", sid }));
-  go1.id = "studybtn"; go1.disabled = !!c.t && !plan.ids.length;
-  if (plan) sum.append(el("p", "small muted studynote", plan.ids.length ? `${Math.min(plan.due, SESSION)} due for review · the rest new. 20 at a time. Misses come back in the same session, asked a different way.` : nextReviewText()));
-  sum.append(bar, stx, go1);
+  sum.append(bar, stx);
+  if (c.t) sum.append(studyPanel(sid));
+  else { const g = btn("btn big", "+ Add material", () => go({ v: "import", sid })); g.id = "studybtn"; sum.append(g); }
   if (c.t) sum.append(runPanel(sid, s, studyable));
   { const sp = c.t ? starPanel(sid, s) : null; if (sp) sum.append(sp); }
   if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections. Check or uncheck them below.`));
@@ -2734,8 +2745,9 @@ function show(avoid) {
   const run = RUNNING(); const id = run ? runNext() : nextId(avoid);
   if (!id) { cur = null; renderCur(); return; }
   const item = ITEMS.get(id); const s = st(id);
-  const q = build(item, !!s, s && s.lf);
-  const status = run && isComeback(id) ? [`Comeback · ${S.run.need[id] || CB_NEED} more right to clear`, "retry"] : run ? [`${S.run.i + 1} of ${S.run.ids.length}`, ""] : !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
+  const recall = run && studyRun() && ((S.run.phase || 1) > 1 || isComeback(id));
+  const q = recall ? recallQ(item, s) : build(item, !!s, s && s.lf);
+  const status = run && studyRun() ? roundStatus(id) : run ? [`${S.run.i + 1} of ${S.run.ids.length}`, ""] : !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
   cur = { id, q, answered: false, picks: new Set(), status, dots: s ? s.c : 0, run };
   renderCur();
 }
@@ -2792,7 +2804,8 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && view != null) { e.preventDefault(); view = null; renderCur(); return; }
   if (view != null || !cur) return;
   if (cur.why) { if (e.key === "Enter" && cur.why.answered && document.activeElement !== $("next")) { e.preventDefault(); show(cur.id); return; } if (cur.why.answered) return; const k2 = e.key.toUpperCase(); let j = LETTERS.indexOf(k2); if (j < 0 && /^[1-8]$/.test(k2)) j = +k2 - 1; if (j >= 0 && j < cur.why.q.opts.length) { e.preventDefault(); whyPick(j); } return; }
-  if (e.key === "Enter") { if (cur.answered) { if (document.activeElement !== $("next")) { e.preventDefault(); nextStep(); } } else if ((cur.q.fmt === "ms" && cur.picks.size) || (!cur.q.opts && ready(cur.q, cur.resp))) { e.preventDefault(); submit(); } return; }
+  if (S.run && S.run.intro && route.run) { if (e.key === "Enter") { e.preventDefault(); const g = $("roundgo"); if (g) g.click(); } return; }
+  if (e.key === "Enter") { if (cur.answered) { if (document.activeElement !== $("next")) { e.preventDefault(); show(cur.id); } } else if ((cur.q.fmt === "ms" && cur.picks.size) || (!cur.q.opts && ready(cur.q, cur.resp))) { e.preventDefault(); submit(); } return; }
   if (cur.answered) return;
   const k = e.key.toUpperCase(); let i = LETTERS.indexOf(k); if (i < 0 && /^[1-8]$/.test(k)) i = +k - 1;
   if (cur.q.fmt === "tf" && k === "T") i = 0; if (cur.q.fmt === "tf" && k === "F") i = 1;
@@ -2804,7 +2817,13 @@ document.addEventListener("keydown", (e) => {
 const RUNNING = () => route.v === "study" && !!route.run && !!(S && S.run);
 function runNext() {
   const R = S.run; if (!R) return null;
-  while (R.i < R.ids.length) { const id = R.ids[R.i]; if (ITEMS.has(id) && !S.skip.includes(id) && itemOK(ITEMS.get(id))) return id; R.i++; }
+  for (;;) {
+    while (R.i < R.ids.length) { const id = R.ids[R.i]; if (ITEMS.has(id) && !S.skip.includes(id) && itemOK(ITEMS.get(id))) return id; R.i++; }
+    if (!(R.study && R.seen && (R.phase || 1) < 3)) break;
+    R.phase = (R.phase || 1) + 1; R.firstOk = R.firstOk || []; R.weak = R.weak || [];
+    const list = shuffle((R.phase === 2 ? R.firstOk : R.weak).filter((x) => ITEMS.has(x)));
+    if (list.length) { R.pstart = R.pstart || {}; R.pstart[R.phase] = R.ids.length; R.plen = R.plen || {}; R.plen[R.phase] = list.length; R.ids.push(...list); R.intro = R.phase; }
+  }
   persist(); return null;
 }
 function startRun(sid, sec, ids, label) {
@@ -2843,13 +2862,13 @@ function runFinished(card) {
 }
 function runPanel(sid, s, studyable) {
   const box = el("div", "runbox"); const R = S.run; const pool = quizPool(null).length;
-  if (R && !runDone(R) && R.ids.length) {
+  if (R && !R.study && !runDone(R) && R.ids.length) {
     box.append(el("p", "small muted", `Going through all: ${Math.min(R.i, R.ids.length)} of ${R.ids.length} done · ${runScope(R)}.`));
     const r = el("div", "row"); r.append(btn("btn ghost", "Continue going through all", () => { cur = null; go({ v: "study", sid, run: 1 }); }), btn("btn ghost small", "Start a new pass", () => startRun(sid, null))); box.append(r);
   } else {
     const b = btn("btn ghost big", `Go through all · ${pool} question${pool === 1 ? "" : "s"}, no repeats`, () => startRun(sid, null)); b.id = "runall"; b.disabled = !pool; box.append(b);
     box.append(el("p", "small muted", "Every question in the checked subsections once, in random order, with the answer after each one. Misses don't repeat; you can go back over them at the end."));
-    if (R && runDone(R) && R.ids.length) {
+    if (R && !R.study && runDone(R) && R.ids.length) {
       const r = el("div", "row small"); r.append(el("span", "grow muted", `Last pass: ${R.ok} of ${R.ids.length} right`));
       if (R.miss.length) r.append(btn("linkbtn", `Go through the ${R.miss.length} missed`, () => startRun(sid, null, [...new Set(R.miss)])));
       box.append(r);
@@ -3204,12 +3223,14 @@ function buddyCheer(text) {
 // Wrong: strength drops to 0; it's retried in this session's review round and comes back tomorrow.
 const SRS_DAYS = [1, 3, 7, 16, 35, 90, 180], DAY_MS = 864e5, SESSION = 20;
 function studyPool() { return S.order.filter((id) => { const it = ITEMS.get(id); return it && !it.extraOf && !S.off.includes(it.sec) && !S.skip.includes(id) && itemOK(it); }); }
-function sessionPlan(n) {
+const studyCount = () => { const v = Math.round(+prefs().stc); return isFinite(v) && v > 0 ? Math.max(5, Math.min(50, v)) : 10; };
+function sessionPlan(n, mode) {
   const now = Date.now(), pool = studyPool();
   const due = pool.filter((id) => S.it[id] && S.it[id].next != null && S.it[id].next <= now).sort((a, b) => S.it[a].next - S.it[b].next);
   const older = pool.filter((id) => S.it[id] && S.it[id].next == null && !S.it[id].m);   // started before spacing existed
   const fresh = pool.filter((id) => !S.it[id]);
-  return { ids: [...due, ...older, ...fresh].slice(0, n || SESSION), due: due.length + older.length, fresh: fresh.length };
+  const ids = mode === "new" ? fresh : [...due, ...older, ...fresh];
+  return { ids: ids.slice(0, n || studyCount()), due: due.length + older.length, fresh: fresh.length };
 }
 function nextReviewText() {
   const t = studyPool().map((id) => S.it[id] && S.it[id].next).filter((x) => x && x > Date.now()).sort((a, b) => a - b)[0];
@@ -3217,10 +3238,10 @@ function nextReviewText() {
   const d = Math.ceil((t - Date.now()) / DAY_MS);
   return d <= 1 ? "Next reviews are due tomorrow." : `Next reviews are due in ${d} days.`;
 }
-function startStudy(sid, replace) {
-  const ids = sessionPlan().ids;
+function startStudy(sid, replace, mode) {
+  const ids = sessionPlan(null, mode).ids;
   if (!ids.length) { toast("Nothing due right now. " + nextReviewText()); if (replace) go({ v: "subject", sid }); return; }
-  S.run = { ids: shuffle(ids), i: 0, ok: 0, miss: [], sec: null, missed: false, label: "Study session", pool: null, study: 1, seen: [], need: {}, fixed: [], at: Date.now() };
+  S.run = { ids: shuffle(ids), i: 0, ok: 0, miss: [], sec: null, missed: false, label: mode === "new" ? "New questions" : "Study session", pool: null, study: 1, mode: mode || "mix", seen: [], need: {}, fixed: [], phase: 1, firstOk: [], weak: [], r2ok: 0, pstart: { 1: 0 }, at: Date.now() };
   persist(); cur = null;
   if (replace) { route = { v: "study", sid, run: 1 }; try { navReplace({ r: route, i: navIdx, prev: (navState() || {}).prev }); } catch (e) {} rerender(); }
   else go({ v: "study", sid, run: 1 });
@@ -3230,15 +3251,80 @@ function startReview(R) {
   S.run = { ids: shuffle(ids), i: 0, ok: 0, miss: [], sec: null, missed: false, label: "Review missed", pool: null, study: 1, review: 1, first: { ok: R.ok, n: R.ids.length }, at: Date.now() };
   persist(); cur = null; rerender();
 }
+function recallQ(item, s) {
+  const opts = []; if (item.ty) opts.push("ty"); if (item.ord) opts.push("ord"); if (item.mt) opts.push("mt");
+  const last = s && s.lf; let ch = opts.filter((x) => x !== last); if (!ch.length) ch = opts;
+  const f = ch.length ? ch[ri(0, ch.length - 1)] : null;
+  if (f === "ty") { const [stem, acc, ex] = item.ty; return { f, tag: ["From memory", "recall"], fmt: "type", stem, ex: ex || item.ex || "", parts: ["", ""], blanks: [acc] }; }
+  if (f === "ord") { const o = item.ord; return { f, tag: ["From memory", "recall"], fmt: "ord", stem: o.q, items: o.items.slice(), shown: shuffledIdx(o.items.length), ex: o.ex || item.ex || "" }; }
+  if (f === "mt") { const m = item.mt; return { f, tag: ["From memory", "recall"], fmt: "match", stem: m.q, pairs: m.pairs.map((p) => p.slice()), lorder: shuffle([...m.pairs.keys()]), rorder: shuffledIdx(m.pairs.length), ex: m.ex || item.ex || "" }; }
+  return build(item, true, last);
+}
+function roundStatus(id) {
+  const R = S.run, ph = R.phase || 1, st0 = (R.pstart || {})[ph] || 0, len = ph === 1 ? ((R.pstart || {})[2] || R.ids.length) : ((R.plen || {})[ph] || (R.ids.length - st0));
+  if (ph === 1 && isComeback(id)) return [`Round 1 · Comeback · ${R.need[id] || CB_NEED} more right to clear`, "retry"];
+  if (ph === 1) return [`Round 1 · Recognize · ${R.i + 1} of ${len}`, ""];
+  if (ph === 2) return [`Round 2 · Recall · ${R.i - st0 + 1} of ${len}`, "review"];
+  return [`Final round · ${R.i - st0 + 1} of ${len}`, "retry"];
+}
+function renderIntro(card) {
+  const R = S.run, ph = R.intro; const d = el("div", "done roundintro");
+  if (ph === 2) d.append(el("h2", null, "Round 2 · Recall"), el("p", "note", `${R.firstOk.length} card${R.firstOk.length === 1 ? "" : "s"} you got right in Round 1, now from memory: type the answer, put the parts in order, or match.`), el("p", "small muted", "Only answers you recall without a hint count toward mastery."));
+  else d.append(el("h2", null, "Final round · Reinforce"), el("p", "note", `The ${R.weak.length} card${R.weak.length === 1 ? "" : "s"} you missed, needed a hint for, or revealed earlier in this session, one more time.`), el("p", "small muted", "These come back tomorrow too. Spaced review brings hard cards back sooner."));
+  const b = btn("btn", ph === 2 ? "Start Round 2" : "Start the final round", () => { R.intro = 0; persist(); renderCur(); }); b.id = "roundgo";
+  d.append(b); card.append(d); b.focus({ preventScroll: true });
+}
+function hintFor(c, probe) {
+  const item = ITEMS.get(c.id), q = c.q;
+  if (q.fmt === "type") { const a = String(q.blanks[0][0]); const n = a.replace(/[^A-Za-z]/g, "").length; return `${item && item.hty ? item.hty + " · " : ""}Starts with “${a.replace(/^[^A-Za-z]+/, "").slice(0, n > 7 ? 2 : 1)}” · ${n} letters`; }
+  if (q.fmt === "ord") return `It starts with “${q.items[0]}.”`;
+  if (q.fmt === "match") return `“${q.pairs[0][0]}” goes with “${q.pairs[0][1]}.”`;
+  if (item && item.hint) return item.hint;
+  if (q.fmt === "mc" && q.opts && q.opts.filter((o) => !o.c).length >= 3) return probe ? "elim" : null;
+  if (q.fmt === "ms" && q.opts) return `${q.opts.filter((o) => o.c).length} of the choices are correct.`;
+  return null;
+}
+function useHint() {
+  if (!cur || cur.answered || cur.hinted) return; const h = hintFor(cur, true); if (!h) return;
+  cur.hinted = true;
+  if (h === "elim") { const wrong = cur.q.opts.map((o, i) => (o.c ? -1 : i)).filter((i) => i >= 0); cur.elim = shuffle(wrong).slice(0, 2); cur.hintText = "Two wrong answers are crossed out."; }
+  else cur.hintText = h;
+  renderCur();
+}
+function studyPanel(sid) {
+  const box = el("div", "studybox"); const R = S.run; const live = !!(R && R.study && R.seen && !runDone(R) && R.ids.length);
+  let n = studyCount();
+  const head = el("div", "qzcount"); const val = el("b", "qzval", String(n)); head.append(el("span", "small muted", "Cards per session"), val);
+  const sl = el("input"); sl.type = "range"; sl.id = "stn"; sl.className = "qzslider"; sl.min = "5"; sl.max = "50"; sl.step = "5"; sl.value = String(n); sl.setAttribute("aria-label", "Cards per session");
+  const cont = btn("btn big", "", () => { if (live) { cur = null; go({ v: "study", sid, run: 1 }); } else startStudy(sid, false, "mix"); }); cont.id = "studybtn";
+  const nw = btn("btn ghost big", "", () => startStudy(sid, false, "new")); nw.id = "studynew";
+  const note = el("p", "small muted studynote");
+  const sync = () => {
+    val.textContent = String(n); sl.style.setProperty("--p", ((n - 5) / 45 * 100) + "%");
+    const pm = sessionPlan(n), pn = sessionPlan(n, "new"), q = (k) => `${k} card${k === 1 ? "" : "s"}`;
+    cont.textContent = live ? `Continue studying · ${R.ids.length - R.i} left in this session` : pm.ids.length ? `Continue studying · ${q(pm.ids.length)}` : "All caught up";
+    cont.disabled = !live && !pm.ids.length;
+    nw.textContent = pn.ids.length ? `Study new questions · ${q(pn.ids.length)}` : "No new questions left"; nw.disabled = !pn.ids.length;
+    note.textContent = live ? "You're partway through a session. Continue picks it up; studying new questions starts a fresh session instead."
+      : pm.ids.length ? `Continue: ${Math.min(pm.due, n)} due for review first, then new ones. New: only cards you haven't seen. Each session runs in rounds: Round 1 multiple choice, Round 2 from memory (typed, ordering, matching), then a final round for anything you missed.`
+      : nextReviewText();
+  };
+  sl.addEventListener("input", () => { n = +sl.value; sync(); }); sl.addEventListener("change", () => setPref("stc", n));
+  sync(); box.append(head, sl, cont, nw, note); return box;
+}
 function studyFinished(card) {
   const R = S.run; const d = el("div", "done");
-  const n = R.seen ? R.seen.length : R.ids.length, ok = R.ok, missed = new Set(R.miss).size;
-  d.append(el("h2", null, "Session complete"),
-    el("p", "note", `${ok} of ${n} right on the first try.` + (missed ? ` ${missed} missed ${missed === 1 ? "question" : "questions"} came back until you got ${missed === 1 ? "it" : "them"} right twice.` : "")),
-    el("p", "small muted", "Only first tries count toward mastery. Right answers come back in a few days, then weeks; misses come back tomorrow, even the ones you fixed today."));
+  const n = R.seen ? R.seen.length : R.ids.length, ok = R.ok, f1 = (R.firstOk || []).length, r2 = R.r2ok || 0, wk = (R.weak || []).length;
+  const sumr = el("div", "roundsum");
+  const line = (k, v) => { const r = el("div", "rs"); r.append(el("span", null, k), el("b", null, v)); sumr.append(r); };
+  line("Round 1 · right on the first try", `${ok} of ${n}`); if (R.firstOk) line("Round 2 · recalled from memory", `${r2} of ${f1}`); if (R.weak) line("Final round · reinforced", String(wk));
+  d.append(el("h2", null, "Session complete"), sumr,
+    el("p", "small muted", "A card counts toward mastery only when you got it right on the first try and recalled it from memory, without hints. Mastered cards come back in a few days, then weeks; the rest come back tomorrow."));
   const left = sessionPlan().ids.length;
-  if (left) d.append(btn("btn", "Next session", () => startStudy(SID)));
-  else d.append(el("p", "small muted", "You're all caught up. " + nextReviewText()));
+  const fresh = sessionPlan(null, "new").ids.length;
+  if (left) d.append(btn("btn", "Continue studying", () => startStudy(SID, false, "mix")));
+  if (fresh) d.append(btn(left ? "btn ghost" : "btn", "Study new questions", () => startStudy(SID, false, "new")));
+  if (!left && !fresh) d.append(el("p", "small muted", "You're all caught up. " + nextReviewText()));
   if (!S.run.chimed) { S.run.chimed = 1; persist(); playSound("done"); }
   const bc = typeof buddyCheer === "function" ? buddyCheer(ok / Math.max(1, n) >= 0.8 ? buddyLine("done") : "Good work. The misses will come back tomorrow.") : null; if (bc) d.prepend(bc);
   d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
@@ -3246,26 +3332,45 @@ function studyFinished(card) {
 }
 const CB_NEED = 2;
 const studyRun = () => RUNNING() && !!S.run.study && !!S.run.seen;
-const isComeback = (id) => studyRun() && S.run.seen.includes(id);
+const isComeback = (id) => studyRun() && (S.run.phase || 1) === 1 && S.run.seen.includes(id);
 // Put a missed question back a few slots later. To keep the session at its size, the last question not seen yet
 // drops out (it stays due and comes in the next session). Near the end there may be none left, so it runs a little longer.
 function cbInsert(R, id, lo, hi) {
   const at = Math.min(R.i + ri(lo, hi), R.ids.length);
   R.ids.splice(at, 0, id);
-  for (let j = R.ids.length - 1; j >= R.i; j--) { if (j !== at && !R.seen.includes(R.ids[j])) { R.ids.splice(j, 1); break; } }
 }
-function runAfter(c, ok, cb) {
+function hintRecord(id) {
+  logActivity(); const s = S.it[id] || (S.it[id] = { c: 0, due: null, ok: 0, bad: 0 }); S.n++;
+  if (s.str == null) s.str = s.m ? 3 : Math.min(s.c || 0, 2);
+  s.str = Math.max(0, s.str - 1); s.m = 0; s.next = Date.now() + DAY_MS; s.due = null; S.at = Date.now(); persist();
+}
+function studyRecord(c, ok) {
+  const R = S.run, id = c.id;
+  if ((R.phase || 1) === 1 && !R.seen.includes(id)) { if (ok && c.hinted) hintRecord(id); else record(id, ok); return; }
+  logActivity(); S.at = Date.now(); if (!S.it[id]) record(id, false);
+  if (R.phase === 2 && !(ok && !c.hinted)) record(id, false);   // not recalled from memory: not mastered after all
+}
+function runAfter(c, ok) {
   const R = S.run; const id = c.id; R.i++;
   if (!R.study || !R.seen) { if (ok) R.ok++; else R.miss.push(id); persist(); c.note = ok ? `${R.i} of ${R.ids.length} done.` : `${R.i} of ${R.ids.length} done. Saved to your missed list for this pass.`; return; }
-  if (!cb) {
+  R.firstOk = R.firstOk || []; R.weak = R.weak || []; const ph = R.phase || 1;
+  const weak = () => { if (!R.weak.includes(id)) R.weak.push(id); };
+  const clean = ok && !c.hinted;
+  if (ph === 1 && !R.seen.includes(id)) {
     R.seen.push(id);
-    if (ok) { R.ok++; c.note = "Right on the first try. This counts toward mastery."; }
-    else { R.miss.push(id); R.need[id] = CB_NEED; cbInsert(R, id, 3, 5); c.note = "It comes back in a few questions, asked a different way. Get it right twice to clear it for today."; }
-  } else if (ok) {
-    R.need[id] = Math.max(0, (R.need[id] || 1) - 1);
-    if (R.need[id] > 0) { cbInsert(R, id, 4, 7); c.note = "Good. It comes back once more later in this session."; }
-    else { R.fixed.push(id); c.note = "Cleared for today. It still comes back tomorrow, because only first tries count toward mastery."; }
-  } else { R.need[id] = CB_NEED; cbInsert(R, id, 3, 5); c.note = "Not yet. It comes back again, and you need it right twice in a row."; }
+    if (clean) { R.ok++; R.firstOk.push(id); c.note = "Right on the first try. You'll answer it again from memory in Round 2."; }
+    else if (ok) { weak(); c.note = "Right, with a hint. That counts as practice, not mastery; it comes back in the final round."; }
+    else { R.miss.push(id); weak(); R.need[id] = CB_NEED; cbInsert(R, id, 3, 5); c.note = c.revealed ? "Answer revealed. It comes back in a few questions, asked a different way." : "It comes back in a few questions, asked a different way. Get it right twice to clear it."; }
+  } else if (ph === 1) {
+    if (clean) {
+      R.need[id] = Math.max(0, (R.need[id] || 1) - 1);
+      if (R.need[id] > 0) { cbInsert(R, id, 4, 7); c.note = "Good. It comes back once more in this round."; }
+      else { R.fixed.push(id); c.note = "Cleared for this round. The final round tests it once more."; }
+    } else { R.need[id] = CB_NEED; cbInsert(R, id, 3, 5); c.note = "Not yet. It comes back again, and you need it right twice in a row."; }
+  } else if (ph === 2) {
+    if (clean) { R.r2ok = (R.r2ok || 0) + 1; c.note = "Recalled from memory. That's what counts toward mastery."; }
+    else { weak(); c.note = ok ? "Right, with a hint. It comes back in the final round." : "Not recalled from memory, so it isn't mastered yet. It comes back in the final round and again tomorrow."; }
+  } else c.note = clean ? "Good. It still comes back tomorrow for spaced review." : "Still tricky. It comes back tomorrow, and reviews come sooner until it sticks.";
   persist();
 }
 // ---- why-check: after a miss, check the reasoning before moving on ----
@@ -3849,6 +3954,7 @@ function renderCur() {
     if (allDone) { const bc = buddyCheer("Every question mastered. I'm so proud!"); if (bc) d.prepend(bc); }
     card.append(navRow(), d); return;
   }
+  if (cur.run && S.run && S.run.intro && studyRun()) { renderIntro(card); return; }
   if (cur.why) { renderWhy(card); return; }
   const item = ITEMS.get(cur.id); const q = cur.q; const ix = !q.opts;
   if (ix && !cur.resp) cur.resp = [];
@@ -3859,12 +3965,23 @@ function renderCur() {
     if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer, then press Check answer."));
     if (!ix) list.querySelectorAll(".opt").forEach((b, i) => { b.addEventListener("click", () => choose(i)); b.classList.toggle("sel", cur.picks.has(i)); });
     if (q.fmt === "ms" || ix) { const chk = btn("btn", "Check answer", submit); chk.id = "check"; chk.disabled = ix ? !ready(q, cur.resp) : !cur.picks.size; act.append(chk); }
-    if (ix) { const idk = btn("linkbtn", "I don't know", () => submit(true)); idk.id = "idk"; act.prepend(idk); }
+    if (ix) { const idk = btn("linkbtn", cur.run && studyRun() ? "Reveal" : "I don't know", () => { cur.revealed = true; submit(true); }); idk.id = "idk"; act.prepend(idk); }
     else act.append(el("span", "kbd", "Keys: A–F · ← previous"));
+    if (cur.run && studyRun()) {
+      const hb = btn("linkbtn", cur.hinted ? "Hint used" : "Hint", useHint); hb.id = "hintbtn"; hb.disabled = !!cur.hinted || !hintFor(cur, true);
+      const tools = el("div", "helprow"); tools.append(hb);
+      if (!ix) { const rv = btn("linkbtn", "Reveal", () => { cur.revealed = true; submit(true); }); rv.id = "revealbtn"; tools.append(rv); }
+      act.prepend(tools);
+      if (cur.hintText) list.before(Object.assign(el("div", "hintbox"), { textContent: "Hint: " + cur.hintText }));
+      if (cur.elim) cur.elim.forEach((i) => { const b = $("opt" + i); if (b) { b.disabled = true; b.classList.add("elim"); } });
+    }
   } else {
     applyFeedback(card, q, ix ? cur.resp : cur.picks, cur.ok, false);
-    const nx = btn("btn", needWhy() ? "Why-check ›" : "Next question", nextStep); nx.id = "next";
-    act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), nx);
+    const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
+    if (needWhy() && cur.wqv === undefined) cur.wqv = whyQ(ITEMS.get(cur.id), cur.q, cur.picks) || null;
+    const wb = needWhy() && cur.wqv ? btn("btn ghost", "Why?", () => { cur.why = { q: cur.wqv, picks: new Set(), answered: false }; renderCur(); }) : null;
+    if (wb) { wb.id = "whybtn"; wb.title = "Check the reasoning (optional)"; }
+    act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), ...(wb ? [wb] : []), nx);
   }
   { const br = cur.answered ? buddyReact() : null; if (br) card.append(br); }
   card.append(act, bottomRow({ id: cur.id, q, answered: cur.answered, picks: cur.picks, resp: cur.resp, live: true }));
@@ -3882,11 +3999,11 @@ function submit(giveUp) {
   const q = cur.q; const ix = !q.opts; const gu = giveUp === true;
   if (!gu && (ix ? !ready(q, cur.resp) : !cur.picks.size)) return;
   const ok = gu ? false : gradeAns(q, ix ? cur.resp : [...cur.picks]);
-  const cb = cur.run && isComeback(cur.id); if (cb) { logActivity(); S.at = Date.now(); } else record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
+  if (cur.run && studyRun()) studyRecord(cur, ok); else record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
   playSound(ok ? (S.it[cur.id].m ? "master" : "ok") : "bad");
   const s = st(cur.id); cur.answered = true; cur.ok = ok;
   cur.note = ok ? (s.m ? "Mastered. You won't see this one again." : `${s.c} of ${MAX}. It will come back later.`) : `It comes back in ${RETRY} questions. Count reset to 0 of ${MAX}.`;
-  if (cur.run && RUNNING() && S.run.ids[S.run.i] === cur.id) runAfter(cur, ok, cb);
+  if (cur.run && RUNNING() && S.run.ids[S.run.i] === cur.id) runAfter(cur, ok);
   H.push({ id: cur.id, q, picks: [...cur.picks], resp: ix ? cur.resp : null, ok, at: Date.now() }); if (H.length > 60) H = H.slice(-40); lsSet("md-h-" + SID, H.slice(-40));
   renderCur(); const nx = $("next"); if (nx) nx.focus({ preventScroll: true });
   if (ok && S.auto) setTimeout(() => { if (route.v === "study" && cur && cur.answered && view == null) show(cur.id); }, 900);
@@ -4729,7 +4846,12 @@ async function boot() {
   await loadLibrary();
   if (!lsGet("md-booted", false) && library) {
     for (const e of library.filter((x) => x.auto)) { try { await installDeck(await fetchDeck(e)); } catch (err) {} }
-    lsSet("md-booted", true);
+    lsSet("md-booted", true); lsSet("md-autoseen", library.filter((x) => x.auto).map((x) => x.id));
+  } else if (library) {
+    let seen = lsGet("md-autoseen", null);
+    if (!seen) seen = library.filter((x) => x.auto && !["medterm", "pharm"].includes(x.id)).map((x) => x.id);
+    for (const e of library.filter((x) => x.auto && !seen.includes(x.id))) { if (!subjects[e.id]) { try { await installDeck(await fetchDeck(e)); } catch (err) {} } seen.push(e.id); }
+    lsSet("md-autoseen", seen);
   }
   // Question sets update themselves (progress is kept), unless you're in the middle of studying them.
   if (library) {
