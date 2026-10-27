@@ -1339,6 +1339,7 @@ html[data-theme="cafe"] .card .chipbtn { color: #8d3f26; }
 html[data-theme="cafe"] .verdict.ok { color: #2f6e3a; }
 /* Medical: the beating heart is for the home screen; on other pages it fades back so it never sits under text */
 html[data-theme="medical"] body:not(:has(.hero))::after { opacity: .18; }
+.whyctx { margin: 0 0 6px; }
 </style>
 </head>
 <body>
@@ -2637,7 +2638,7 @@ async function renderSubject() {
   const plan = c.t ? sessionPlan() : null;
   const go1 = c.t ? btn("btn big", plan.ids.length ? `Study · ${plan.ids.length} questions` : "All caught up", () => startStudy(sid)) : btn("btn big", "+ Add material", () => go({ v: "import", sid }));
   go1.id = "studybtn"; go1.disabled = !!c.t && !plan.ids.length;
-  if (plan) sum.append(el("p", "small muted studynote", plan.ids.length ? `${Math.min(plan.due, SESSION)} due for review · the rest new. 20 at a time, then you review the ones you missed.` : nextReviewText()));
+  if (plan) sum.append(el("p", "small muted studynote", plan.ids.length ? `${Math.min(plan.due, SESSION)} due for review · the rest new. 20 at a time. Misses come back in the same session, asked a different way.` : nextReviewText()));
   sum.append(bar, stx, go1);
   if (c.t) sum.append(runPanel(sid, s, studyable));
   { const sp = c.t ? starPanel(sid, s) : null; if (sp) sum.append(sp); }
@@ -2711,7 +2712,7 @@ const LETTERS = "ABCDEFGH";
 const labelFor = (item) => `${secName(item.sec)}${item.gen ? " · " + GEN[item.gen].label : item.src ? " · " + item.src : ""}`;
 async function renderStudy() {
   const sid = route.sid; const s = subjects[sid]; if (!s) { go({ v: "home" }); return; }
-  topbar(s.name, () => backTo({ v: "subject", sid }), route.run ? "Go through all" : "Study");
+  topbar(s.name, () => backTo({ v: "subject", sid }), route.run ? (S.run && S.run.study ? "Study session" : "Go through all") : "Study");
   if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "study") return; }
   if (!route.run) { startStudy(sid, true); return; }
   if (route.run && !S.run) { go({ v: "subject", sid }); return; }
@@ -2734,7 +2735,7 @@ function show(avoid) {
   if (!id) { cur = null; renderCur(); return; }
   const item = ITEMS.get(id); const s = st(id);
   const q = build(item, !!s, s && s.lf);
-  const status = run ? [`${S.run.i + 1} of ${S.run.ids.length}`, ""] : !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
+  const status = run && isComeback(id) ? [`Comeback · ${S.run.need[id] || CB_NEED} more right to clear`, "retry"] : run ? [`${S.run.i + 1} of ${S.run.ids.length}`, ""] : !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
   cur = { id, q, answered: false, picks: new Set(), status, dots: s ? s.c : 0, run };
   renderCur();
 }
@@ -2790,7 +2791,8 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight" && view != null) { e.preventDefault(); goNext(); return; }
   if (e.key === "Escape" && view != null) { e.preventDefault(); view = null; renderCur(); return; }
   if (view != null || !cur) return;
-  if (e.key === "Enter") { if (cur.answered) { if (document.activeElement !== $("next")) { e.preventDefault(); show(cur.id); } } else if ((cur.q.fmt === "ms" && cur.picks.size) || (!cur.q.opts && ready(cur.q, cur.resp))) { e.preventDefault(); submit(); } return; }
+  if (cur.why) { if (e.key === "Enter" && cur.why.answered && document.activeElement !== $("next")) { e.preventDefault(); show(cur.id); return; } if (cur.why.answered) return; const k2 = e.key.toUpperCase(); let j = LETTERS.indexOf(k2); if (j < 0 && /^[1-8]$/.test(k2)) j = +k2 - 1; if (j >= 0 && j < cur.why.q.opts.length) { e.preventDefault(); whyPick(j); } return; }
+  if (e.key === "Enter") { if (cur.answered) { if (document.activeElement !== $("next")) { e.preventDefault(); nextStep(); } } else if ((cur.q.fmt === "ms" && cur.picks.size) || (!cur.q.opts && ready(cur.q, cur.resp))) { e.preventDefault(); submit(); } return; }
   if (cur.answered) return;
   const k = e.key.toUpperCase(); let i = LETTERS.indexOf(k); if (i < 0 && /^[1-8]$/.test(k)) i = +k - 1;
   if (cur.q.fmt === "tf" && k === "T") i = 0; if (cur.q.fmt === "tf" && k === "F") i = 1;
@@ -2822,7 +2824,9 @@ function runShellHead(m) {
   const bar = el("div", "bar"); const bm = el("span", "m"); bm.style.width = n ? (done / n * 100) + "%" : "0"; bar.append(bm);
   const hd = el("div", "stats"); hd.id = "studystats";
   const add = (k, label, v) => { const sp = el("span"); if (k) { const i = el("i", "key"); i.style.background = k; sp.append(i); } sp.append(label + " ", Object.assign(el("b"), { textContent: v })); hd.append(sp); };
-  add("var(--accent)", "Done", `${done}/${n}`); add("var(--warn)", "Missed", bad); add(null, "Accuracy", done ? Math.round(R.ok / done * 100) + "%" : "–");
+  if (R.study && R.seen) { const f = R.seen.length, open = Object.values(R.need).filter((x) => x > 0).length;
+    add("var(--accent)", "Done", `${done}/${n}`); add("var(--warn)", "To clear", open); add(null, "First try", f ? Math.round(R.ok / f * 100) + "%" : "–"); }
+  else { add("var(--accent)", "Done", `${done}/${n}`); add("var(--warn)", "Missed", bad); add(null, "Accuracy", done ? Math.round(R.ok / done * 100) + "%" : "–"); }
   m.append(bar, hd);
 }
 function runFinished(card) {
@@ -3216,7 +3220,7 @@ function nextReviewText() {
 function startStudy(sid, replace) {
   const ids = sessionPlan().ids;
   if (!ids.length) { toast("Nothing due right now. " + nextReviewText()); if (replace) go({ v: "subject", sid }); return; }
-  S.run = { ids: shuffle(ids), i: 0, ok: 0, miss: [], sec: null, missed: false, label: "Study session", pool: null, study: 1, at: Date.now() };
+  S.run = { ids: shuffle(ids), i: 0, ok: 0, miss: [], sec: null, missed: false, label: "Study session", pool: null, study: 1, seen: [], need: {}, fixed: [], at: Date.now() };
   persist(); cur = null;
   if (replace) { route = { v: "study", sid, run: 1 }; try { navReplace({ r: route, i: navIdx, prev: (navState() || {}).prev }); } catch (e) {} rerender(); }
   else go({ v: "study", sid, run: 1 });
@@ -3228,20 +3232,107 @@ function startReview(R) {
 }
 function studyFinished(card) {
   const R = S.run; const d = el("div", "done");
-  if (!R.review && R.miss.length) {
-    d.append(el("h2", null, `Round done: ${R.ok} of ${R.ids.length} right`), el("p", "note", `Now let's go back over the ${new Set(R.miss).size} you missed.`), btn("btn", "Review missed", () => startReview(R)));
-  } else {
-    const f = R.review ? R.first : { ok: R.ok, n: R.ids.length };
-    d.append(el("h2", null, "Session complete"), el("p", "note", `${f.ok} of ${f.n} right the first time${R.review ? ` · ${R.ok} of ${R.ids.length} fixed in review` : ""}. Right answers come back in a few days, then weeks; misses come back tomorrow.`));
-    const left = sessionPlan().ids.length;
-    if (left) d.append(btn("btn", "Next 20", () => startStudy(SID)));
-    else d.append(el("p", "small muted", "You're all caught up. " + nextReviewText()));
-    if (!S.run.chimed) { S.run.chimed = 1; persist(); playSound("done"); }
-    const bc = typeof buddyCheer === "function" ? buddyCheer(f.ok / Math.max(1, f.n) >= 0.8 ? buddyLine("done") : "Good work. The misses will come back tomorrow.") : null; if (bc) d.prepend(bc);
-  }
+  const n = R.seen ? R.seen.length : R.ids.length, ok = R.ok, missed = new Set(R.miss).size;
+  d.append(el("h2", null, "Session complete"),
+    el("p", "note", `${ok} of ${n} right on the first try.` + (missed ? ` ${missed} missed ${missed === 1 ? "question" : "questions"} came back until you got ${missed === 1 ? "it" : "them"} right twice.` : "")),
+    el("p", "small muted", "Only first tries count toward mastery. Right answers come back in a few days, then weeks; misses come back tomorrow, even the ones you fixed today."));
+  const left = sessionPlan().ids.length;
+  if (left) d.append(btn("btn", "Next session", () => startStudy(SID)));
+  else d.append(el("p", "small muted", "You're all caught up. " + nextReviewText()));
+  if (!S.run.chimed) { S.run.chimed = 1; persist(); playSound("done"); }
+  const bc = typeof buddyCheer === "function" ? buddyCheer(ok / Math.max(1, n) >= 0.8 ? buddyLine("done") : "Good work. The misses will come back tomorrow.") : null; if (bc) d.prepend(bc);
   d.append(btn("btn ghost", "Back to subject", () => go({ v: "subject", sid: SID })));
   card.append(navRow(), d);
 }
+const CB_NEED = 2;
+const studyRun = () => RUNNING() && !!S.run.study && !!S.run.seen;
+const isComeback = (id) => studyRun() && S.run.seen.includes(id);
+// Put a missed question back a few slots later. To keep the session at its size, the last question not seen yet
+// drops out (it stays due and comes in the next session). Near the end there may be none left, so it runs a little longer.
+function cbInsert(R, id, lo, hi) {
+  const at = Math.min(R.i + ri(lo, hi), R.ids.length);
+  R.ids.splice(at, 0, id);
+  for (let j = R.ids.length - 1; j >= R.i; j--) { if (j !== at && !R.seen.includes(R.ids[j])) { R.ids.splice(j, 1); break; } }
+}
+function runAfter(c, ok, cb) {
+  const R = S.run; const id = c.id; R.i++;
+  if (!R.study || !R.seen) { if (ok) R.ok++; else R.miss.push(id); persist(); c.note = ok ? `${R.i} of ${R.ids.length} done.` : `${R.i} of ${R.ids.length} done. Saved to your missed list for this pass.`; return; }
+  if (!cb) {
+    R.seen.push(id);
+    if (ok) { R.ok++; c.note = "Right on the first try. This counts toward mastery."; }
+    else { R.miss.push(id); R.need[id] = CB_NEED; cbInsert(R, id, 3, 5); c.note = "It comes back in a few questions, asked a different way. Get it right twice to clear it for today."; }
+  } else if (ok) {
+    R.need[id] = Math.max(0, (R.need[id] || 1) - 1);
+    if (R.need[id] > 0) { cbInsert(R, id, 4, 7); c.note = "Good. It comes back once more later in this session."; }
+    else { R.fixed.push(id); c.note = "Cleared for today. It still comes back tomorrow, because only first tries count toward mastery."; }
+  } else { R.need[id] = CB_NEED; cbInsert(R, id, 3, 5); c.note = "Not yet. It comes back again, and you need it right twice in a row."; }
+  persist();
+}
+// ---- why-check: after a miss, check the reasoning before moving on ----
+function whyQ(item, q, picks) {
+  const clip = (t) => String(t || "").trim();
+  // Hide each option's own name inside its reason, so the student has to recall the link instead of matching words.
+  const hide = (w, t) => { let out = "", k = 0; const lw = w.toLowerCase(), lt = t.toLowerCase(); for (;;) { const at = lw.indexOf(lt, k); if (at < 0) return out + w.slice(k); out += w.slice(k, at) + "that choice"; k = at + t.length; } };
+  const mask = (o) => { let w = clip(o.why); const t = clip(o.t); if (t.length >= 3) w = hide(w, t); { const f = (t.split(/\s+/)[0] || "").replace(/[^A-Za-z]/g, ""); if (f.length >= 4 && /^[A-Z]/.test(f) && !/^(The|This|That|These|Those|Their|Which|With|When|What|Only|Every|Each|None|Both|More|Less|Most)$/.test(f) && w.indexOf(f) >= 0) w = hide(w, f); } return w.charAt(0).toUpperCase() + w.slice(1); };
+  const words = (t) => new Set((String(t || "").toLowerCase().match(/[a-z][a-z-]{4,}/g) || []));
+  if (item && item.wq && item.wq.q && item.wq.a && (item.wq.w || []).length) {
+    const w = item.wq;
+    return { fmt: "mc", stem: w.q, opts: orderOpts([{ t: w.a, c: true, why: w.ex || "That's the reasoning." }, ...w.w.slice(0, 3).map((x) => (Array.isArray(x) ? { t: x[0], c: false, why: x[1] } : { t: x, c: false, why: "That doesn't explain it." }))]) };
+  }
+  // They chose a wrong option that has its own reason: why is that option wrong?
+  if (q.opts && q.fmt === "mc") {
+    const wi = [...(picks || [])].find((i) => q.opts[i] && !q.opts[i].c && clip(q.opts[i].why));
+    if (wi != null) {
+      const mine = q.opts[wi]; const mw = mask(mine);
+      const others = q.opts.filter((o, i) => i !== wi && !o.c && clip(o.why) && mask(o) !== mw);
+      const uniq = []; others.forEach((o) => { if (!uniq.some((u) => mask(u) === mask(o))) uniq.push(o); });
+      if (uniq.length >= 2) return { fmt: "mc", stem: `You picked “${mine.t}.” Why is that not the answer?`, ctx: q.stem,
+        opts: orderOpts([{ t: mw, c: true, why: "That's the reason your pick doesn't fit." }, ...shuffle(uniq).slice(0, 3).map((o) => ({ t: mask(o), c: false, why: `That explains why “${o.t}” is wrong, not your pick.` }))]) };
+    }
+  }
+  // Otherwise: which reasoning leads to the right answer? Wrong reasons come from other questions in the same subsection.
+  const right = q.opts ? q.opts.find((o) => o.c) : null;
+  const reason = clip((right && right.why) || q.ex || (item && item.ex));
+  if (!item || !reason) return null;
+  const used = new Set([reason]);
+  const pool = shuffle(S.order.filter((x) => x !== item.id).map((x) => ITEMS.get(x)).filter((it) => it && it.sec === item.sec && !it.extraOf && clip(it.ex)))
+    .map((it) => clip(it.ex)).filter((t) => (used.has(t) ? false : (used.add(t), true))).slice(0, 3);
+  if (pool.length < 2) return null;
+  // Skip it when the right reasoning gives itself away (it repeats a word from the question that no other choice has).
+  const sw = words(q.stem); const give = [...words(reason)].some((w) => sw.has(w) && !pool.some((t) => words(t).has(w)));
+  if (give) return null;
+  let stem = "Which reasoning leads to the right answer?";
+  if (right && q.fmt === "mc") stem = `The answer is “${right.t}.” Which reasoning gets you there?`;
+  else if (right && q.fmt === "tf") stem = `The statement is ${right.t.toLowerCase()}. Which reasoning shows why?`;
+  return { fmt: "mc", stem, ctx: q.stem, opts: orderOpts([{ t: reason, c: true, why: "That's the reasoning for this question." }, ...pool.map((t) => ({ t, c: false, why: "That belongs to a different question." }))]) };
+}
+const needWhy = () => !!(cur && cur.run && cur.answered && !cur.ok && studyRun() && !cur.whyDone && !cur.why && cur.wq !== null);
+function nextStep() {
+  if (needWhy()) { const wq = whyQ(ITEMS.get(cur.id), cur.q, cur.picks); if (wq) { cur.why = { q: wq, picks: new Set(), answered: false }; renderCur(); return; } cur.wq = null; }
+  show(cur && cur.id);
+}
+function whyPick(i) {
+  const w = cur && cur.why; if (!w || w.answered) return;
+  w.picks = new Set([i]); w.answered = true; w.ok = !!w.q.opts[i].c; cur.whyDone = true; logActivity();
+  playSound(w.ok ? "ok" : "bad"); renderCur(); const nx = $("next"); if (nx) nx.focus({ preventScroll: true });
+}
+function renderWhy(card) {
+  const w = cur.why; const item = ITEMS.get(cur.id);
+  card.append(navRow());
+  const meta = el("div", "meta"); meta.append(el("span", "chip retry", "Why-check"), el("span", "chip fmt", "Reasoning")); if (item) meta.append(el("span", "topic", labelFor(item))); card.append(meta);
+  if (w.q.ctx) card.append(el("p", "small muted whyctx", "Question: " + w.q.ctx));
+  const list = body(card, w.q, "w", {}); const act = el("div", "actions"); act.id = "actions";
+  if (!w.answered) {
+    list.querySelectorAll(".opt").forEach((b, i) => b.addEventListener("click", () => whyPick(i)));
+    act.append(el("span", "note", "Pick the reasoning. This checks understanding and doesn't change your progress."));
+  } else {
+    applyFeedback(card, w.q, w.picks, w.ok, false);
+    const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
+    act.append(el("span", "verdict " + (w.ok ? "ok" : "bad"), w.ok ? "That's the reasoning" : "Not that one"), el("span", "note", w.ok ? "You've got the why." : "Read the highlighted reason once more; this question still comes back later."), nx);
+  }
+  card.append(act);
+}
+
 // Quiz length and timer choices
 const QZ_SIZES = [20, 50, 60, 80, 100];
 const quizCount = () => { const v = prefs().qzn; const n = v == null ? 50 : Math.round(+v); return isFinite(n) ? Math.max(0, Math.min(100, n)) : 50; };
@@ -3758,6 +3849,7 @@ function renderCur() {
     if (allDone) { const bc = buddyCheer("Every question mastered. I'm so proud!"); if (bc) d.prepend(bc); }
     card.append(navRow(), d); return;
   }
+  if (cur.why) { renderWhy(card); return; }
   const item = ITEMS.get(cur.id); const q = cur.q; const ix = !q.opts;
   if (ix && !cur.resp) cur.resp = [];
   card.append(navRow(), metaRow(item, cur.status, q, cur.answered ? (st(cur.id) || {}).c : cur.dots));
@@ -3771,7 +3863,7 @@ function renderCur() {
     else act.append(el("span", "kbd", "Keys: A–F · ← previous"));
   } else {
     applyFeedback(card, q, ix ? cur.resp : cur.picks, cur.ok, false);
-    const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
+    const nx = btn("btn", needWhy() ? "Why-check ›" : "Next question", nextStep); nx.id = "next";
     act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), nx);
   }
   { const br = cur.answered ? buddyReact() : null; if (br) card.append(br); }
@@ -3790,11 +3882,11 @@ function submit(giveUp) {
   const q = cur.q; const ix = !q.opts; const gu = giveUp === true;
   if (!gu && (ix ? !ready(q, cur.resp) : !cur.picks.size)) return;
   const ok = gu ? false : gradeAns(q, ix ? cur.resp : [...cur.picks]);
-  record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
+  const cb = cur.run && isComeback(cur.id); if (cb) { logActivity(); S.at = Date.now(); } else record(cur.id, ok); S.it[cur.id].lf = q.f || q.fmt;
   playSound(ok ? (S.it[cur.id].m ? "master" : "ok") : "bad");
   const s = st(cur.id); cur.answered = true; cur.ok = ok;
   cur.note = ok ? (s.m ? "Mastered. You won't see this one again." : `${s.c} of ${MAX}. It will come back later.`) : `It comes back in ${RETRY} questions. Count reset to 0 of ${MAX}.`;
-  if (cur.run && RUNNING() && S.run.ids[S.run.i] === cur.id) { const R = S.run; R.i++; if (ok) R.ok++; else R.miss.push(cur.id); persist(); cur.note = ok ? `${R.i} of ${R.ids.length} done.` : `${R.i} of ${R.ids.length} done. Saved to your missed list for this pass.`; }
+  if (cur.run && RUNNING() && S.run.ids[S.run.i] === cur.id) runAfter(cur, ok, cb);
   H.push({ id: cur.id, q, picks: [...cur.picks], resp: ix ? cur.resp : null, ok, at: Date.now() }); if (H.length > 60) H = H.slice(-40); lsSet("md-h-" + SID, H.slice(-40));
   renderCur(); const nx = $("next"); if (nx) nx.focus({ preventScroll: true });
   if (ok && S.auto) setTimeout(() => { if (route.v === "study" && cur && cur.answered && view == null) show(cur.id); }, 900);
