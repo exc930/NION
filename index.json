@@ -1,49 +1,58 @@
 {
- "decks": [
-  {
-   "id": "hsc0003",
-   "name": "HSC 0003 Intro to Health Care",
-   "file": "hsc0003.json",
-   "version": 3,
-   "count": 849,
-   "desc": "Midterm question bank \u00b7 Ch 1\u201312, 19\u201320",
-   "auto": true
-  },
-  {
-   "id": "hscbook",
-   "name": "HSC 0003 Textbook",
-   "file": "hscbook.json",
-   "version": 14,
-   "count": 1096,
-   "desc": "Textbook chapters \u00b7 Ch 1\u201312, 19\u201320",
-   "auto": false
-  },
-  {
-   "id": "hscreview",
-   "name": "Professor's Midterm Review",
-   "file": "hscreview.json",
-   "version": 1,
-   "count": 329,
-   "desc": "The professor's review sheet \u00b7 16 topic areas, multiple choice",
-   "auto": true
-  },
-  {
-   "id": "hscexam",
-   "name": "HSC 0003 Midterm Exam",
-   "file": "hscexam.json",
-   "version": 1,
-   "count": 100,
-   "desc": "The 100 real midterm questions, with harder practice versions",
-   "auto": true
-  },
-  {
-   "id": "fcle",
-   "name": "FCLE \u00b7 Florida Civic Literacy Exam",
-   "file": "fcle.json",
-   "version": 3,
-   "count": 863,
-   "desc": "4 competencies \u00b7 every topic in the FLDOE Supplemental Guide \u00b7 official sample items first",
-   "auto": true
-  }
- ]
+  "decks": [
+    {
+      "id": "medterm",
+      "name": "Medical Terminology",
+      "file": "medterm.json",
+      "version": 1,
+      "count": 418,
+      "desc": "Every prefix, suffix, root and word combination from your nursing word-parts list",
+      "auto": true
+    },
+    {
+      "id": "hsc0003",
+      "name": "HSC 0003 Intro to Health Care",
+      "file": "hsc0003.json",
+      "version": 3,
+      "count": 849,
+      "desc": "Midterm question bank · Ch 1–12, 19–20",
+      "auto": true
+    },
+    {
+      "id": "hscbook",
+      "name": "HSC 0003 Textbook",
+      "file": "hscbook.json",
+      "version": 14,
+      "count": 1096,
+      "desc": "Textbook chapters · Ch 1–12, 19–20",
+      "auto": false
+    },
+    {
+      "id": "hscreview",
+      "name": "Professor's Midterm Review",
+      "file": "hscreview.json",
+      "version": 1,
+      "count": 329,
+      "desc": "The professor's review sheet · 16 topic areas, multiple choice",
+      "auto": true
+    },
+    {
+      "id": "hscexam",
+      "name": "HSC 0003 Midterm Exam",
+      "file": "hscexam.json",
+      "version": 1,
+      "count": 100,
+      "desc": "The 100 real midterm questions, with harder practice versions",
+      "auto": true
+    },
+    {
+      "id": "fcle",
+      "name": "FCLE · Florida Civic Literacy Exam",
+      "file": "fcle.json",
+      "version": 3,
+      "count": 863,
+      "desc": "4 competencies · every topic in the FLDOE Supplemental Guide · official sample items first",
+      "auto": true
+    }
+  ]
 }

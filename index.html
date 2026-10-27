@@ -1337,6 +1337,8 @@ html[data-theme="notebook"] .top .back { color: #8a4036; }
 html:is([data-theme="cafe"], [data-theme="notebook"]) .verdict.bad { color: #a8392b; }
 html[data-theme="cafe"] .card .chipbtn { color: #8d3f26; }
 html[data-theme="cafe"] .verdict.ok { color: #2f6e3a; }
+/* Medical: the beating heart is for the home screen; on other pages it fades back so it never sits under text */
+html[data-theme="medical"] body:not(:has(.hero))::after { opacity: .18; }
 </style>
 </head>
 <body>
@@ -3019,16 +3021,22 @@ function catFig(size, mood, act) {
   const rnd = (a, b) => a + Math.random() * (b - a);
   let q = [], cur = null, t0 = 0, loops = 0, asleep = false, pokes = 0, zz = 0, alive = true, hold = null, started = !home; const born = performance.now();
   const play = (set, opts = {}) => q.push({ set, ...opts });
+  // lying down: sit, stretch forward, lower the back end, loaf with head up, eyes close, curl up
+  const LIE = { order: [0, 0, 1, 2, 3, 4, 5, 6], from: "fidle", times: [500, 450, 450, 600, 600, 700, 750, 800] };
+  // waking up: the same in reverse, ending with a big stretch, then back to sitting
+  const WAKE = { order: [6, 5, 4, 3, 2, 1, 0], times: [420, 420, 420, 480, 520, 460, 600], wake: 1 };
   const sleepy = home && new Date().getHours() >= 20 && typeof streaks === "function" && !streaks().today;
-  function draw(set, i, x, extra, prev, mix) {
+  function draw(set, i, x, extra, prev, mix, sy) {
     const sh = getComputedStyle(wrap).getPropertyValue("--cat-shadow").trim() || "rgba(0,0,0,.45)";
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     const f = CAT_DATA.frames[set][i]; const px = AX + x * k;
     const wide = set === "fsleep" ? 66 : set === "walk" || set === "jump" || set === "oops" ? 56 : 44;
     ctx.save(); ctx.fillStyle = sh; ctx.filter = "blur(3px)"; ctx.beginPath(); ctx.ellipse(px, AY + 1, wide * k, 6 * k, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     ctx.imageSmoothingQuality = "high";
+    if (sy) { ctx.save(); ctx.translate(0, AY); ctx.scale(1, sy); ctx.translate(0, -AY); }
     if (prev != null && mix < 1) { const g = CAT_DATA.frames[set][prev]; ctx.globalAlpha = 1; ctx.drawImage(CAT_IMG, g[0], g[1], g[2], g[3], px + g[4] * k, AY + g[5] * k, g[6] * k, g[7] * k); ctx.globalAlpha = mix; }
     ctx.drawImage(CAT_IMG, f[0], f[1], f[2], f[3], px + f[4] * k, AY + f[5] * k, f[6] * k, f[7] * k); ctx.globalAlpha = 1;
+    if (sy) ctx.restore();
     if (extra) extra(px);
   }
   function zzz(px) {
@@ -3039,13 +3047,15 @@ function catFig(size, mood, act) {
   function step(now) {
     if (!alive) return;
     if (!wrap.isConnected) { if (wrap._seen || now - born > 4000) { alive = false; return; } return requestAnimationFrame(step); } wrap._seen = true;
-    if (!started) { started = true; if (!catFig.walkDone) play("walkIn"); if (sleepy) play("fsleep", { order: [2, 3, 4, 5, 6, 7] }); }
+    if (!started) { started = true;
+      if (sleepy && catFig.slept) { asleep = true; }                     // already asleep: stay asleep
+      else { if (!catFig.walkStarted) play("walkIn"); if (sleepy && !catFig.woke) play("fsleep", LIE); } }
     if (hold) { return; }                                             // finished a one-off reaction: stay on its last frame
     if (!cur) {
       cur = q.shift() || { set: asleep ? "sleepLoop" : "rest" }; t0 = now;
     }
     const s = cur.set, el2 = (now - t0) / 1000;
-    if (s === "walkIn") {
+    if (s === "walkIn") { catFig.walkStarted = 1;
       const tr = CAT_DATA.walk, i = Math.floor(el2 * CAT_FPS.walk);
       if (i < tr.length) draw("walk", tr[i][0], tr[i][1]); else { cur = null; play("walkface"); }
     } else if (s === "rest") {
@@ -3057,24 +3067,27 @@ function catFig(size, mood, act) {
         play("fidle", { order: (tailAlt++ % 2) ? [0, 3, 2, 1, 2, 3, 0] : [0, 6, 10, 6, 0], ms: 260, fade: 1 }); }
       else if (now >= nextBlink) { nextBlink = now + rnd(3000, 6000); cur = null; play("fidle", { order: [0, 9, 4, 9, 0], ms: 65 }); }
     } else if (s === "sleepLoop") {
-      draw("fsleep", [6, 7][Math.floor(el2 * 1.2) % 2], 0, zzz);
+      draw("fsleep", 6, 0, zzz, null, 1, 1 + 0.018 * (0.5 - 0.5 * Math.cos(el2 * Math.PI * 2 / 3.6)));
     } else {
       const fr = CAT_DATA.frames[s]; let order = cur.order || [...fr.keys()];
-      const fms = cur.ms || 1000 / (CAT_FPS[s] || 6), i = Math.floor(el2 * 1000 / fms);
+      let fms = cur.ms || 1000 / (CAT_FPS[s] || 6), i = Math.floor(el2 * 1000 / fms), t0f = i * fms;
+      if (cur.times) { let acc = 0; i = 0; while (i < cur.times.length && el2 * 1000 >= acc + cur.times[i]) { acc += cur.times[i]; i++; } fms = cur.times[Math.min(i, cur.times.length - 1)]; t0f = acc; }
       if (i >= order.length) {
-        cur = null;
+        const cur0 = cur; cur = null;
         if (s === "walkface") catFig.walkDone = 1;
-        else if (s === "fsleep") asleep = true;
+        else if (s === "fsleep" && !cur0.wake) { asleep = true; catFig.slept = 1; }
         else if (!CAT_FRONT[s] && !wrap.classList.contains("cathome")) { const f = CAT_DATA.frames[s].length - 1; draw(s, f, 0); hold = s; return; }
         return requestAnimationFrame(step);
       }
-      const into = (el2 * 1000 - i * fms) / fms;
-      draw(s, order[i], s === "walkface" ? CAT_DATA.walkface[order[i]] : 0, null, cur.fade && i > 0 ? order[i - 1] : null, Math.min(1, into / 0.6));
+      const into = (el2 * 1000 - t0f) / fms;
+      const prevF = i > 0 && (cur.fade === 1 || (cur.fadeAt && cur.fadeAt.includes(i))) ? order[i - 1] : null;
+      const fset = cur.from && i === 0 ? cur.from : s;          // first frame can come from another set (the sitting pose)
+      if (fset !== s) draw(fset, cur.fromIdx || 0, 0); else draw(s, order[i], s === "walkface" ? CAT_DATA.walkface[order[i]] : 0, null, prevF, Math.min(1, into / 0.6));
     }
     requestAnimationFrame(step);
   }
   function poke() {
-    if (asleep || (cur && (cur.set === "sleepLoop" || cur.set === "fsleep"))) { asleep = false; q = []; cur = null; play("fsleep", { order: [5, 4, 3, 2] }); play("fidle"); hold = null; return "wake"; }
+    if (asleep || (cur && (cur.set === "sleepLoop" || (cur.set === "fsleep" && !cur.wake)))) { asleep = false; catFig.slept = 0; catFig.woke = 1; q = []; cur = null; play("fsleep", WAKE); hold = null; return "wake"; }
     if (cur && cur.set !== "rest" && cur.set !== "fidle" && cur.set !== "flook") return "tap";
     pokes++; q = []; cur = null; hold = null;
     play(["flook", "fplay", "fhappy"][(pokes - 1) % 3]); return "tap";
