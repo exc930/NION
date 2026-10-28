@@ -4,8 +4,8 @@
    "id": "hscch",
    "name": "HSC 0003 · Chapters 13+",
    "file": "hscch.json",
-   "version": 7,
-   "count": 461,
+   "version": 8,
+   "count": 462,
    "desc": "Chapter by chapter · Ch 13, 14, 15, 17, 18, 21, 22",
    "auto": true
   },
@@ -13,7 +13,7 @@
    "id": "medterm",
    "name": "Medical Terminology",
    "file": "medterm.json",
-   "version": 2,
+   "version": 3,
    "count": 418,
    "desc": "Every prefix, suffix, root and word combination from your nursing word-parts list",
    "auto": true
@@ -22,7 +22,7 @@
    "id": "pharm",
    "name": "Pharmacology",
    "file": "pharm.json",
-   "version": 2,
+   "version": 3,
    "count": 1469,
    "desc": "347 core nursing drugs by class: brand and generic names, uses, side effects, boxed warnings",
    "auto": true
