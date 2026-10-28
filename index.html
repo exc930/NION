@@ -1353,6 +1353,7 @@ html[data-theme="medical"] body:not(:has(.hero))::after { opacity: .18; }
 .roundsum .rs { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-radius: 10px; background: var(--well, rgba(255,255,255,.06)); }
 .roundsum .rs b { color: var(--accent); }
 .chip.recall { border-color: var(--accent); color: var(--accent); }
+.learn .foldbody p { margin: 6px 0 10px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -1928,10 +1929,9 @@ function syncPanel() {
     const r = el("div", "row");
     const now = btn("btn small", "Sync now", async () => { now.disabled = true; now.textContent = "Syncing…"; await syncNow(true); renderSettings(); }); now.id = "syncnow";
     r.append(now, btn("btn ghost small", "Sign out", () => { syncSignOut(); renderSettings(); toast("Signed out. Everything stays on this device."); }));
-    p.append(r, el("p", "small muted", "Your passcode and AI key stay on each device and aren't uploaded."));
+    p.append(r);
     return p;
   }
-  p.append(el("p", "small muted", "Sign in with the same account on your phone and on the website to keep your progress, profile and settings the same on both."));
   if (!c.url || !c.key) {
     const f = el("form", "syncsetup"); const u = el("input"); u.type = "url"; u.id = "syncurl"; u.placeholder = "Project URL (https://….supabase.co)"; u.value = c.s.url || "";
     const k = el("input"); k.type = "text"; k.id = "synckey"; k.placeholder = "Publishable (anon) key"; k.value = c.s.key || ""; k.autocomplete = "off"; k.spellcheck = false;
@@ -2430,6 +2430,39 @@ showLock();
 
 // ================= SETTINGS =================
 let settingsOpen = null, profileEdit = false;
+const LEARN = [
+  ["study", "Study sessions", [
+    "Choose how many cards to study with the slider on a subject's page. \"Continue studying\" brings back cards that are due for review first, then adds new ones. \"Study new questions\" uses only cards you haven't seen. If you leave in the middle, \"Continue studying\" picks up where you stopped.",
+    "Each session runs in rounds. Round 1 (Recognize) is multiple choice. Round 2 (Recall) asks the cards you got right again, from memory: typing the answer, putting parts in order, or matching. The final round re-tests every card you missed, needed a hint for, or revealed.",
+    "If you miss a card in Round 1, it comes back a few questions later, asked a different way, until you get it right twice in a row."]],
+  ["mastery", "Mastery and spaced review", [
+    "A card counts toward mastery only when you get it right on the first try in Round 1 and recall it in Round 2, without a hint.",
+    "Cards you know come back in a few days, then weeks (1, 3, 7, 16, 35, 90 and 180 days). Missed, hinted or revealed cards come back tomorrow, so hard cards get more practice.",
+    "The circles on a card show how many times in a row you've gotten it right."]],
+  ["help", "Hint, Reveal and Why?", [
+    "Hint gives a clue: an example word, how a name ends, the first letters of a typed answer, or two wrong choices crossed out. Using a hint is fine, but that card won't count toward mastery this time.",
+    "Reveal shows the answer. It counts as a miss, so the card comes back.",
+    "After a miss you can tap \"Why?\" for a short reasoning check, or tap \"Next question\" to skip it. It doesn't change your progress."]],
+  ["pass", "Go through all", [
+    "Asks every question in the checked subsections once, in random order, with the answer after each. Misses don't repeat; at the end you can go back over just the ones you missed. It doesn't change your mastery."]],
+  ["quiz", "Quiz me", [
+    "A timed practice test. Choose how many questions and a stopwatch or countdown (1 minute per question). Answers are shown at the end, and your study progress doesn't change."]],
+  ["subs", "Subjects and subsections", [
+    "Check or uncheck subsections on a subject's page to choose what you study. Archive hides a subject from your home screen but keeps its questions and progress; Delete removes it for good. Create your own subject by writing questions or making them from photos, notes, PDFs, slides and Word files. Library subjects update by themselves when new questions are added, and your progress is kept. Tap \"Add 2 more like this\" under a question to get similar ones, and \"Report a problem\" if a question looks wrong."]],
+  ["types", "Question types", [
+    "Testing options let you choose the question types used in Round 1 and passes: multiple choice, true or false, select all that apply, fill in the blank, typing the answer, matching and ordering. Questions written another way are changed to one of your types when possible, or skipped. Round 2 always uses recall types."]],
+  ["data", "Sync, backups and privacy", [
+    "Sync keeps your progress, profile and settings the same on your phone and the website when you sign in with the same account. Without it, your subjects and progress live only on this device.",
+    "Save a backup to Files or iCloud Drive every week or so. To restore, open a backup file, for example on a new phone.",
+    "Your passcode and AI key stay on each device and are never uploaded. With the passcode lock on, Nion asks for it when it opens and after a minute in the background. If you forget it, the only way back in is to erase Nion's data on this phone."]],
+  ["other", "Sound, reminders and Anubis", [
+    "Sound effects play a short chime for right answers and a low tone for misses. Study reminders show your streak on the home screen when you open Nion; Nion can't send notifications while it's closed. Anubis keeps you company and reacts as you study; he gets sleepy in the evening."]],
+];
+function learnPanel(fold) {
+  const p = el("div", "panel sp learn"); p.id = "learn"; p.append(el("h3", null, "How Nion works"));
+  for (const [id, title, paras] of LEARN) { const b = el("div", "foldbody"); paras.forEach((t) => b.append(el("p", "small", t))); p.append(fold("learn-" + id, title, "", b)); }
+  return p;
+}
 function renderSettings() {
   topbar("Home", () => backTo({ v: "home" }), "Settings");
   const m = $("main"); m.replaceChildren();
@@ -2476,13 +2509,13 @@ function renderSettings() {
 
   // Sound, reminders, passcode
   const op = el("div", "panel sp"); op.append(el("h3", null, "Sound and reminders"));
-  const tog = (id, label, note, val, fn) => { const l = el("label", "togrow"); const c = el("input"); c.type = "checkbox"; c.id = id; c.checked = val; c.className = "switch"; c.addEventListener("change", () => fn(c.checked)); const t = el("span", "grow"); t.append(el("span", "tl", label), el("span", "small muted", note)); l.append(t, c); return l; };
+  const tog = (id, label, note, val, fn) => { const l = el("label", "togrow"); const c = el("input"); c.type = "checkbox"; c.id = id; c.checked = val; c.className = "switch"; c.addEventListener("change", () => fn(c.checked)); const t = el("span", "grow"); t.append(el("span", "tl", label)); l.append(t, c); return l; };
   op.append(tog("sound", "Sound effects", "A short chime for right answers and a low tone for misses.", pr.sound, (v) => { setPref("sound", v); if (v) playSound("ok"); }));
   op.append(tog("remind", "Study reminders", "When you open Nion, a note on the home screen shows your streak and whether you've studied today. Nion can't send notifications while it's closed.", pr.remind, (v) => setPref("remind", v)));
   m.append(op);
 
   const lp = el("div", "panel sp"); lp.append(el("h3", null, "Passcode lock"));
-  lp.append(el("p", "small muted", hasPasscode() ? "On. Nion asks for your 4-digit passcode when it opens and after it's been in the background for a minute." : "Off. Turn it on to require a 4-digit passcode to open Nion on this phone. If you forget it, the only way back in is to erase Nion's data on this phone."));
+  lp.append(el("p", "small muted", hasPasscode() ? "On" : "Off"));
   const lr = el("div", "row");
   if (hasPasscode()) {
     lr.append(btn("btn ghost small", "Change passcode", () => keypad("off", (ok) => { if (ok) keypad("set", (ok2) => { if (ok2) toast("Passcode changed."); renderSettings(); }); })));
@@ -2495,10 +2528,10 @@ function renderSettings() {
   const fold = (id, title, sub, body) => { const d = el("details", "fold"); d.id = "fold-" + id; if (settingsOpen === id) d.open = true; const sm = el("summary"); sm.append(el("span", "tl", title), el("span", "small muted", sub)); d.append(sm, body); d.addEventListener("toggle", () => { if (d.open) settingsOpen = id; }); return d; };
   const last = lsGet("md-lastbackup", 0);
   const bk = el("div", "foldbody");
-  bk.append(el("p", "small muted", `${signedIn() ? "Your progress also syncs to your account." : "Your subjects and progress live only on this device unless you turn on Sync above."} Save a backup to Files or iCloud Drive every week or so. ${last ? "Last backup: " + new Date(last).toLocaleDateString([], { month: "short", day: "numeric" }) + "." : "No backup yet."}`), btn("btn", "Save a backup", () => saveBackup()));
+  bk.append(el("p", "small muted", last ? "Last backup: " + new Date(last).toLocaleDateString([], { month: "short", day: "numeric" }) : "No backup yet"), btn("btn", "Save a backup", () => saveBackup()));
   const pk = el("label", "pick"); pk.append("Open a backup file", el("small", null, "nion-backup-….json"));
   const fi = el("input"); fi.type = "file"; fi.id = "restorefile"; fi.accept = ".json,application/json"; fi.addEventListener("change", () => { const f = fi.files[0]; fi.value = ""; if (f) openFile(f); }); pk.append(fi);
-  bk.append(el("p", "small muted", "To restore, open a backup file, for example on a new phone."), pk);
+  bk.append(pk);
   dp.append(fold("backup", "Backup and restore", last ? "Last backup " + new Date(last).toLocaleDateString([], { month: "short", day: "numeric" }) : "No backup yet", bk));
   const ai = aiSettings(); ai.classList.add("foldbody"); const aih = ai.querySelector("h3"); if (aih) aih.remove();
   dp.append(fold("ai", "Question making", apiKey() ? "API key saved" : "Needs your Anthropic API key", ai));
@@ -2506,6 +2539,7 @@ function renderSettings() {
   ins.append(ol);
   dp.append(fold("install", "Install on iPhone", isStandalone() ? "Installed" : "You're in the browser", ins));
   m.append(dp);
+  m.append(learnPanel(fold));
   if (settingsOpen === "profile") { const x = $("username"); if (x) setTimeout(() => x.focus(), 60); }
   if (settingsOpen === "testing") { const t = $("testing"); if (t) setTimeout(() => t.scrollIntoView({ block: "start", behavior: "smooth" }), 80); }
   if (settingsOpen === "ai" && !apiKey()) { const f = $("fold-ai"); if (f) setTimeout(() => f.scrollIntoView({ block: "start", behavior: "smooth" }), 80); }
@@ -2568,7 +2602,7 @@ function renderHome() {
   const add = el("section", "addsec"); add.append(el("h2", null, "Add a subject"));
   const ns = el("button", "newsubj"); ns.type = "button"; ns.id = "newsubj";
   ns.append(el("span", "plus", "+"), Object.assign(el("span", "grow"), {}), el("span", "chev", "›"));
-  ns.children[1].append(el("span", "nm", "Create your own subject"), el("span", "small muted", "Write questions, or make them from photos, notes, PDFs, slides and Word files"));
+  ns.children[1].append(el("span", "nm", "Create your own subject"));
   ns.addEventListener("click", () => go({ v: "newsubject" })); add.append(ns);
   if (avail.length || libraryState === "loading" || libraryState === "idle") add.append(el("p", "addlbl", "From the Nion library"));
   for (const e of avail) {
@@ -2653,7 +2687,7 @@ async function renderSubject() {
   else { const g = btn("btn big", "+ Add material", () => go({ v: "import", sid })); g.id = "studybtn"; sum.append(g); }
   if (c.t) sum.append(runPanel(sid, s, studyable));
   { const sp = c.t ? starPanel(sid, s) : null; if (sp) sum.append(sp); }
-  if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections. Check or uncheck them below.`));
+  if (S.off.length && c.t) sum.append(el("p", "small muted", `Studying ${s.sections.length - S.off.filter((x) => s.sections.some((y) => y.id === x)).length} of ${s.sections.length} subsections.`));
   { const hid = S.order.filter((id) => { const it = ITEMS.get(id); return it && !it.extraOf && !itemOK(it); }).length;
     if (hid) { const n = el("p", "small muted hidnote"); n.append(`${hid} question${hid === 1 ? " is" : "s are"} skipped because of your Testing options. `, btn("linkbtn", "Change them", () => { settingsOpen = "testing"; go({ v: "settings" }); })); sum.append(n); } }
   m.append(sum);
@@ -2707,7 +2741,7 @@ async function renderSubject() {
     let r = el("div", "row");
     r.append(btn("btn ghost small", "Start over", () => { subjectConfirm = "reset"; renderSubject(); }));
     r.append(btn("btn ghost small", "Rename subject", () => { subjectConfirm = "rename"; renderSubject(); }), btn("btn ghost small", s.archived ? "Unarchive subject" : "Archive subject", () => archiveSubject(sid, !s.archived)), btn("btn ghost small dangerish", "Delete subject", () => { subjectConfirm = "delsubj"; renderSubject(); }));
-    set.append(r); r = el("p", "small muted"); r.textContent = "Archive hides a subject from your home screen but keeps its questions and progress. Delete removes it for good.";
+    set.append(r); r = el("p", "small muted"); r.textContent = "";
     set.append(r);
   }
   m.append(set);
@@ -2867,7 +2901,6 @@ function runPanel(sid, s, studyable) {
     const r = el("div", "row"); r.append(btn("btn ghost", "Continue going through all", () => { cur = null; go({ v: "study", sid, run: 1 }); }), btn("btn ghost small", "Start a new pass", () => startRun(sid, null))); box.append(r);
   } else {
     const b = btn("btn ghost big", `Go through all · ${pool} question${pool === 1 ? "" : "s"}, no repeats`, () => startRun(sid, null)); b.id = "runall"; b.disabled = !pool; box.append(b);
-    box.append(el("p", "small muted", "Every question in the checked subsections once, in random order, with the answer after each one. Misses don't repeat; you can go back over them at the end."));
     if (R && !R.study && runDone(R) && R.ids.length) {
       const r = el("div", "row small"); r.append(el("span", "grow muted", `Last pass: ${R.ok} of ${R.ids.length} right`));
       if (R.miss.length) r.append(btn("linkbtn", `Go through the ${R.miss.length} missed`, () => startRun(sid, null, [...new Set(R.miss)])));
@@ -2898,7 +2931,7 @@ function starPanel(sid, s) {
   const ids = starIds(); if (!ids.length) return null;
   const box = el("div", "runbox starbox"); const label = s.star || "Official sample questions";
   const b = btn("btn big", `${label} · ${ids.length} questions`, () => startRun(sid, null, ids, label)); b.id = "starrun";
-  box.append(b, el("p", "small muted", "The official sample questions, once each in random order, with the answer after each one. They also come up first when you study."));
+  box.append(b);
   return box;
 }
 function renderSecList(secs, s, secBox) {
@@ -3269,8 +3302,8 @@ function roundStatus(id) {
 }
 function renderIntro(card) {
   const R = S.run, ph = R.intro; const d = el("div", "done roundintro");
-  if (ph === 2) d.append(el("h2", null, "Round 2 · Recall"), el("p", "note", `${R.firstOk.length} card${R.firstOk.length === 1 ? "" : "s"} you got right in Round 1, now from memory: type the answer, put the parts in order, or match.`), el("p", "small muted", "Only answers you recall without a hint count toward mastery."));
-  else d.append(el("h2", null, "Final round · Reinforce"), el("p", "note", `The ${R.weak.length} card${R.weak.length === 1 ? "" : "s"} you missed, needed a hint for, or revealed earlier in this session, one more time.`), el("p", "small muted", "These come back tomorrow too. Spaced review brings hard cards back sooner."));
+  if (ph === 2) d.append(el("h2", null, "Round 2 · Recall"), el("p", "note", `${R.firstOk.length} card${R.firstOk.length === 1 ? "" : "s"}`));
+  else d.append(el("h2", null, "Final round · Reinforce"), el("p", "note", `${R.weak.length} card${R.weak.length === 1 ? "" : "s"}`));
   const b = btn("btn", ph === 2 ? "Start Round 2" : "Start the final round", () => { R.intro = 0; persist(); renderCur(); }); b.id = "roundgo";
   d.append(b); card.append(d); b.focus({ preventScroll: true });
 }
@@ -3310,7 +3343,7 @@ function studyPanel(sid) {
       : nextReviewText();
   };
   sl.addEventListener("input", () => { n = +sl.value; sync(); }); sl.addEventListener("change", () => setPref("stc", n));
-  sync(); box.append(head, sl, cont, nw, note); return box;
+  sync(); box.append(head, sl, cont, nw); return box;
 }
 function studyFinished(card) {
   const R = S.run; const d = el("div", "done");
@@ -3318,8 +3351,7 @@ function studyFinished(card) {
   const sumr = el("div", "roundsum");
   const line = (k, v) => { const r = el("div", "rs"); r.append(el("span", null, k), el("b", null, v)); sumr.append(r); };
   line("Round 1 · right on the first try", `${ok} of ${n}`); if (R.firstOk) line("Round 2 · recalled from memory", `${r2} of ${f1}`); if (R.weak) line("Final round · reinforced", String(wk));
-  d.append(el("h2", null, "Session complete"), sumr,
-    el("p", "small muted", "A card counts toward mastery only when you got it right on the first try and recalled it from memory, without hints. Mastered cards come back in a few days, then weeks; the rest come back tomorrow."));
+  d.append(el("h2", null, "Session complete"), sumr);
   const left = sessionPlan().ids.length;
   const fresh = sessionPlan(null, "new").ids.length;
   if (left) d.append(btn("btn", "Continue studying", () => startStudy(SID, false, "mix")));
@@ -3429,11 +3461,10 @@ function renderWhy(card) {
   const list = body(card, w.q, "w", {}); const act = el("div", "actions"); act.id = "actions";
   if (!w.answered) {
     list.querySelectorAll(".opt").forEach((b, i) => b.addEventListener("click", () => whyPick(i)));
-    act.append(el("span", "note", "Pick the reasoning. This checks understanding and doesn't change your progress."));
   } else {
     applyFeedback(card, w.q, w.picks, w.ok, false);
     const nx = btn("btn", "Next question", () => show(cur && cur.id)); nx.id = "next";
-    act.append(el("span", "verdict " + (w.ok ? "ok" : "bad"), w.ok ? "That's the reasoning" : "Not that one"), el("span", "note", w.ok ? "You've got the why." : "Read the highlighted reason once more; this question still comes back later."), nx);
+    act.append(el("span", "verdict " + (w.ok ? "ok" : "bad"), w.ok ? "That's the reasoning" : "Not that one"), nx);
   }
   card.append(act);
 }
@@ -3569,7 +3600,7 @@ function renderReports() {
   const box = $("reports"); if (!box) return; box.replaceChildren();
   const list = reports.filter((r) => r.sid === SID).sort((a, b) => b.at - a.at);
   box.append(el("h3", null, `Reported questions (${list.length})`));
-  if (!list.length) { box.append(el("p", "small muted", "Nothing reported. Tap “Report a problem” under any question to flag it here.")); return; }
+  if (!list.length) { box.append(el("p", "small muted", "Nothing reported.")); return; }
   box.append(btn("btn ghost", "Copy reports for Claude", () => copyReports(list, box)));
   for (const r of list) {
     const d = el("div", "fbitem");
@@ -3763,7 +3794,7 @@ function toMC(item, q) {
 }
 function testingPanel() {
   const fp = fmtPrefs(); const p = el("div", "panel sp"); p.id = "testing";
-  p.append(el("h3", null, "Testing options"), el("p", "small muted", "Choose how questions are asked. Questions written another way are turned into one of your chosen types when possible, or skipped."));
+  p.append(el("h3", null, "Testing options"));
   const row = el("div", "row");
   row.append(btn("btn ghost small", "Select all", () => { const o = {}; FORMATS.forEach((f) => (o[f.id] = true)); setPref("fmts", o); renderSettings(); }),
     btn("btn ghost small", "Multiple choice only", () => { setPref("fmts", { ...FMT_DEFAULT }); renderSettings(); }));
@@ -3775,7 +3806,7 @@ function testingPanel() {
       if (!FORMATS.some((x) => x.id !== "pic" && o[x.id])) { c.checked = true; toast("Keep at least one question type on."); return; }
       setPref("fmts", o); if (typeof cur !== "undefined") cur = null;
     });
-    const t = el("span", "grow"); t.append(el("span", "tl", f.name), el("span", "small muted", f.note)); l.append(t, c); p.append(l);
+    const t = el("span", "grow"); t.append(el("span", "tl", f.name)); l.append(t, c); p.append(l);
   }
   return p;
 }
@@ -3962,11 +3993,10 @@ function renderCur() {
   const io = ix ? { resp: cur.resp, locked: cur.answered, reveal: cur.answered, onChange: (r) => { cur.resp = r; const c = $("check"); if (c) c.disabled = !ready(q, r); }, onEnter: () => { if (ready(q, cur.resp)) submit(); } } : { reveal: cur.answered };
   const list = body(card, q, "", io); const act = el("div", "actions"); act.id = "actions";
   if (!cur.answered) {
-    if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer, then press Check answer."));
+    if (q.fmt === "ms") list.before(el("div", "hint", "Select all that apply."));
     if (!ix) list.querySelectorAll(".opt").forEach((b, i) => { b.addEventListener("click", () => choose(i)); b.classList.toggle("sel", cur.picks.has(i)); });
     if (q.fmt === "ms" || ix) { const chk = btn("btn", "Check answer", submit); chk.id = "check"; chk.disabled = ix ? !ready(q, cur.resp) : !cur.picks.size; act.append(chk); }
     if (ix) { const idk = btn("linkbtn", cur.run && studyRun() ? "Reveal" : "I don't know", () => { cur.revealed = true; submit(true); }); idk.id = "idk"; act.prepend(idk); }
-    else act.append(el("span", "kbd", "Keys: A–F · ← previous"));
     if (cur.run && studyRun()) {
       const hb = btn("linkbtn", cur.hinted ? "Hint used" : "Hint", useHint); hb.id = "hintbtn"; hb.disabled = !!cur.hinted || !hintFor(cur, true);
       const tools = el("div", "helprow"); tools.append(hb);
@@ -3981,7 +4011,7 @@ function renderCur() {
     if (needWhy() && cur.wqv === undefined) cur.wqv = whyQ(ITEMS.get(cur.id), cur.q, cur.picks) || null;
     const wb = needWhy() && cur.wqv ? btn("btn ghost", "Why?", () => { cur.why = { q: cur.wqv, picks: new Set(), answered: false }; renderCur(); }) : null;
     if (wb) { wb.id = "whybtn"; wb.title = "Check the reasoning (optional)"; }
-    act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), el("span", "note", cur.note), ...(wb ? [wb] : []), nx);
+    act.append(el("span", "verdict " + (cur.ok ? "ok" : "bad"), cur.ok ? "Correct" : "Not quite"), ...(wb ? [wb] : []), nx);
   }
   { const br = cur.answered ? buddyReact() : null; if (br) card.append(br); }
   card.append(act, bottomRow({ id: cur.id, q, answered: cur.answered, picks: cur.picks, resp: cur.resp, live: true }));
@@ -3990,7 +4020,7 @@ function renderReview(idx) {
   view = idx; const e = H[idx]; const item = ITEMS.get(e.id); const card = studyShell();
   card.append(navRow(), metaRow(item, ["Looking back", "review"], e.q, null));
   const picks = new Set(e.picks || []); body(card, e.q, "", { resp: e.resp || [], locked: true, reveal: true }); applyFeedback(card, e.q, e.q.opts ? picks : e.resp || [], e.ok, true);
-  const act = el("div", "actions"); act.append(el("span", "verdict " + (e.ok ? "ok" : "bad"), e.ok ? "You got this right" : "You missed this one"), el("span", "note", "Looking back doesn't change your progress."));
+  const act = el("div", "actions"); act.append(el("span", "verdict " + (e.ok ? "ok" : "bad"), e.ok ? "You got this right" : "You missed this one"));
   card.append(act); if (item) card.append(bottomRow({ id: e.id, q: e.q, answered: true, picks, resp: e.resp, live: false }));
   const back = $("backbtn"); if (back) back.focus({ preventScroll: true });
 }
@@ -4055,7 +4085,7 @@ async function renderQuiz() {
   const bar = el("div", "bar"); const b1 = el("span", "m"); b1.style.width = (answered / n * 100) + "%"; bar.append(b1);
   m.append(head, bar, el("span", "small muted", `${quizScope(QZ)} · ${answered} answered · answers are shown at the end`));
   if (QZ.paused) {
-    const p = el("div", "panel empty"); p.append(el("h3", null, "Paused"), el("p", "small muted", "The timer is stopped. The question is hidden until you resume."), btn("btn", "Resume quiz", resumeQuiz));
+    const p = el("div", "panel empty"); p.append(el("h3", null, "Paused"), btn("btn", "Resume quiz", resumeQuiz));
     m.append(p); return;
   }
   qzTick = setInterval(() => { const t = $("qztime"); if (!t || route.v !== "quiz") { clearInterval(qzTick); return; } t.textContent = quizTimeText(); if (QZ.limit && quizLeft() <= 0) { clearInterval(qzTick); toast("Time is up!"); finishQuiz(); return; } if (Date.now() % 5000 < 1000) saveQZ(); }, 1000);
@@ -4065,7 +4095,7 @@ async function renderQuiz() {
   card.append(meta);
   const qi = QZ.i;
   const list = body(card, q, "", q.opts ? null : { resp: QZ.ans[qi], onChange: (a) => quizSet(qi, a) });
-  if (q.fmt === "ms") list.before(el("div", "hint", "Choose every correct answer."));
+  if (q.fmt === "ms") list.before(el("div", "hint", "Select all that apply."));
   const sel = new Set(QZ.ans[QZ.i]);
   if (q.opts) list.querySelectorAll(".opt").forEach((b, k) => { b.classList.toggle("sel", sel.has(k)); b.addEventListener("click", () => quizPick(k)); });
   const act = el("div", "actions qzact");
@@ -4164,7 +4194,7 @@ function quizPanel(sid, s) {
     const sync = () => { val.textContent = String(n); fill(); b.textContent = n ? `Quiz me · ${n} question${n === 1 ? "" : "s"}` : "Pick at least 1 question"; b.disabled = !n;
       note.textContent = !n ? "Slide to choose how many questions." : down ? `${n} random question${n === 1 ? "" : "s"}, ${n} minute${n === 1 ? "" : "s"} on the clock (1 per question). When time runs out, the quiz ends. Answers are shown at the end; study progress isn't changed.` : `${n} random question${n === 1 ? "" : "s"}, timed with a stopwatch. Answers are shown at the end; study progress isn't changed.`; };
     sl.addEventListener("input", () => { n = +sl.value; sync(); }); sl.addEventListener("change", () => setPref("qzn", n));
-    sync(); p.append(head, sl, el("span", "small muted", "Timer"), seg2, note, b);
+    sync(); p.append(head, sl, el("span", "small muted", "Timer"), seg2, b);
   }
   const hist = (S.quizzes || []).slice().reverse().slice(0, 5);
   if (hist.length) {
