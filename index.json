@@ -1,6 +1,15 @@
 {
  "decks": [
   {
+   "id": "hscch",
+   "name": "HSC 0003 · Chapters 13+",
+   "file": "hscch.json",
+   "version": 7,
+   "count": 461,
+   "desc": "Chapter by chapter · Ch 13, 14, 15, 17, 18, 21, 22",
+   "auto": true
+  },
+  {
    "id": "medterm",
    "name": "Medical Terminology",
    "file": "medterm.json",
