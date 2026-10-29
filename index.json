@@ -4,8 +4,8 @@
    "id": "hscch",
    "name": "HSC 0003 · Chapters 13+",
    "file": "hscch.json",
-   "version": 8,
-   "count": 462,
+   "version": 10,
+   "count": 469,
    "desc": "Chapter by chapter · Ch 13, 14, 15, 17, 18, 21, 22",
    "auto": true
   },
@@ -31,8 +31,8 @@
    "id": "hsc0003",
    "name": "HSC 0003 Intro to Health Care",
    "file": "hsc0003.json",
-   "version": 3,
-   "count": 849,
+   "version": 5,
+   "count": 892,
    "desc": "Midterm question bank · Ch 1–12, 19–20",
    "auto": true
   },
@@ -49,7 +49,7 @@
    "id": "hscreview",
    "name": "Professor's Midterm Review",
    "file": "hscreview.json",
-   "version": 1,
+   "version": 2,
    "count": 329,
    "desc": "The professor's review sheet · 16 topic areas, multiple choice",
    "auto": true
@@ -58,7 +58,7 @@
    "id": "hscexam",
    "name": "HSC 0003 Midterm Exam",
    "file": "hscexam.json",
-   "version": 1,
+   "version": 2,
    "count": 100,
    "desc": "The 100 real midterm questions, with harder practice versions",
    "auto": true
@@ -67,8 +67,8 @@
    "id": "fcle",
    "name": "FCLE · Florida Civic Literacy Exam",
    "file": "fcle.json",
-   "version": 3,
-   "count": 863,
+   "version": 5,
+   "count": 876,
    "desc": "4 competencies · every topic in the FLDOE Supplemental Guide · official sample items first",
    "auto": true
   }
