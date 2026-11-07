@@ -71,6 +71,15 @@
    "count": 876,
    "desc": "4 competencies · every topic in the FLDOE Supplemental Guide · official sample items first",
    "auto": true
+  },
+  {
+   "id": "fon",
+   "name": "Fundamentals of Nursing",
+   "file": "fon.json",
+   "version": 8,
+   "count": 7760,
+   "desc": "Potter & Perry, 12th ed. · Ch 1–50",
+   "auto": true
   }
  ]
 }
