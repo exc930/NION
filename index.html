@@ -1458,6 +1458,73 @@ html[data-theme="medical"][data-mode="dark"] #buddycard.hascat .bcol { backgroun
 /* text sitting straight on the sky (not on a card) uses the strong text color so it stays readable over the deeper blue lower down */
 html[data-theme="medical"] main > :is(.stats, .home-h, .addsec) :is(span, p), html[data-theme="medical"] main > .stats, html[data-theme="medical"] :is(main > .addsec > .addlbl, .archtoggle) { color: var(--text); }
 html[data-theme="medical"] [data-band="none"] { --band: #6b7a87; }
+/* ===== Computers and iPads: the app grows smoothly with the window, live as it's resized.
+   Phones never match (too narrow in portrait, too short in landscape), so the iPhone app is unchanged. ===== */
+@media (min-width: 700px) and (min-height: 480px) {
+  html {
+    --wide-base: clamp(16px, calc(16px + (100vw - 700px) * .005), 19.5px);
+    --wide-col: clamp(680px, calc(680px + (100vw - 700px) * .26), 860px);
+    --wide-pad: clamp(16px, calc(16px + (100vw - 700px) * .023), 32px);
+  }
+  html, html[data-fs="m"] { font-size: var(--wide-base); }
+  html[data-fs="s"] { font-size: calc(var(--wide-base) * .906); } html[data-fs="l"] { font-size: calc(var(--wide-base) * 1.125); } html[data-fs="xl"] { font-size: calc(var(--wide-base) * 1.25); }
+  body { font-size: 1.0625rem; }
+  main, .top .in { max-width: var(--wide-col); }
+  main { padding-inline: var(--wide-pad); gap: clamp(16px, calc(16px + (100vw - 700px) * .003), 18px); }
+  .top .in { padding-inline: var(--wide-pad); }
+  .hero { min-height: 0; padding-top: clamp(34px, calc(34px + (100vw - 700px) * .01), 40px); }
+  /* themes that frame the content follow the column */
+  html[data-theme="cafe"] main { max-width: calc(var(--wide-col) + 20px); }
+  html[data-theme="notebook"] main { max-width: var(--wide-col); box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 30px 80px rgba(0, 0, 0, .45); }
+  html[data-theme="notebook"] .top { background: #3b2a1c; border-bottom-color: rgba(0, 0, 0, .3); }
+  html[data-theme="notebook"] .top :is(h1, .back) { color: #f3e6cf; }
+  html[data-theme="medical"] .medfig { margin-bottom: clamp(-64px, calc(-58px - (100vw - 700px) * .009), -58px); }
+}
+
+/* ===== 1000px+ : home becomes a side panel + subject grid; studying gets a progress panel beside the card ===== */
+@media (min-width: 1000px) and (min-height: 480px) {
+  html { --side-w: clamp(300px, 26vw, 380px); }
+  main.homewide { max-width: clamp(980px, 88vw, 1320px); display: grid; align-items: start; row-gap: 0; column-gap: clamp(22px, 2.4vw, 36px);
+    grid-template-columns: var(--side-w) repeat(auto-fill, minmax(min(100%, 270px), 1fr)); }
+  main.homewide > * { grid-column: 2 / -1; margin-bottom: 16px; }
+  main.homewide > .subjwrap { grid-column: auto; min-width: 0; }
+  main.homewide > .subjwrap > .subj { height: 100%; }
+  main.homewide > .home-h { margin-top: 26px; }
+  main.homewide > .hside { grid-column: 1; grid-row: 1 / span 60; position: sticky; top: 0; align-self: start; margin: 0;
+    max-height: 100vh; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px; }
+  main.homewide > .hside::-webkit-scrollbar { display: none; }
+  main.homewide .hside .hero { padding-top: calc(26px + env(safe-area-inset-top, 0px)); }
+  main.homewide .hside .buddycard { flex-direction: column; text-align: center; }
+  main.homewide .hside .buddycard .bubble { text-align: center; }
+
+  main.studywide { max-width: clamp(980px, 86vw, 1240px); display: grid; align-items: start; row-gap: 0; column-gap: clamp(22px, 2.4vw, 36px);
+    grid-template-columns: minmax(0, 1fr) var(--side-w); }
+  main.studywide > * { grid-column: 1; margin-bottom: 16px; }
+  main.studywide > .sside { grid-column: 2; grid-row: 1 / span 30; position: sticky; top: 76px; display: flex; flex-direction: column; gap: 14px; margin: 0;
+    padding: 18px; border-radius: var(--r, 16px); background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 22px rgba(0, 0, 0, .12); }
+  main.studywide .sside .sshead { margin: 0; font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; }
+  main.studywide .sside #studystats { display: grid; gap: 8px; margin: 0; }
+  main.studywide .sside .sswhere { font-size: .85rem; color: var(--muted); }
+  main.studywide .sside .sspal { display: grid; justify-items: center; gap: 8px; min-height: 150px; align-content: center; }
+  main.studywide .sside .sspal .breact { flex-direction: column; align-items: center; text-align: center; margin: 0; }
+  .top .in { max-width: var(--wide-col); }
+  body:has(main.homewide) .top .in, body:has(main.studywide) .top .in { max-width: clamp(980px, 88vw, 1320px); }
+}
+@media (min-width: 1000px) and (min-height: 480px) {
+  main.homewide > .subjwrap { align-self: stretch; }
+  main.homewide > .hside > .gear { position: static; align-self: center; width: auto; height: auto; display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 999px; }
+  main.homewide > .hside > .gear::after { content: "Settings"; font-weight: 700; font-size: .9rem; color: var(--ink); letter-spacing: .02em; }
+  main.homewide > .hside > .gear img, main.homewide > .hside > .gear .medcap { width: 26px; height: 26px; }
+  main.studywide .sside .sspal .catfig { zoom: 1.5; }
+  main.studywide .sside .sspal .breact .catfig { zoom: 1.9; }
+}
+@media (min-width: 1000px) and (min-height: 480px) {
+  /* framed looks (Café arch, Notebook page, Arcade cabinet) widen with the side-panel layouts too */
+  html[data-theme] main.homewide { max-width: clamp(980px, 88vw, 1320px); }
+  html[data-theme] main.studywide { max-width: clamp(980px, 86vw, 1240px); }
+  main.homewide { grid-template-columns: var(--side-w) repeat(auto-fill, minmax(min(100%, 290px), 1fr)); }
+  html[data-theme="arcade"] main.homewide { grid-template-columns: var(--side-w) repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+}
 </style>
 </head>
 <body>
@@ -2783,7 +2850,7 @@ const medBg = (() => {
     if (!cv) return;
     dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
     cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    dots = Array.from({ length: Math.round(W * H / 6200) }, () => newMol(Math.random() * W, Math.random() * H));
+    dots = Array.from({ length: Math.min(80, Math.round(W * H / 6200)) }, () => newMol(Math.random() * W, Math.random() * H));
   }
   function frame(t) {
     raf = 0; if (!cv || !medOn()) return;
@@ -2863,9 +2930,9 @@ const medTorso = (() => {
   let W = 0, H = 0, s = 1, ox = 0, oy = 4, dpr = 1;
   function layout() {
     if (!fig || !fig.isConnected) return;
-    const FWd = fig.clientWidth, L = fig.getBoundingClientRect().left;
-    W = document.documentElement.clientWidth; cv.style.left = -L + "px"; cv.style.width = W + "px";
-    s = Math.min(FWd * .96, 360) / 300; ox = L + (FWd - 300 * s) / 2; oy = 4;
+    const FWd = fig.clientWidth, inPanel = !!fig.closest(".hside"), L = inPanel ? 0 : fig.getBoundingClientRect().left;   // in the big-screen side panel the art stays inside the panel
+    W = inPanel ? FWd : document.documentElement.clientWidth; cv.style.left = -L + "px"; cv.style.width = W + "px";
+    s = Math.min(FWd * .96, 360 + 80 * (typeof wideK === "function" ? wideK() : 0)) / 300; ox = L + (FWd - 300 * s) / 2; oy = 4;
     H = Math.round(oy + 232 * s); fig.style.height = H + "px";
     dpr = Math.min(devicePixelRatio || 1, 2); cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
@@ -2950,6 +3017,73 @@ function medSettings(pr) {
   plain.id = "med-plain"; box.append(plain);
   return box;
 }
+const WIDE_Q = "(min-width: 700px) and (min-height: 480px)";
+function wideK() { return window.matchMedia && matchMedia(WIDE_Q).matches ? Math.max(0, Math.min(1, (innerWidth - 700) / 700)) : 0; }
+const catHomeSize = () => Math.round(128 + 28 * wideK());
+// when the window is resized, the home page redraws Anubis at the new size (his walk carries on where it was)
+let wideResizeT = 0;
+addEventListener("resize", () => { clearTimeout(wideResizeT); wideResizeT = setTimeout(() => {
+  if (route.v !== "home") return; const f = document.querySelector(".buddycard .catfig");
+  const cur = f ? parseInt(f.style.getPropertyValue("--cs")) || 0 : 0;
+  if (f && Math.abs(cur - catHomeSize()) >= 4) rerender();
+}, 160); });
+// ================= Big screens (1000px+): home = side panel + subject grid; study = card + progress panel =================
+// Phones and narrow windows keep the normal one-column pages. Pages are drawn as usual, then the pieces are moved into a
+// side panel here; when the window narrows again they move back, so every page works the same at any size.
+const SIDE_Q = "(min-width: 1000px) and (min-height: 480px)";
+const sideOn = () => !!(window.matchMedia && matchMedia(SIDE_Q).matches);
+let wideBusy = false;
+function wideArrange() {
+  const m = document.getElementById("main"); if (!m || wideBusy) return;
+  wideBusy = true;
+  try {
+    const on = sideOn();
+    // ---- home ----
+    let hs = m.querySelector(":scope > .hside");
+    const hero = m.querySelector(":scope > .hero") || (hs && hs.querySelector(".hero"));
+    if (hero && on) {
+      if (!hs) { hs = document.createElement("aside"); hs.className = "hside"; m.prepend(hs); }
+      for (const sel of [".hero", ".medfig", ".buddycard", ".reminder", ".restore"]) { const e = m.querySelector(":scope > " + sel); if (e) hs.append(e); }
+      const g = hs.querySelector(".hero > .gear"); if (g) hs.append(g);   // Settings sits at the bottom of the panel
+      if (!m.classList.contains("homewide") || hs._n !== hs.children.length) { hs._n = hs.children.length; requestAnimationFrame(() => { try { medTorso.layout(); medTorso.kick(); } catch (e) {} }); }
+      m.classList.add("homewide");
+    } else if (hs) { const g = hs.querySelector(":scope > .gear"), hh = hs.querySelector(".hero"); if (g && hh) hh.append(g); m.prepend(...hs.children); hs.remove(); m.classList.remove("homewide"); requestAnimationFrame(() => { try { medTorso.layout(); medTorso.kick(); } catch (e) {} }); }
+    else m.classList.remove("homewide");
+    // ---- study (not the timed quiz, whose progress bar stays where it is) ----
+    let ss = m.querySelector(":scope > .sside");
+    const card = m.querySelector(":scope > #card"), stats = m.querySelector(":scope > #studystats") || (ss && ss.querySelector("#studystats"));
+    if (card && stats && on) {
+      if (!ss) {
+        ss = document.createElement("aside"); ss.className = "sside";
+        const h = document.createElement("h3"); h.className = "sshead"; h.textContent = "This session";
+        const where = document.createElement("div"); where.className = "sswhere";
+        const pal = document.createElement("div"); pal.className = "sspal";
+        ss.append(h, where, pal); m.append(ss);
+      }
+      const bar = m.querySelector(":scope > .bar"); if (bar) ss.insertBefore(bar, ss.children[1]);
+      if (stats.parentElement !== ss) ss.insertBefore(stats, ss.querySelector(".sswhere"));
+      const meta = card.querySelector(".meta"); const where = ss.querySelector(".sswhere");
+      const sec = meta ? (meta.textContent || "").split("·")[0].trim() : ""; const wt = sec ? "Studying: " + sec : ""; if (where.textContent !== wt) where.textContent = wt;
+      const pal = ss.querySelector(".sspal"); const react = card.querySelector(".breact");
+      const fresh = ss._card !== card; ss._card = card;
+      if (react) { pal.replaceChildren(react); pal.dataset.k = "react"; }
+      else if (fresh || !pal.dataset.k) { if (pal.dataset.k !== "idle") { if (!wideArrange.cat && typeof catFig === "function") wideArrange.cat = catFig(110, "cute"); pal.replaceChildren(wideArrange.cat || document.createElement("span")); pal.dataset.k = "idle"; } }
+      m.classList.add("studywide");
+    } else if (ss) {
+      const bar = ss.querySelector(".bar"), st2 = ss.querySelector("#studystats"), react = ss.querySelector(".breact"), c2 = m.querySelector(":scope > #card");
+      if (st2) m.prepend(st2); if (bar) m.prepend(bar);
+      if (react && c2 && !c2.querySelector(".breact")) { const act = c2.querySelector("#actions"); act ? c2.insertBefore(react, act) : c2.append(react); }
+      ss.remove(); m.classList.remove("studywide");
+    } else m.classList.remove("studywide");
+  } finally { wideBusy = false; }
+}
+(() => {
+  const m = document.getElementById("main"); if (!m) return;
+  let q = 0; const later = () => { if (!q) q = requestAnimationFrame(() => { q = 0; wideArrange(); }); };
+  new MutationObserver(() => { if (!wideBusy) later(); }).observe(m, { childList: true, subtree: true });
+  addEventListener("resize", later);
+})();
+
 function renderHome() {
   uiOpen.clear(); subjectOpenMore = null;
   $("topbar").parentElement.hidden = true;
@@ -3652,7 +3786,7 @@ function buddyCard() {
   }
   const s = streaks(); const st = accountStats(); const remind = prefs().remind;
   if ((BUDDY_FRAMES[p.av] || {}).settle) nextSitPose(p.av);
-  const fig = p.av === "anubis" ? catFig(128, "home") : buddyFig(p.av, 146, "idle"); fig.setAttribute("role", "button"); fig.tabIndex = 0; fig.setAttribute("aria-label", "Tap your study buddy");
+  const fig = p.av === "anubis" ? catFig(catHomeSize(), "home") : buddyFig(p.av, 146, "idle"); fig.setAttribute("role", "button"); fig.tabIndex = 0; fig.setAttribute("aria-label", "Tap your study buddy");
   const b = bubble(`${greetWord()}${p.name ? ", " + p.name : ""}!`, "big");
   const sub = el("span", "bsub");
   if (!remind || (!st.answered && !s.cur)) sub.textContent = st.answered ? buddyLine("tap") : "Pick a subject below and let's start.";
