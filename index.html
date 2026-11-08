@@ -1458,6 +1458,9 @@ html[data-theme="medical"][data-mode="dark"] #buddycard.hascat .bcol { backgroun
 /* text sitting straight on the sky (not on a card) uses the strong text color so it stays readable over the deeper blue lower down */
 html[data-theme="medical"] main > :is(.stats, .home-h, .addsec) :is(span, p), html[data-theme="medical"] main > .stats, html[data-theme="medical"] :is(main > .addsec > .addlbl, .archtoggle) { color: var(--text); }
 html[data-theme="medical"] [data-band="none"] { --band: #6b7a87; }
+
+/* the molecules / DNA background belongs to Medical only */
+html:not([data-theme="medical"]) .backdrop canvas.medbg { display: none !important; }
 /* ===== Computers and iPads: the app grows smoothly with the window, live as it's resized.
    Phones never match (too narrow in portrait, too short in landscape), so the iPhone app is unchanged. ===== */
 @media (min-width: 700px) and (min-height: 480px) {
@@ -3027,14 +3030,14 @@ const medBg = (() => {
   }
   function start() {
     FX = medFX();
-    if (!medOn()) { if (raf) cancelAnimationFrame(raf); raf = 0; return; }
+    if (!medOn()) { if (raf) cancelAnimationFrame(raf); raf = 0; if (cv) { cv.remove(); cv = null; ctx = null; } return; }
     if (!cv) {
       const bd = document.querySelector(".backdrop"); if (!bd) return;
       cv = document.createElement("canvas"); cv.className = "medbg"; ctx = cv.getContext("2d"); bd.append(cv); size();
-      addEventListener("resize", size);
     }
     if (!raf) raf = requestAnimationFrame(frame);
   }
+  addEventListener("resize", size);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) start(); });
   return { start };
 })();
@@ -3085,7 +3088,10 @@ const medTorso = (() => {
   let W = 0, H = 0, s = 1, ox = 0, oy = 4, dpr = 1;
   function layout() {
     if (!fig || !fig.isConnected) return;
-    const FWd = fig.clientWidth, inPanel = !!fig.closest(".hside"), L = inPanel ? 0 : fig.getBoundingClientRect().left;   // in the big-screen side panel the art stays inside the panel
+    // where the figure sits on the page, ignoring any slide-in animation that is still moving it (measuring mid-slide
+    // used to leave the canvas offset, cutting off an arm); in the big-screen side panel the art stays inside the panel
+    let L = 0; for (let e = fig; e; e = e.offsetParent) L += e.offsetLeft - (e !== fig && e !== document.body ? e.scrollLeft : 0);
+    const FWd = fig.clientWidth, inPanel = !!fig.closest(".hside"); if (inPanel) L = 0;
     W = inPanel ? FWd : document.documentElement.clientWidth; cv.style.left = -L + "px"; cv.style.width = W + "px";
     s = Math.min(FWd * .96, 360 + 80 * (typeof wideK === "function" ? wideK() : 0)) / 300; ox = L + (FWd - 300 * s) / 2; oy = 4;
     H = Math.round(oy + 232 * s); fig.style.height = H + "px";
@@ -3148,6 +3154,7 @@ const medTorso = (() => {
     fig = document.createElement("div"); fig.className = "medfig"; fig.setAttribute("aria-hidden", "true");
     cv = document.createElement("canvas"); ctx = cv.getContext("2d"); fig.append(cv);
     requestAnimationFrame(() => { layout(); kick(); });
+    setTimeout(() => { layout(); kick(); }, 450);   // once more after the page has settled
     return fig;
   }
   heartImg.onload = () => { if (MED_STILL) kick(); };
