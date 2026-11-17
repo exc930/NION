@@ -1719,6 +1719,11 @@ html[data-theme="medical"] { --sbar: #edf2f8; }
 @media not all and (min-width: 1000px) and (min-height: 480px) {
   html[data-theme="notebook"] main { padding-top: calc(16px + env(safe-area-inset-top, 0px)); }
   html[data-theme="cafe"] main { margin-top: calc(14px + env(safe-area-inset-top, 0px)); }
+  /* Retro Arcade and Deep Space draw a frame around the page: start the frame below the clock too, instead of leaving a big
+     empty gap inside the frame above the logo. */
+  html:is([data-theme="arcade"], [data-theme="space"]) main { margin-top: calc(14px + env(safe-area-inset-top, 0px)); }
+  html[data-theme="arcade"] .hero { padding-top: 4px; }
+  html:is([data-theme="arcade"], [data-theme="space"]) .hero .gear { top: 10px; }
 }
 @media (min-width: 1000px) and (min-height: 480px) {
   html[data-theme="notebook"] { --sbar: #a77b4d; }
