@@ -1689,6 +1689,12 @@ html:not([data-theme="medical"]) .backdrop canvas.medbg { display: none !importa
     clip-path: polygon(2% 8%, 0 30%, 3% 52%, 0 78%, 2% 100%, 98% 94%, 100% 70%, 97% 48%, 100% 22%, 98% 0); }
   html[data-theme="notebook"] main.studywide > .sside :is(#studystats, .sswhere) { font-family: "Patrick Hand", cursive; font-size: 1.1rem; color: var(--ink); }
 }
+/* ---- iPhone (iOS 26): the area under the clock/battery was coming out blurred and darkened on Notebook and Cozy Café.
+   iOS tints and blurs that area with the colour of a fixed, full-screen layer when that layer has a solid background
+   colour (our .backdrop had one in those themes, and in Space and Retro Arcade). The pictures stay; only the plain colour
+   underneath them goes, so iOS no longer picks it up. The paper / desk / brick look is unchanged. ---- */
+.backdrop { background-color: transparent !important; }
+html[data-theme="notebook"] body { background-color: transparent; }
 </style>
 </head>
 <body>
