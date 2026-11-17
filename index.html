@@ -528,6 +528,10 @@ html[data-fs="s"] { font-size: 14.5px; } html[data-fs="l"] { font-size: 18px; } 
 .avpick { padding: 3px; border-radius: 50%; border: 2px solid transparent; background: none; cursor: pointer; }
 .avpick.on { border-color: var(--accent); box-shadow: var(--glow-pink); }
 .acct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.namerow { display: grid; gap: 6px; }
+.namein { display: flex; gap: 8px; align-items: center; }
+.namein input { flex: 1; min-width: 0; }
+.namein .btn { flex: none; }
 .astat { display: grid; justify-items: center; gap: 0; padding: 10px 4px; border-radius: 12px; background: var(--well, rgba(3, 5, 13, .45)); border: 1px solid var(--line); }
 .astat b { font-family: var(--f-mono); font-weight: 400; font-size: 1.6rem; line-height: 1.1; color: var(--accent-2); }
 .astat span { font-size: .78rem; color: var(--muted); text-align: center; }
@@ -3027,32 +3031,22 @@ function renderSettings() {
   const pr = prefs(); const p = profile() || {};
 
   // Profile + account info
+  // Your progress: your stats and your name (used in greetings). No profile picture or character.
   const pp = el("div", "panel sp prof"); pp.id = "profile";
-  const head = el("div", "profhead");
-  const nm = el("div", "grow"); nm.append(el("div", "pname", p.name || "No username yet"), el("div", "small muted", p.since ? "On Nion since " + new Date(p.since).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Pick a username."));
-  const editing = profileEdit || (!p.name && settingsOpen === "profile");
-  head.append(ANUBIS_AWAY ? avatarEl(null, 84) : buddyFig(p.av, 84), nm, btn("btn ghost small", editing ? "Close" : p.name ? "Edit" : "Set up", () => { if (editing) { profileEdit = false; settingsOpen = null; } else profileEdit = true; renderSettings(); }));
-  pp.append(head);
-  if (editing) {
-    const f = el("form", "profedit"); let pick = p.av || pickable()[0].id;
-    const grid = el("div", "avgrid"); const prev = el("div", "avprev");
-    const drawGrid = () => {
-      const a0 = AVATARS.find((a) => a.id === pick) || pickable()[0];
-      prev.replaceChildren(buddyFig(pick, 132, "hop"), bubble(buddyLine("tap", {}, pick), "left"), el("span", "avname", a0.name));
-      grid.replaceChildren(...pickable().map((a) => { const b = btn("avpick" + (a.id === pick ? " on" : ""), null, () => { pick = a.id; drawGrid(); }); b.type = "button"; b.append(avatarEl(a.id, 76), el("span", "avlbl", a.name)); b.setAttribute("aria-label", a.name); b.setAttribute("aria-pressed", String(a.id === pick)); return b; }));
-    };
-    drawGrid();
-    const inp = el("input"); inp.type = "text"; inp.id = "username"; inp.maxLength = 20; inp.value = p.name || ""; inp.placeholder = "Username"; inp.setAttribute("aria-label", "Username"); inp.autocomplete = "nickname";
-    const sv = el("button", "btn", "Save profile"); sv.type = "submit";
-    f.append(el("span", "small muted", "Username"), inp, sv);
-    f.addEventListener("submit", (e) => { e.preventDefault(); const name = inp.value.trim().slice(0, 20); if (!name) { inp.focus(); toast("Type a username."); return; } saveProfile({ name, av: "anubis" }); profileEdit = false; settingsOpen = null; toast("Profile saved."); renderSettings(); });
-    pp.append(f);
-  }
+  pp.append(el("h3", null, "Your progress"));
   const s = streaks(), st = accountStats();
   const acct = el("div", "acct");
   const stat = (v, l) => { const d = el("div", "astat"); d.append(el("b", null, String(v)), el("span", null, l)); acct.append(d); };
-  stat(s.cur, s.cur === 1 ? "day streak" : "day streak"); stat(s.best, "best streak"); stat(st.answered, "answered"); stat(st.acc == null ? "–" : st.acc + "%", "accuracy"); stat(st.mastered, "mastered"); stat(st.subjects, st.subjects === 1 ? "subject" : "subjects");
-  pp.append(acct); m.append(pp);
+  stat(s.cur, "day streak"); stat(s.best, "best streak"); stat(st.answered, "answered"); stat(st.acc == null ? "–" : st.acc + "%", "accuracy"); stat(st.mastered, "mastered"); stat(st.subjects, st.subjects === 1 ? "subject" : "subjects");
+  pp.append(acct);
+  const nf = el("form", "namerow");
+  const lbl = el("label", "small muted", "Your name"); lbl.htmlFor = "username";
+  const inp = el("input"); inp.type = "text"; inp.id = "username"; inp.maxLength = 20; inp.value = p.name || ""; inp.placeholder = "Add your name"; inp.autocomplete = "nickname";
+  const sv = el("button", "btn ghost small", "Save"); sv.type = "submit";
+  const row = el("div", "namein"); row.append(inp, sv);
+  nf.append(lbl, row, el("div", "small muted", "Used in greetings, like “Welcome back” when you unlock Nion." + (p.since ? " Studying on Nion since " + new Date(p.since).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) + "." : "")));
+  nf.addEventListener("submit", (e) => { e.preventDefault(); const name = inp.value.trim().slice(0, 20); saveProfile({ name }); profileEdit = false; settingsOpen = null; toast(name ? "Name saved." : "Name removed."); renderSettings(); });
+  pp.append(nf); m.append(pp);
 
   // Appearance
   const ap = el("div", "panel sp"); ap.append(el("h3", null, "Appearance"));
@@ -3567,7 +3561,7 @@ function renderHome() {
   const hero = el("header", "hero");
   const word = el("h1", "logo"); const img = el("img"); img.src = NION_LOGO; img.alt = "Nion"; img.width = 737; img.height = 326; word.append(img);
   const mw = el("span", "medword"); mw.setAttribute("aria-hidden", "true"); mw.append("NI", el("span", "o", "O"), "N"); word.append(mw);
-  hero.append(...(buddyOn() || ANUBIS_AWAY ? [] : [avatarBtn()]), word, gearBtn());
+  hero.append(word, gearBtn());
   m.append(hero, medArt());
   if (buddyOn()) m.append(buddyCard()); else { const rb = reminderBanner(); if (rb) m.append(rb); }
   if (pendingRestore) m.append(restoreConfirm());
