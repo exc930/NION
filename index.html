@@ -371,7 +371,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 .hero .gear { top: calc(10px + env(safe-area-inset-top, 0px)); }
 
 /* ===== making your own subjects & questions (same Midnight Woods look) ===== */
-input[type=password] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: rgba(3, 5, 13, .7); color: var(--ink); font-size: 16px; }
+input[type=password], .syncform input[type=email] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: rgba(3, 5, 13, .7); color: var(--ink); font-size: 16px; }
 select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--accent-2) 50%), linear-gradient(135deg, var(--accent-2) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 34px; }
 .newsubj { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px 16px; border-radius: 16px; cursor: pointer; color: var(--ink);
   border: 1.5px solid rgba(var(--accent-rgb), .6); background: rgba(3, 5, 13, .6); box-shadow: 0 0 16px rgba(var(--accent-rgb), .18), inset 0 0 14px rgba(var(--accent-rgb), .06); }
@@ -2584,7 +2584,7 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); mark
 // Every saved setting/progress key gets a "last changed" time (md-mt). A sync pulls the account's copy, merges it with
 // this device's copy key by key (progress is merged question by question), saves the result here and pushes it back.
 // The passcode, API key and a few device-only keys never leave the device.
-var SYNC_BUILTIN = { url: "__SYNC_URL__", key: "__SYNC_KEY__" };
+var SYNC_BUILTIN = { url: "https://dgzlfetjxfgioepxynyi.supabase.co", key: "sb_publishable_CC-CUUPuXJx6mpVar2_miQ_ZlG7eLGt" };
 var syncApplying = false, syncBusy = false, syncAgain = false, syncTimer = null, syncPoll = null, syncMsg = "";
 const SYNC_LOCAL = /^md-(apikey|lock|model|booted|lastbackup|bksnooze|packs-|mt$|mtp$|sync|grpopen-|sitpos-)/;
 const syncable = (k) => typeof k === "string" && k.startsWith("md-") && !SYNC_LOCAL.test(k);
@@ -2812,11 +2812,13 @@ function syncPanel() {
     if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 8) { syncForm.err = "Enter your email and a password of at least 8 characters."; renderSettings(); return; }
     syncForm = { ...syncForm, busy: true, err: "", info: "" }; renderSettings();
     try { const res = await syncSignIn(email, password, create); syncForm.busy = false; if (res === "confirm") syncForm.info = "Check your email and tap the confirmation link, then sign in here."; else toast("Signed in. This device is now synced."); }
-    catch (e) { syncForm.busy = false; syncForm.err = /invalid login/i.test(e.message) ? "That email and password don't match an account." : /registered|exists/i.test(e.message) ? "That email already has an account. Use Sign in." : e.message || "Couldn't sign in."; }
+    catch (e) { syncForm.busy = false; syncForm.err = /failed to fetch|network|load failed/i.test(e.message || "") ? "Couldn’t reach the sync server. Check your internet connection and try again." : /invalid login/i.test(e.message) ? "That email and password don't match an account." : /registered|exists/i.test(e.message) ? "That email already has an account. Use Sign in." : e.message || "Couldn't sign in."; }
     renderSettings();
   };
   f.addEventListener("submit", (e) => { e.preventDefault(); run(false); });
-  const r = el("div", "row"); r.append(go1, mk); f.append(em, pw, r);
+  const r = el("div", "row"); r.append(go1, mk);
+  if (c.builtIn) f.append(el("p", "small", "Make a free Nion account to save your subjects and progress online automatically. If you ever re-add the app or get a new phone, just sign in and everything comes back. Your API key and passcode stay on this phone."));
+  f.append(em, pw, r);
   if (syncForm.err) f.append(el("p", "small errline", syncForm.err));
   if (syncForm.info) f.append(el("p", "small", syncForm.info));
   p.append(f);
