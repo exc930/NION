@@ -2338,8 +2338,8 @@ html[data-theme="night"] .bubble { border-radius: 12px; border-color: rgba(63, 2
 html[data-theme="night"] .bubble::before { background: rgba(7, 30, 30, .95); border-color: rgba(63, 240, 143, .45); }
 
 /* ---- settings button: a stethoscope that gives a little heartbeat when tapped ---- */
-html[data-theme="night"] .gear { background: #07221f; border: 1.5px solid #2a8c66; border-radius: 10px; box-shadow: 0 0 12px rgba(63, 240, 143, .2); }
-html[data-theme="night"] .gear .medcap { display: block; width: 24px; height: 24px; filter: drop-shadow(0 0 5px rgba(63, 240, 143, .55)); }
+html[data-theme="night"] .gear.metal { width: 36px; height: 36px; padding: 0; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-theme="night"] .gear .medcap { display: block; width: 22px; height: 22px; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .55)); }
 html[data-theme="night"] .gear.spin .medcap { animation: medspin .6s ease-in-out; }
 @media (prefers-reduced-motion: reduce) { html[data-theme="night"] .gear.spin .medcap { animation: none; } }
 @keyframes nsBeat { 0%, 100% { transform: scale(1); } 25% { transform: scale(1.25); } 45% { transform: scale(.95); } 65% { transform: scale(1.15); } }
