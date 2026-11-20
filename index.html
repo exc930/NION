@@ -2339,8 +2339,9 @@ html[data-theme="night"] .bubble::before { background: rgba(7, 30, 30, .95); bor
 
 /* ---- settings button: a stethoscope that gives a little heartbeat when tapped ---- */
 html[data-theme="night"] .gear { background: #07221f; border: 1.5px solid #2a8c66; border-radius: 10px; box-shadow: 0 0 12px rgba(63, 240, 143, .2); }
-html[data-theme="night"] .gear .tic-night { display: block; width: 28px; height: 28px; filter: drop-shadow(0 0 5px rgba(63, 240, 143, .7)); }
-html[data-theme="night"] .gear.spin .tic-night { animation: nsBeat .5s ease-in-out; }
+html[data-theme="night"] .gear .medcap { display: block; width: 24px; height: 24px; filter: drop-shadow(0 0 5px rgba(63, 240, 143, .55)); }
+html[data-theme="night"] .gear.spin .medcap { animation: medspin .6s ease-in-out; }
+@media (prefers-reduced-motion: reduce) { html[data-theme="night"] .gear.spin .medcap { animation: none; } }
 @keyframes nsBeat { 0%, 100% { transform: scale(1); } 25% { transform: scale(1.25); } 45% { transform: scale(.95); } 65% { transform: scale(1.15); } }
 html[data-theme="night"] #theme-night .swatch { background: radial-gradient(circle at 50% 50%, #3ff08f 0 30%, #07221f 32%) !important; }
 /* iPad / wide layout: the header sits in a narrow side column, so it shows just the glowing NION (no vitals or IV bag) */
@@ -2375,6 +2376,37 @@ html[data-theme="night"] .tpkname { font-size: 1.5rem; letter-spacing: .06em; co
 html[data-theme="night"] .tpk.locked .tpkname { color: #c8e8da; text-shadow: none; }
 html[data-theme="night"] :is(.tpkok, .tpklk, .tpkcnt) { font-family: "VT323", monospace; font-weight: 400; font-size: 1.05rem; letter-spacing: .06em; }
 html[data-theme="night"] .tpkcnt { color: #5fcf98; }
+</style>
+<style id="pack-list">
+/* ---- Settings → Appearance: theme packs as rows; inside a pack: its themes ---- */
+.packlist { display: grid; gap: 8px; }
+.packrow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--well, rgba(3, 5, 13, .45)); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.packrow:active { transform: scale(.99); }
+.packrow.cur { border-color: var(--accent); box-shadow: 0 0 12px rgba(var(--accent-rgb, 63, 240, 143), .3); }
+.packrow.lk { border-style: dashed; background: transparent; opacity: .72; }
+.packic { width: 34px; height: 34px; flex: none; border-radius: 9px; display: grid; place-items: center; border: 1.5px solid var(--line); color: var(--accent); }
+.packic svg { width: 20px; height: 20px; }
+.packrow.lk .packic { color: var(--muted); }
+.packrow.lk .packic svg { width: 12px; height: 14px; }
+.packtx { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.packname { font-family: var(--f-display); font-size: 1.15rem; line-height: 1.15; }
+.packsub { font-size: .8rem; color: var(--muted); }
+.packrow .chev { font-size: 1.4rem; line-height: 1; color: var(--accent); }
+.packthemes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.thlock { border: 1.5px dashed var(--line); border-radius: 14px; padding: 6px 6px 10px; display: grid; gap: 6px; align-content: start; text-align: center; }
+.thq { aspect-ratio: 204 / 300; border-radius: 9px; display: grid; place-items: center; color: var(--warn); background: repeating-linear-gradient(45deg, rgba(127, 127, 127, .09) 0 6px, transparent 6px 12px); }
+.thq svg { width: 22px; height: 26px; }
+.thnm { font-weight: 700; font-size: .9rem; }
+.thgoal, .thcnt { font-size: .8rem; color: var(--muted); }
+.thcnt { font-variant-numeric: tabular-nums; }
+.thlock .bar { margin: 0 4px; }
+.themebtn.thumb .thnew { position: absolute; top: 10px; left: 10px; }
+html[data-theme="night"] .packname { font-family: "VT323", monospace; font-size: 1.55rem; letter-spacing: .08em; text-transform: uppercase; color: #7dffb8; text-shadow: 0 0 8px rgba(63, 240, 143, .45); }
+html[data-theme="night"] .packrow.lk .packname { color: #7c9a8e; text-shadow: none; }
+html[data-theme="night"] .packrow .chev { font-family: "VT323", monospace; font-size: 1.8rem; }
+html[data-theme="night"] .packic { background: #07221f; border-color: #2a8c66; }
+html[data-theme="night"] .packrow.lk .packic { background: transparent; border-color: #2a4a40; }
+html[data-theme="night"] .thcnt { font-family: "VT323", monospace; font-size: 1rem; letter-spacing: .06em; color: #5fcf98; }
 </style>
 </head>
 <body>
@@ -2838,7 +2870,8 @@ function mergeDoc(L, R) {
     if (k.startsWith("md-p-")) v = mergeProgress(P(a[1]), P(b[1]));
     else if (k === "md-days") v = [...new Set([...(P(a[1]) || []), ...(P(b[1]) || [])])].sort().slice(-800);
     else if (k === "md-nights") v = [...new Set([...(P(a[1]) || []), ...(P(b[1]) || [])])].sort().slice(-60);
-    else if (k === "md-tpk") { const x = P(a[1]) || {}, y = P(b[1]) || {}; const u = (f) => [...new Set([...(x[f] || []), ...(y[f] || [])])]; v = { un: u("un"), keep: u("keep"), seen: u("seen") }; }
+    else if (k === "md-tpk") { const x = P(a[1]) || {}, y = P(b[1]) || {}; const u = (f) => [...new Set([...(x[f] || []), ...(y[f] || [])])]; v = { th: u("th"), keep: u("keep"), seen: u("seen") }; }
+    else if (k === "md-qzdone") v = Math.max(+P(a[1]) || 0, +P(b[1]) || 0);
     else if (k === "md-reports") v = [...new Map([...(P(b[1]) || []), ...(P(a[1]) || [])].map((r) => [r.id || r.at || JSON.stringify(r), r])).values()];
     else if (k === "md-tomb") { const x = P(a[1]) || {}, y = P(b[1]) || {}; v = { ...x }; for (const [s, ts] of Object.entries(y)) v[s] = Math.max(v[s] || 0, ts); }
     else if (k === "md-subjects") { const x = P(a[1]) || {}, y = P(b[1]) || {}; const [nw, ol] = a[0] > b[0] ? [x, y] : [y, x]; v = { ...ol, ...nw }; }
@@ -3187,7 +3220,8 @@ function rerender() {
   if (route.v === "newsubject") return renderNewSubject();
   if (route.v === "quiz") return renderQuiz();
   if (route.v === "settings") return renderSettings();
-  if (route.v === "packs") return renderPacks();
+  if (route.v === "pack") return renderPack();
+  if (route.v === "packs") return renderSettings();
 }
 
 // ================= Per-subject quiz state =================
@@ -3313,7 +3347,7 @@ function applyPrefs() {
 // someone brand new starts on Night Shift from the free Medical pack.
 try { if (!lsGet("md-tpk", null)) { const raw = lsGet("md-prefs", null), old = lsGet("md-booted", false);
   const th = raw && raw.theme ? raw.theme : old ? "woods" : "night";
-  lsSet("md-prefs", { ...(raw || {}), theme: th }); lsSet("md-tpk", { un: [], keep: old || (raw && raw.theme) ? [th] : [], seen: [] }); } } catch (e) {}
+  lsSet("md-prefs", { ...(raw || {}), theme: th }); lsSet("md-tpk", { th: [], keep: old || (raw && raw.theme) ? [th] : [], seen: [] }); } } catch (e) {}
 applyPrefs();
 
 // ---- profile ----
@@ -3564,81 +3598,119 @@ function learnPanel(fold) {
   return p;
 }
 // ================= Theme packs =================
-// Themes come in packs. Medical and Cozy & Clean are free; the rest unlock by studying. Past progress counts, and a pack
-// stays unlocked once earned (even if a subject is deleted later). The theme you were using when packs arrived stays yours.
-// Saved in md-tpk: { un: [pack ids unlocked], keep: [theme ids kept], seen: [pack ids already shown as new] }.
-const quizzesDone = () => Object.keys(subjects).reduce((a, sid) => { const p = lsGet("md-p-" + sid, null); return a + ((p && p.quizzes) || []).length; }, 0);
+// Settings → Appearance lists the packs by name. Medical is fully open from the start. Every other theme has its own
+// challenge; a pack opens as soon as one of its themes is earned. Past progress counts, and an earned theme stays earned.
+// Tap an open pack to go into it and pick a theme. Tapping a locked pack shows what opens it.
+// Saved in md-tpk: { th: [theme ids earned], keep: [theme ids kept from before packs], seen: [theme ids already shown as new] }.
+const quizzesDone = () => Math.max(lsGet("md-qzdone", 0) || 0, Object.keys(subjects).reduce((a, sid) => { const p = lsGet("md-p-" + sid, null); return a + ((p && p.quizzes) || []).length; }, 0));
+const PACK_ICONS = {
+  medical: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 3v7a5 5 0 0010 0V3"/><path d="M10 15v3a5 5 0 0010 0v-2"/><circle cx="20" cy="13.5" r="2.4"/></svg>',
+  cozy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h12v6a5 5 0 01-5 5H9a5 5 0 01-5-5z"/><path d="M16 11h2a2 2 0 010 4h-2"/><path d="M8 3v3M12 3v3"/></svg>',
+  nature: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 19C5 10 11 5 20 4c-1 9-6 15-15 15z"/><path d="M5 19l8-8"/></svg>',
+  creepy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>',
+  retro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="15.5" cy="11.5" r=".8" fill="currentColor"/><circle cx="17.5" cy="13.5" r=".8" fill="currentColor"/></svg>',
+  nautical: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v13M8 10h8M5 14a7 7 0 0014 0"/></svg>',
+  space: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3c3 2 4.5 5.5 4.5 9.5L14 17h-4l-2.5-4.5C7.5 8.5 9 5 12 3z"/><circle cx="12" cy="10" r="1.6"/><path d="M10 17l-1 4M14 17l1 4"/></svg>',
+};
+const LOCK_SVG = '<svg viewBox="0 0 14 16" aria-hidden="true"><rect x="1" y="7" width="12" height="8.5" rx="2" fill="currentColor"/><path d="M3.5 7V5a3.5 3.5 0 017 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
 const PACKS = [
-  { id: "medical", name: "Medical", themes: ["medical", "night"], starter: true },
-  { id: "cozy", name: "Cozy & Clean", themes: ["cafe", "notebook"], starter: true },
-  { id: "nature", name: "Nature", themes: ["forest", "violet"], goal: "Keep a 7-day streak", n: 7, unit: "days", val: () => { const s = streaks(); return Math.max(s.best, s.cur); } },
-  { id: "nautical", name: "Nautical", themes: ["ocean"], goal: "Master 250 questions", n: 250, unit: "mastered", val: () => accountStats().mastered },
-  { id: "retro", name: "Retro", themes: ["arcade"], goal: "Finish 10 quizzes", n: 10, unit: "quizzes", val: quizzesDone },
-  { id: "space", name: "Space", themes: ["space"], goal: "Answer 1,000 questions", n: 1000, unit: "answered", val: () => accountStats().answered },
-  { id: "creepy", name: "Creepy", themes: ["woods"], goal: "Study after 9 PM on 3 nights", n: 3, unit: "nights", val: () => lsGet("md-nights", []).length },
+  { id: "medical", name: "Medical", themes: [{ id: "medical" }, { id: "night" }] },
+  { id: "cozy", name: "Cozy & Clean", themes: [
+    { id: "cafe", goal: "Study on 30 different days", n: 30, unit: "days", val: () => lsGet("md-days", []).length },
+    { id: "notebook", goal: "Reach 85% accuracy after 500+ answers", n: 85, unit: "% accuracy", val: () => { const s = accountStats(); return s.answered >= 500 ? s.acc || 0 : 0; }, show: () => { const s = accountStats(); return s.answered >= 500 ? `${s.acc || 0}% accuracy` : `${s.answered} / 500 answers so far`; } } ] },
+  { id: "nature", name: "Nature", themes: [
+    { id: "forest", goal: "Keep a 14-day streak", n: 14, unit: "days", val: () => { const s = streaks(); return Math.max(s.best, s.cur); } },
+    { id: "violet", goal: "Keep a 30-day streak", n: 30, unit: "days", val: () => { const s = streaks(); return Math.max(s.best, s.cur); } } ] },
+  { id: "creepy", name: "Creepy", themes: [
+    { id: "woods", goal: "Study after 9 PM on 15 nights", n: 15, unit: "nights", val: () => lsGet("md-nights", []).length } ] },
+  { id: "retro", name: "Retro", themes: [
+    { id: "arcade", goal: "Finish 30 quizzes", n: 30, unit: "quizzes", val: quizzesDone } ] },
+  { id: "nautical", name: "Nautical", themes: [
+    { id: "ocean", goal: "Master 1,000 questions", n: 1000, unit: "mastered", val: () => accountStats().mastered } ] },
+  { id: "space", name: "Space", themes: [
+    { id: "space", goal: "Answer 5,000 questions", n: 5000, unit: "answered", val: () => accountStats().answered } ] },
 ];
 const THEME_NAMES = { medical: "Medical", night: "Night Shift", cafe: "Cozy Café", notebook: "Clean Notebook", forest: "Fairy Treehouse", violet: "Crystal Cave", ocean: "Shipwreck Treasure", arcade: "Retro Arcade", space: "Deep Space", woods: "Midnight Woods" };
-const tpk = () => { const t = lsGet("md-tpk", null) || {}; return { un: t.un || [], keep: t.keep || [], seen: t.seen || [] }; };
-const packOpen = (pk) => pk.starter || tpk().un.includes(pk.id);
+const tpk = () => { const t = lsGet("md-tpk", null) || {}; return { th: t.th || [], keep: t.keep || [], seen: t.seen || [] }; };
+const packOf = (id) => PACKS.find((pk) => pk.themes.some((x) => x.id === id));
 function themeOpen(id) {
-  const holders = PACKS.filter((pk) => pk.themes.includes(id));
-  return !holders.length || holders.some(packOpen) || tpk().keep.includes(id);
+  const pk = packOf(id); if (!pk) return true;
+  const th = pk.themes.find((x) => x.id === id); if (!th.goal) return true;
+  const t = tpk(); return t.th.includes(id) || t.keep.includes(id);
 }
-// Check the goals and open any pack that has just been earned.
+const packOpen = (pk) => pk.themes.some((x) => themeOpen(x.id));
+const nextGoal = (pk) => pk.themes.find((x) => !themeOpen(x.id));
+// Check every challenge and open any theme that has just been earned.
 let packCheckAt = 0, packCheckT = 0;
 function checkPacks(quiet) {
   packCheckAt = Date.now();
   let t; try { t = tpk(); } catch (e) { return; }
   const got = [];
-  for (const pk of PACKS) { if (pk.starter || t.un.includes(pk.id)) continue; let v = 0; try { v = pk.val(); } catch (e) {} if (v >= pk.n) { t.un.push(pk.id); got.push(pk); } }
+  for (const pk of PACKS) for (const th of pk.themes) {
+    if (!th.goal || t.th.includes(th.id)) continue;
+    let v = 0; try { v = th.val(); } catch (e) {}
+    if (v >= th.n) { t.th.push(th.id); got.push([th, pk]); }
+  }
   if (!got.length) return;
   lsSet("md-tpk", t);
-  if (!quiet) toast(got.length === 1 ? `Theme pack unlocked: ${got[0].name}! Find it in Settings → Theme packs.` : `${got.length} theme packs unlocked! Find them in Settings → Theme packs.`);
+  if (!quiet) toast(got.length === 1 ? `New theme unlocked: ${THEME_NAMES[got[0][0].id]} (${got[0][1].name} pack)! Find it in Settings → Appearance.` : `${got.length} new themes unlocked! Find them in Settings → Appearance.`);
 }
 function checkPacksSoon() { if (packCheckT) return; const wait = Math.max(1500, 15000 - (Date.now() - packCheckAt)); packCheckT = setTimeout(() => { packCheckT = 0; checkPacks(); }, wait); }
-function packsButton() {
-  const open = PACKS.filter(packOpen).length;
-  const b = btn("newsubj packsbtn", null, () => go({ v: "packs" })); b.id = "packsbtn";
-  const t = el("span", "grow"); t.append(el("span", "nm", "Theme packs"), el("span", "small muted", `${open} of ${PACKS.length} unlocked`));
-  const fresh = PACKS.some((pk) => !pk.starter && tpk().un.includes(pk.id) && !tpk().seen.includes(pk.id));
-  b.append(t); if (fresh) b.append(el("span", "pknew", "NEW")); b.append(el("span", "chev", "›"));
-  return b;
-}
-function renderPacks() {
-  topbar("Settings", () => backTo({ v: "settings" }), "Theme packs");
-  checkPacks(true);
-  const m = $("main"); m.replaceChildren(); const pr = prefs(); const t = tpk();
-  m.append(el("p", "small muted pkintro", "Medical and Cozy & Clean come free. Earn the rest by studying: your past progress counts. When a pack unlocks, its themes show up in Appearance. Tap a theme to use it."));
+const isNew = (id) => { const pk = packOf(id), th = pk && pk.themes.find((x) => x.id === id); return !!(th && th.goal && tpk().th.includes(id) && !tpk().seen.includes(id)); };
+// Settings → Appearance: one row per pack
+function packList() {
+  const pr = prefs(), box = el("div", "packlist");
   for (const pk of PACKS) {
-    const open = packOpen(pk), card = el("div", "panel tpk" + (open ? " open" : " locked")); card.id = "pack-" + pk.id;
-    const th = el("div", "tpkth");
-    for (const id of pk.themes) {
-      const ok = themeOpen(id), b = btn("tpkthm" + (pr.theme === id ? " on" : "") + (ok ? "" : " lk"), null, () => { if (!themeOpen(id)) return; setPref("theme", id); toast(`Theme: ${THEME_NAMES[id] || id}.`); renderPacks(); });
-      b.setAttribute("aria-label", (THEME_NAMES[id] || id) + (ok ? (pr.theme === id ? " (in use)" : "") : " (locked)")); if (!ok) b.setAttribute("aria-disabled", "true");
-      if (THEME_THUMBS[id]) { const im = el("img"); im.src = THEME_THUMBS[id]; im.alt = ""; im.loading = "lazy"; im.width = 204; im.height = 300; b.append(im); }
-      th.append(b);
+    const open = packOpen(pk), cur = pk.themes.some((x) => x.id === pr.theme);
+    const r = btn("packrow" + (open ? "" : " lk") + (cur ? " cur" : ""), null, () => {
+      if (open) { go({ v: "pack", id: pk.id }); return; }
+      const g = nextGoal(pk); toast(`${pk.name} unlocks when you ${g.goal.charAt(0).toLowerCase() + g.goal.slice(1)}.`);
+    });
+    r.id = "pack-" + pk.id;
+    const ic = el("span", "packic"); ic.innerHTML = open ? PACK_ICONS[pk.id] : LOCK_SVG; r.append(ic);
+    const tx = el("span", "packtx"); tx.append(el("span", "packname", pk.name));
+    if (open) {
+      const n = pk.themes.filter((x) => themeOpen(x.id)).length, all = pk.themes.every((x) => !x.goal);
+      tx.append(el("span", "packsub", (all ? "All themes" : `${n} of ${pk.themes.length} theme${pk.themes.length === 1 ? "" : "s"}`) + (cur ? ` · ${THEME_NAMES[pr.theme]} in use` : "")));
     }
-    const bd = el("div", "tpkbd"), row = el("div", "tpkrow");
-    row.append(el("span", "tpkname", pk.name));
-    if (open) row.append(el("span", "tpkok", "✓ Unlocked"));
-    else { const lk = el("span", "tpklk"); lk.innerHTML = '<svg viewBox="0 0 14 16" aria-hidden="true"><rect x="1" y="7" width="12" height="8.5" rx="2" fill="currentColor"/><path d="M3.5 7V5a3.5 3.5 0 017 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>'; lk.append("Locked"); row.append(lk); }
-    if (open && !pk.starter && !t.seen.includes(pk.id)) row.append(el("span", "pknew", "NEW"));
-    bd.append(row, el("div", "tpkthemes", pk.themes.map((id) => THEME_NAMES[id] || id).join(" · ")));
-    const kept = !open && pk.themes.filter((id) => t.keep.includes(id));
-    if (pk.starter) bd.append(el("div", "small muted", "Starter pack"));
-    else {
-      let v = 0; try { v = pk.val(); } catch (e) {}
-      bd.append(el("div", "small muted", pk.goal));
-      if (!open) {
-        const bar = el("div", "bar tpkbar"); const mm = el("span", "m"); mm.style.width = Math.min(100, Math.round(v / pk.n * 100)) + "%"; bar.append(mm);
-        bd.append(bar, el("div", "tpkcnt", `${Math.min(v, pk.n).toLocaleString()} / ${pk.n.toLocaleString()} ${pk.unit}`));
-        if (kept && kept.length) bd.append(el("div", "small muted", `You keep ${kept.map((id) => THEME_NAMES[id]).join(" and ")} because you were already using it.`));
-      }
-    }
-    card.append(th, bd); m.append(card);
+    r.append(tx);
+    if (open && pk.themes.some((x) => isNew(x.id))) r.append(el("span", "pknew", "NEW"));
+    if (open) r.append(el("span", "chev", "›"));
+    r.setAttribute("aria-label", pk.name + (open ? "" : " (locked)"));
+    box.append(r);
   }
-  const seen = PACKS.filter((pk) => !pk.starter && t.un.includes(pk.id)).map((pk) => pk.id);
-  if (seen.some((id) => !t.seen.includes(id))) lsSet("md-tpk", { ...t, seen: [...new Set([...t.seen, ...seen])] });
+  return box;
+}
+// Inside a pack: pick a theme, or see what the locked ones need
+function renderPack() {
+  const pk = PACKS.find((x) => x.id === route.id) || PACKS[0];
+  topbar("Settings", () => backTo({ v: "settings" }), pk.name);
+  checkPacks(true);
+  const m = $("main"); m.replaceChildren(); const pr = prefs();
+  const box = el("div", "panel sp packpage");
+  const n = pk.themes.filter((x) => themeOpen(x.id)).length;
+  box.append(el("h3", null, pk.name + " pack"), el("p", "small muted", (n === pk.themes.length ? "All themes unlocked." : `${n} of ${pk.themes.length} themes unlocked.`) + " Tap a theme to use it."));
+  const g = el("div", "packthemes");
+  for (const th of pk.themes) {
+    if (themeOpen(th.id)) {
+      const on = pr.theme === th.id;
+      const b = btn("themebtn thumb" + (on ? " on" : ""), null, () => { setPref("theme", th.id); renderPack(); }); b.id = "theme-" + th.id; b.setAttribute("aria-pressed", String(on));
+      if (THEME_THUMBS[th.id]) { const im = el("img"); im.src = THEME_THUMBS[th.id]; im.alt = ""; im.width = 204; im.height = 300; b.append(im); }
+      const tn = el("span", "tn"); tn.append(el("span", null, THEME_NAMES[th.id] || th.id)); b.append(tn);
+      if (on) b.append(el("span", "tick", "✓")); if (isNew(th.id)) b.append(el("span", "pknew thnew", "NEW"));
+      g.append(b);
+    } else {
+      const c = el("div", "thlock"); c.id = "theme-" + th.id;
+      const q = el("div", "thq"); q.innerHTML = LOCK_SVG; c.append(q, el("div", "thnm", THEME_NAMES[th.id] || th.id), el("div", "thgoal", th.goal));
+      let v = 0; try { v = th.val(); } catch (e) {}
+      const bar = el("div", "bar"); const mm = el("span", "m"); mm.style.width = Math.max(0, Math.min(100, Math.round(v / th.n * 100))) + "%"; bar.append(mm);
+      c.append(bar, el("div", "thcnt", th.show ? th.show() : `${Math.min(v, th.n).toLocaleString()} / ${th.n.toLocaleString()} ${th.unit}`));
+      g.append(c);
+    }
+  }
+  box.append(g); m.append(box);
+  const t = tpk(), ids = pk.themes.filter((x) => isNew(x.id)).map((x) => x.id);
+  if (ids.length) lsSet("md-tpk", { ...t, seen: [...new Set([...t.seen, ...ids])] });
 }
 function renderSettings() {
   topbar("Home", () => backTo({ v: "home" }), "Settings");
@@ -3666,11 +3738,7 @@ function renderSettings() {
 
   // Appearance
   const ap = el("div", "panel sp"); ap.append(el("h3", null, "Appearance"));
-  const tw = el("div", "themes thumbs");
-  for (const t of THEMES) { const on = pr.theme === t.id, lk = !themeOpen(t.id); const b = btn("themebtn thumb" + (on ? " on" : "") + (lk ? " locked" : ""), null, () => { if (!themeOpen(t.id)) { go({ v: "packs" }); return; } setPref("theme", t.id); renderSettings(); }); if (lk) { b.setAttribute("aria-label", t.name + " (locked, see Theme packs)"); b.insertAdjacentHTML("beforeend", '<span class="tlock" aria-hidden="true"><svg viewBox="0 0 14 16" width="12" height="14"><rect x="1" y="7" width="12" height="8.5" rx="2" fill="currentColor"/><path d="M3.5 7V5a3.5 3.5 0 017 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>'); } b.id = "theme-" + t.id; b.setAttribute("aria-pressed", String(on)); const sw = el("span", "swatch"); sw.style.background = `linear-gradient(135deg, ${t.sw[0]}, ${t.sw[1]})`;
-    if (THEME_THUMBS[t.id]) { const im = el("img"); im.src = THEME_THUMBS[t.id]; im.alt = ""; im.loading = "lazy"; im.width = 204; im.height = 300; b.append(im); }
-    const tn = el("span", "tn"); tn.append(sw, el("span", null, t.name)); b.append(tn); if (on) b.append(el("span", "tick", "✓")); tw.append(b); }
-  ap.append(el("span", "small muted", "Theme"), packsButton(), tw);
+  ap.append(el("span", "small muted", "Theme packs"), packList());
   if (pr.theme === "medical") ap.append(medSettings(pr));
   ap.append(el("span", "small muted", "Text size"));
   const fs = el("div", "seg"); for (const f of FONT_SIZES) { const b = btn("segbtn fs-" + f.id + (pr.fs === f.id ? " on" : ""), f.name, () => { setPref("fs", f.id); renderSettings(); }); b.id = "fs-" + f.id; fs.append(b); }
@@ -6199,6 +6267,7 @@ function finishQuiz() {
   QZ.result = { at: Date.now(), n: QZ.items.length, correct, ms, sec: QZ.sec, bySec, answered: QZ.ans.filter((a) => a.length).length };
   QZ.done = true; qzConfirm = false; qzFilter = correct === QZ.items.length ? "all" : "missed"; saveQZ();
   S.quizzes = [...(S.quizzes || []), { at: QZ.result.at, n: QZ.result.n, correct, ms, sec: QZ.sec }].slice(-20); persist(true);
+  try { lsSet("md-qzdone", Math.max((lsGet("md-qzdone", 0) || 0) + 1, quizzesDone())); } catch (e) {}
   renderQuiz(); window.scrollTo(0, 0);
 }
 function renderResults() {
