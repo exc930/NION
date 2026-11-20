@@ -2408,6 +2408,26 @@ html[data-theme="night"] .packic { background: #07221f; border-color: #2a8c66; }
 html[data-theme="night"] .packrow.lk .packic { background: transparent; border-color: #2a4a40; }
 html[data-theme="night"] .thcnt { font-family: "VT323", monospace; font-size: 1rem; letter-spacing: .06em; color: #5fcf98; }
 </style>
+<style id="notice-popup">
+/* ---- pop-up notice (every theme): a strip with "● NOTICE" and the time, then the message ---- */
+.toast { left: 12px; right: 12px; transform: none; margin: 0 auto; max-width: 520px; padding: 0; border-radius: 10px; overflow: hidden; text-align: left; font-size: .92rem; line-height: 1.4;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 90; border: 1.5px solid var(--tst, var(--accent)); box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+.toast[hidden] { display: none !important; }
+.toast.in { animation: tstIn .28s ease-out; }
+@keyframes tstIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .toast.in { animation: none; } }
+.tst-h { display: flex; justify-content: space-between; align-items: center; padding: 4px 12px; background: var(--tst, var(--accent)); color: var(--tst-ink, #0b0b0b);
+  font: 700 .72rem/1.3 var(--f-mono, monospace); letter-spacing: .14em; }
+.tst-b { padding: 9px 12px 11px; display: grid; gap: 2px; }
+.tst-b b { font-weight: 700; }
+.tst-b span { opacity: .78; font-size: .88rem; }
+html[data-theme="medical"] .toast { --tst: #1b8a9a; --tst-ink: #fff; }
+html[data-theme="notebook"] .toast { --tst: #a9584d; --tst-ink: #fff; }
+html[data-theme="cafe"] .toast { --tst: #e3a06a; --tst-ink: #2a190f; }
+html[data-theme="night"] .toast { --tst: #3ff08f; --tst-ink: #03281a; background: #041a17; box-shadow: 0 0 22px rgba(63, 240, 143, .35), 0 10px 30px rgba(0, 0, 0, .6); }
+html[data-theme="night"] .tst-h { font: 400 1.1rem/1.15 "VT323", monospace; letter-spacing: .12em; }
+html[data-theme="night"] .tst-b span { color: #8fbfaa; opacity: 1; }
+</style>
 </head>
 <body>
 <div class="sbar" aria-hidden="true"></div>
@@ -3019,7 +3039,15 @@ function syncPanel() {
   return p;
 }
 
-let toastT; function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 3200); }
+// Pop-up notice at the bottom: a "● NOTICE" strip with the time, then the message (first sentence bold, the rest lighter).
+let toastT; function toast(msg) {
+  const t = $("toast"); t.replaceChildren(); const d = new Date();
+  const hd = el("div", "tst-h"); hd.append(el("span", null, "\u25CF NOTICE"), el("span", null, String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0")));
+  const bd = el("div", "tst-b"); const mm = String(msg).match(/^([\s\S]+?[.!?]["\u201D]?)\s+([\s\S]+)$/);
+  if (mm) bd.append(el("b", null, mm[1]), el("span", null, mm[2])); else bd.append(el("b", null, String(msg)));
+  t.append(hd, bd); t.hidden = false; t.classList.remove("in"); void t.offsetWidth; t.classList.add("in");
+  clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 4200);
+}
 
 // ================= Store (everything lives on this phone) =================
 const IDB = (() => {
@@ -4457,7 +4485,7 @@ function deleteText(s) {
 function archiveSubject(sid, on) {
   const s = subjects[sid]; if (!s) return;
   saveSubject(sid, { ...s, archived: on || undefined }); subjectConfirm = null; homeConfirm = null;
-  if (on) { go({ v: "home" }); toast(`"${s.name}" archived. Find it under Archived on the home screen.`); }
+  if (on) { if (route.v === "home") renderHome(); else go({ v: "home" }); toast(`"${s.name}" archived. Find it under Archived on the home screen.`); }
   else { if (route.v === "home") renderHome(); else rerender(); toast(`"${s.name}" is back on your home screen.`); }
 }
 async function deleteSubjectNow(sid) {
@@ -7030,6 +7058,17 @@ async function boot() {
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
+// When something changes on the page you're on (archiving, a setting, a theme), the page is drawn again in place:
+// it stays where you were scrolled instead of jumping to the top. Going to another page still starts at the top.
+const keepScroll = (fn) => function (...a) {
+  const y = window.scrollY, m = $("main");
+  if (y > 0 && m) m.style.minHeight = m.offsetHeight + "px";
+  const done = () => { if (y > 0) { window.scrollTo(0, y); requestAnimationFrame(() => { if (m) m.style.minHeight = ""; window.scrollTo(0, Math.min(y, Math.max(0, document.documentElement.scrollHeight - innerHeight))); }); } };
+  let r; try { r = fn.apply(this, a); } catch (e) { done(); throw e; }
+  if (r && typeof r.then === "function") r.then(done, done); else done();
+  return r;
+};
+renderHome = keepScroll(renderHome); renderSettings = keepScroll(renderSettings); renderSubject = keepScroll(renderSubject); renderPack = keepScroll(renderPack);
 boot();
 })();
 </script>
