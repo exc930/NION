@@ -4630,10 +4630,24 @@ function leaving() {
   if (route.v === "quiz" && typeof QZ !== "undefined" && QZ && !QZ.done && !QZ.paused) { QZ.elapsed = qzElapsed(); QZ.paused = true; QZ.runSince = null; saveQZ(); }
 }
 function go(r) {
-  leaving();
+  leaving(); rememberSpot();
   const prev = route; route = r; navIdx++; maxIdx = navIdx;
   try { navPush({ r, i: navIdx, prev }); } catch (e) {}
   window.scrollTo(0, 0); rerender();
+}
+// Every page in the list remembers how far down you were. Swiping (or tapping) back or forward to it puts you
+// right back at that spot instead of at the top. A brand-new trip to a page still starts at the top.
+function rememberSpot() {
+  try { const st = NAV.stack[NAV.pos], m = document.getElementById("main"); if (st) { st.y = window.scrollY; st.h = m ? m.offsetHeight : 0; } } catch (e) {}
+}
+function returnToSpot(st, r) {
+  const y = (st && st.y) || 0; if (y <= 0) return;
+  const m = document.getElementById("main");
+  if (m && st.h) m.style.minHeight = st.h + "px"; // keep the page tall enough to land on the old spot while it fills in
+  const put = () => window.scrollTo(0, Math.min(y, Math.max(0, document.documentElement.scrollHeight - innerHeight)));
+  const settle = () => { put(); requestAnimationFrame(put); setTimeout(() => { if (m) m.style.minHeight = ""; put(); }, 400); };
+  put(); requestAnimationFrame(put);
+  if (r && typeof r.then === "function") r.then(settle, settle); else settle();
 }
 // Back buttons in the top bar act like a real "back" when they lead to the page you came from.
 function backTo(target) {
@@ -4646,12 +4660,14 @@ const NAV = { stack: [{ r: { v: "home" }, i: 0, prev: null }], pos: 0 };
 const navState = () => NAV.stack[NAV.pos];
 function navPush(st) { NAV.stack = NAV.stack.slice(0, NAV.pos + 1); NAV.stack.push(st); NAV.pos = NAV.stack.length - 1; }
 function navReplace(st) { NAV.stack[NAV.pos] = st; }
-function navGo(d) { const p = NAV.pos + d; if (p < 0 || p >= NAV.stack.length) return false; NAV.pos = p; onNav(NAV.stack[p]); return true; }
+function navGo(d) { const p = NAV.pos + d; if (p < 0 || p >= NAV.stack.length) return false; rememberSpot(); NAV.pos = p; onNav(NAV.stack[p]); return true; }
 let pendingAnim = null; // "back" | "fwd" | null — set by the swipe so the page change knows how to animate
 function onNav(st) {
   if (!st || !st.r) return;
   const dir = pendingAnim || (st.i < navIdx ? "back" : "fwd"); pendingAnim = null;
-  leaving(); route = st.r; navIdx = st.i; if (navIdx > maxIdx) maxIdx = navIdx; window.scrollTo(0, 0); rerender();
+  leaving(); route = st.r; navIdx = st.i; if (navIdx > maxIdx) maxIdx = navIdx; window.scrollTo(0, 0);
+  const m = document.getElementById("main"); if (m && st.y > 0 && st.h) m.style.minHeight = st.h + "px";
+  returnToSpot(st, rerender());
   slideIn(dir);
 }
 try { navReplace({ r: route, i: 0, prev: null }); } catch (e) {}
