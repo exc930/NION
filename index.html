@@ -4066,6 +4066,10 @@ main.homewide .has-spill .spill-src { -webkit-mask-image: none; mask-image: none
 html.hastabs main { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important; }
 html.hastabs main > .hero > .gear { display: none !important; }
 html.tabroot .top .back { display: none; }
+/* Home-screen app: iOS softens whatever sits right under the clock, so page titles sit a little lower */
+@media (display-mode: standalone) { .top .in { padding-top: 22px; } }
+/* Framed themes (Retro Arcade, Deep Space, Cozy Café) add room for the clock above their frame; under a top bar that room is not needed */
+html:is([data-theme="arcade"], [data-theme="space"], [data-theme="cafe"]) .top:not([hidden]) ~ main { margin-top: 10px !important; }
 @media (prefers-reduced-motion: reduce) { .tabbar .tbtn { transition: none; } }
 
 /* ===== Home: continue card, quick buttons, next theme (frosted, over the scene) ===== */
@@ -4124,6 +4128,58 @@ html[data-theme="maze"] .hcont .hgo { font: 400 12px/1 "Press Start 2P", monospa
 /* Retro Arcade: neon frames */
 html[data-theme="arcade"] .hcard { border: 2px solid #3cf2ff; box-shadow: 0 0 0 2px rgba(255, 79, 216, .5), 0 0 18px rgba(60, 242, 255, .25); }
 html[data-theme="arcade"] .tabbar { border: 2px solid #3cf2ff; box-shadow: 0 0 0 2px rgba(255, 79, 216, .5), 0 0 18px rgba(60, 242, 255, .3); }
+/* tap the subject name on the Continue card to pick another subject */
+.hcont .hpick { display: flex; align-items: center; gap: 6px; width: 100%; padding: 2px 0; margin: 0; border: 0; background: none; text-align: left; cursor: pointer; font: 700 19px/1.25 var(--f-display); color: var(--ink); min-height: 44px; }
+.hcont .hpick > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.hcont .hpick .hpickc { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 14px; background: rgba(var(--accent-rgb), .16); color: var(--accent); }
+.hcont .hpick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+html:is([data-theme="platform"], [data-theme="maze"], [data-theme="arcade"], [data-theme="blocks"]) .hcont .hpick { font-size: 12px; line-height: 1.6; }
+html[data-theme="night"] .hcont .hpick { font-size: 24px; line-height: 1.05; }
+html[data-theme="platform"] .hcont .hpick { color: #111; }
+.sheet .sheetrow.on { background: rgba(var(--accent-rgb), .12); }
+/* Me: the theme's icon on its own, a little bigger */
+.tabbar .gear.tme :is(.tic, .medcap) { width: 32px !important; height: 32px !important; }
+.tabbar .gear.tme > img { width: 30px !important; height: 30px !important; }
+/* Progress: each subject's mastery */
+main > .bysubj { display: flex; flex-direction: column; gap: 4px; }
+.bysubj .bsrow { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 10px 2px; border: 0; border-top: 1px solid var(--line); background: none; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.bysubj h3 + .bsrow { border-top: 0; }
+.bysubj .bsrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.bysubj .bstop { display: flex; justify-content: space-between; gap: 10px; }
+.bysubj .bstop b { font: 700 15px/1.3 var(--f-body); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bysubj .bstop span { font: 700 14px var(--f-body); color: var(--accent); }
+.bysubj .hbar { margin: 0; }
+.bysubj .bsmeta { font: 400 12px var(--f-body); color: var(--muted); }
+/* ===== Progress charts ===== */
+main > .chartp h3 { margin-bottom: 10px; }
+.chartp .cmpgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.chartp .cmpc { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 45%, transparent); }
+.chartp .cmpc b { font: 700 22px/1.1 var(--f-display); color: var(--ink); }
+.chartp .cmpc > span:not(.trend) { font: 400 13px var(--f-body); color: var(--muted); }
+.chartp .trend { font: 700 12px var(--f-body); margin-top: 2px; }
+.chartp .trend.up { color: #3fb97a; } .chartp .trend.down { color: #e36a5b; } .chartp .trend.flat { color: var(--muted); }
+html:is([data-theme="medical"], [data-theme="beach"]) .chartp .trend.up { color: #1d7f4f; }
+html:is([data-theme="medical"], [data-theme="beach"]) .chartp .trend.down { color: #b6392a; }
+html:is([data-theme="platform"], [data-theme="maze"], [data-theme="arcade"], [data-theme="blocks"]) .chartp .cmpc b { font-size: 14px; line-height: 1.5; }
+.chartp svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 4; }
+.chart .split { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; opacity: .6; }
+.chart .axis { fill: var(--muted); font: 600 10px var(--f-body); }
+.chart .axis.mid { text-anchor: middle; } .chart .axis.end { text-anchor: end; }
+.chart .axis.now, .chart .axis.strong { fill: var(--ink); font-weight: 800; }
+.chart .cbar { fill: var(--accent); } .chart .cbar.old { fill: var(--muted); opacity: .45; }
+.chart .line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.chart .area { fill: rgba(var(--accent-rgb), .16); stroke: none; }
+.chart .dot { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+.chart.cal .cell { fill: color-mix(in srgb, var(--muted) 18%, transparent); }
+.chart.cal .cell.l1 { fill: rgba(var(--accent-rgb), .35); } .chart.cal .cell.l2 { fill: rgba(var(--accent-rgb), .6); }
+.chart.cal .cell.l3 { fill: rgba(var(--accent-rgb), .8); } .chart.cal .cell.l4 { fill: var(--accent); }
+.chart.cal .cell.now { stroke: var(--ink); stroke-width: 1.5; }
+.chartp .legend { display: flex; gap: 16px; margin-top: 8px; font: 600 12px var(--f-body); color: var(--muted); }
+.chartp .legend .lg { display: flex; align-items: center; gap: 6px; }
+.chartp .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+.chartp .legend .lg.old i { background: var(--muted); opacity: .45; }
+.chartp .chartnote { margin: 8px 0 0; }
 /* ===== Progress tab ===== */
 main > .pthead { margin: 8px 2px 0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 main > .pthead h2 { margin: 0; font: 700 22px/1.2 var(--f-display); color: var(--ink); text-transform: none; letter-spacing: 0; }
@@ -5121,7 +5177,7 @@ function record(id, ok) {
   if (s.str == null) s.str = s.m ? 3 : Math.min(s.c || 0, 2);
   if (ok) { s.ok++; s.c++; s.str = Math.min(s.str + 1, SRS_DAYS.length); s.next = Date.now() + SRS_DAYS[s.str - 1] * DAY_MS; s.m = s.str >= 3 ? 1 : 0; }
   else { s.bad++; s.c = 0; s.str = 0; s.m = 0; s.next = Date.now() + DAY_MS; }
-  s.due = null; S.at = Date.now(); persist();
+  s.due = null; S.at = Date.now(); persist(); histTick(ok);
 }
 
 // ================= Question formats =================
@@ -5600,12 +5656,11 @@ function renderSettings() {
   // Profile + account info
   // Your progress: your stats and your name (used in greetings). No profile picture or character.
   const pp = el("div", "panel sp prof"); pp.id = "profile";
-  pp.append(el("h3", null, "Your progress"));
+  pp.append(el("h3", null, "You"));
   const s = streaks(), st = accountStats();
   const acct = el("div", "acct");
-  const stat = (v, l) => { const d = el("div", "astat"); d.append(el("b", null, String(v)), el("span", null, l)); acct.append(d); };
+  const stat = (v, l) => {};
   stat(s.cur, "day streak"); stat(s.best, "best streak"); stat(st.answered, "answered"); stat(st.acc == null ? "–" : st.acc + "%", "accuracy"); stat(st.mastered, "mastered"); stat(st.subjects, st.subjects === 1 ? "subject" : "subjects");
-  pp.append(acct);
   const nf = el("form", "namerow");
   const lbl = el("label", "small muted", "Your name"); lbl.htmlFor = "username";
   const inp = el("input"); inp.type = "text"; inp.id = "username"; inp.maxLength = 20; inp.value = p.name || ""; inp.placeholder = "Add your name"; inp.autocomplete = "nickname";
@@ -7105,6 +7160,96 @@ const TI = {
 };
 const tico = (k, sz = 24) => `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TI[k]}</svg>`;
 const SUBJ_TAB_ICON = { rainy: "tape", cemetery: "grave", clown: "ticket", platform: "map" };
+// Each theme's own tab icons: [Home, Subjects, Progress] (Me keeps the theme's settings icon)
+const PX = (rects) => rects.map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h || 2}" fill="currentColor" stroke="none"/>`).join("");
+const TAB_ICONS = {
+  medical: [
+    '<path d="M4 21V8l8-5 8 5v13"/><path d="M2 21h20"/><path d="M12 8.5v6M9 11.5h6"/><path d="M10 21v-3h4v3"/>',
+    '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 10h7M8.5 13.5h7M8.5 17h4"/>',
+    '<path d="M2 12h4l2-5 3.5 11L14 9l1.5 3H22"/>'],
+  night: [
+    '<path d="M20 14.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 10.5z"/><path d="M15 3v4M13 5h4"/>',
+    '<path d="M3 18V8"/><path d="M3 14h18v4"/><path d="M21 18v-4"/><circle cx="7" cy="11" r="1.6"/><path d="M10 11h8a3 3 0 0 1 3 3"/>',
+    '<rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M5 11h3l1.5-3 2.5 6 1.5-3H19"/><path d="M9 20h6"/>'],
+  apothecary: [
+    '<path d="M3 10h18"/><path d="M4 10 6 4h12l2 6"/><path d="M5 10v11h14V10"/><path d="M10 21v-6h4v6"/><path d="M7 7h10"/>',
+    '<path d="M10 3h4M10.5 3v4.5L6.5 13a5.5 5.5 0 0 0 4.5 8.5h2a5.5 5.5 0 0 0 4.5-8.5l-4-5.5V3"/><path d="M7.5 15h9"/>',
+    '<path d="M12 4v16M8 20h8"/><path d="M4 8h16"/><path d="M4 8 2 14a3 3 0 0 0 4 0L4 8zM20 8l-2 6a3 3 0 0 0 4 0l-2-6z"/><circle cx="12" cy="4" r="1"/>'],
+  cafe: [
+    '<path d="M3 9h18l-1.5-5h-15z"/><path d="M3 9a2.25 2.25 0 0 0 4.5 0 2.25 2.25 0 0 0 4.5 0 2.25 2.25 0 0 0 4.5 0 2.25 2.25 0 0 0 4.5 0"/><path d="M5 11.5V21h14v-9.5"/><path d="M10 21v-5h4v5"/>',
+    '<path d="M4 4h16v13H4z"/><path d="M7 21l2-4M17 21l-2-4"/><path d="M7 8h6M7 11h10M7 14h4"/>',
+    '<ellipse cx="12" cy="12" rx="6" ry="8.5" transform="rotate(35 12 12)"/><path d="M8.5 17.5c2-2 1.5-5 3.5-6.5s4.5-2 4.5-4.5"/>'],
+  rainy: [
+    '<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M12 3v18M4 12h16"/><path d="M7 6.5v2M9.5 14v2M15 6v2M17 14.5v2" stroke-width="1.6"/>',
+    '<rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="8" cy="11" r="2.2"/><circle cx="16" cy="11" r="2.2"/><path d="M10.2 11h3.6"/><path d="M6 19l1.5-3h9L18 19"/>',
+    '<path d="M4 20v-5M8 20V9M12 20v-8M16 20V6M20 20v-9"/>'],
+  library: [
+    '<path d="M3 21h18M4 9h16M12 3 3 8.5V9h18v-.5z"/><path d="M6 9v10M10 9v10M14 9v10M18 9v10"/><path d="M4 19h16"/>',
+    '<path d="M3 21h18"/><path d="M4 21V5h3v16M7 21V7h3v14"/><path d="m11.5 7.5 3-.8 3.6 13.6-3 .8z"/><path d="M5.5 8v2M8.5 10v2"/>',
+    '<path d="M7 3h10v18l-5-4-5 4z"/>'],
+  forest: [
+    '<path d="M12 21v-6"/><path d="M8 21h8"/><path d="M5 11h14l-7-7z"/><rect x="7" y="11" width="10" height="5"/><path d="M11 13.5h2"/><path d="M16 16v5"/>',
+    '<path d="M3.5 12a8.5 6.5 0 0 1 17 0z"/><path d="M9.5 12v6.5a2.5 2.5 0 0 0 5 0V12"/><circle cx="8" cy="8.5" r="1" fill="currentColor"/><circle cx="14.5" cy="7" r="1" fill="currentColor"/>',
+    '<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 15c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/><path d="M8 21h8"/>'],
+  violet: [
+    '<path d="M2 21c1-7 4.5-13 10-13s9 6 10 13"/><path d="M8 21c.5-4 2-6.5 4-6.5s3.5 2.5 4 6.5"/><path d="M6 6l2 3M18 6l-2 3M12 3v2"/>',
+    '<path d="m12 3 4 5-4 13-4-13z"/><path d="M8 8h8"/><path d="m5 11 2.5 3L5 20l-2.5-6z"/><path d="m19 11 2.5 3-2.5 6-2.5-6z"/>',
+    '<path d="m4 21 1.5-6 1.5 6"/><path d="m9.5 21 2.5-11 2.5 11"/><path d="m17 21 2-15 2 15"/><path d="M2 21h20"/>'],
+  zen: [
+    '<path d="M3 6c4 1 14 1 18 0"/><path d="M5 9h14"/><path d="M7 6v15M17 6v15"/><path d="M4 21h6M14 21h6"/>',
+    '<ellipse cx="12" cy="19" rx="8" ry="2.5"/><ellipse cx="12" cy="13.5" rx="5.5" ry="2.5"/><ellipse cx="12" cy="8.5" rx="3.5" ry="2"/><ellipse cx="12" cy="4.5" rx="2" ry="1.2"/>',
+    '<path d="M10 21V3"/><path d="M8.5 8h3M8.5 13h3M8.5 18h3"/><path d="M10 8c2-1 4-3 5-5M10 13c3 0 5-2 7-4"/>'],
+  woods: [
+    '<path d="M3 11 12 4l9 7"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-5h4v5"/><path d="M16 6.5V4h2v4"/><path d="M7.5 13h2"/>',
+    '<path d="M12 2 6 10h3l-4 6h4l-3 4h12l-3-4h4l-4-6h3z"/><path d="M12 20v2"/>',
+    '<circle cx="5" cy="12" r="3"/><path d="M5 9a3 3 0 0 0 0 6"/><circle cx="12" cy="12" r="3"/><path d="M12 9v6" /><circle cx="19" cy="12" r="3" fill="currentColor"/>'],
+  cemetery: [
+    '<path d="M4 21V9M20 21V9"/><path d="M4 9c0-3 3.5-5 8-5s8 2 8 5"/><path d="M8 21V10M12 21V8.5M16 21V10"/><path d="M2 21h20"/><path d="M12 4V2"/>',
+    '<path d="M6 21V9a6 6 0 0 1 12 0v12z"/><path d="M12 8v7M9.5 10.5h5"/><path d="M3 21h18"/>',
+    '<path d="M9 3h6"/><path d="M12 3v2"/><path d="M8 5h8l1 3H7z"/><path d="M8 8h8v10H8z"/><path d="M7 18h10v3H7z"/><path d="M12 11c1.2 1.3 1.2 2.7 0 4-1.2-1.3-1.2-2.7 0-4z"/>'],
+  clown: [
+    '<path d="M2 20 12 4l10 16z"/><path d="M12 4v16"/><path d="M7 20l5-16 5 16"/><path d="M12 4V1.5l3 1-3 1"/><path d="M10 20v-4h4v4"/>',
+    '<path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M8 7v10" stroke-dasharray="1.5 2"/><path d="m14 10 .9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z"/>',
+    '<path d="M12 15c-3.5 0-6-3-6-6.5a6 6 0 0 1 12 0C18 12 15.5 15 12 15z"/><path d="m11 15-1 1.5h4L13 15"/><path d="M12 16.5c-1 2 1 3 0 5.5"/>'],
+  arcade: [
+    PX([[6, 2, 12, 2], [5, 4, 2, 18], [17, 4, 2, 18], [8, 6, 8, 6], [7, 14, 10, 2], [9, 16, 2, 2], [13, 16, 2, 2], [5, 20, 14, 2]]),
+    PX([[10, 3, 4, 4], [11, 7, 2, 7], [5, 14, 14, 2], [5, 16, 2, 4], [17, 16, 2, 4], [5, 20, 14, 2], [15, 11, 3, 3]]),
+    PX([[7, 3, 10, 2], [6, 5, 2, 5], [16, 5, 2, 5], [3, 5, 3, 2], [18, 5, 3, 2], [3, 7, 2, 3], [19, 7, 2, 3], [8, 10, 8, 2], [11, 12, 2, 4], [8, 16, 8, 2], [7, 18, 10, 3]])],
+  platform: [
+    PX([[3, 8, 3, 3], [10, 5, 4, 3], [18, 8, 3, 3], [3, 11, 18, 2], [3, 13, 2, 9], [19, 13, 2, 9], [10, 16, 4, 6], [6, 15, 2, 2], [16, 15, 2, 2], [3, 20, 18, 2]]),
+    PX([[4, 4, 16, 2], [4, 6, 2, 12], [18, 6, 2, 12], [4, 18, 16, 2], [10, 7, 4, 2], [13, 9, 2, 2], [11, 11, 2, 2], [11, 14, 2, 2]]),
+    PX([[6, 3, 2, 18], [8, 4, 8, 2], [8, 6, 6, 2], [8, 8, 4, 2], [3, 20, 8, 2], [5, 1, 4, 2]])],
+  maze: [
+    PX([[3, 3, 18, 2], [3, 5, 2, 16], [19, 5, 2, 7], [3, 19, 9, 2], [15, 19, 6, 2], [19, 15, 2, 4], [7, 7, 2, 8], [7, 7, 8, 2], [11, 11, 6, 2], [11, 13, 2, 4]]),
+    PX([[8, 4, 8, 2], [6, 6, 12, 2], [4, 8, 16, 10], [4, 18, 3, 2], [9, 18, 2, 2], [13, 18, 2, 2], [17, 18, 3, 2]]) + '<rect x="7" y="10" width="3" height="3" fill="var(--bg)" stroke="none"/><rect x="14" y="10" width="3" height="3" fill="var(--bg)" stroke="none"/>',
+    PX([[2, 11, 2, 2], [7, 11, 2, 2], [12, 11, 2, 2], [17, 9, 5, 6], [18, 8, 3, 8]])],
+  blocks: [
+    PX([[4, 6, 16, 5], [9, 11, 6, 5]]) + '<path d="M9 6v5M15 6v5M9 11h6" stroke="var(--bg)" stroke-width="1"/>',
+    PX([[4, 16, 5, 5], [9.5, 16, 5, 5], [15, 16, 5, 5], [4, 10.5, 5, 5], [9.5, 10.5, 5, 5], [9.5, 5, 5, 5]]),
+    PX([[3, 17, 4, 4], [8, 13, 4, 8], [13, 9, 4, 12], [18, 4, 4, 17]])],
+  ocean: [
+    '<path d="M3 15h18l-3 5H6z"/><path d="M12 3v12"/><path d="M12 4l6 7h-6"/><path d="M12 6 7 12h5"/>',
+    '<path d="M3 10a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10H3z"/><path d="M3 11h18"/><rect x="10" y="9" width="4" height="4" rx="1"/>',
+    '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>'],
+  beach: [
+    '<path d="M12 21c0-5 0-9 1-12"/><path d="M13 9c-2-3-6-3.5-8-2 3 0 5 1 8 2z"/><path d="M13 9c2-3 6-3.5 8-2-3 0-5 1-8 2z"/><path d="M13 9c-1-3-.5-5 1.5-6.5-.5 2.5-1 4-1.5 6.5z"/><path d="M3 21c3-1.5 6-1.5 9 0s6 1.5 9 0"/>',
+    '<path d="M16.5 3c2.5 2.5 1 9-3.5 13.5S5.5 22 3 21c-1-2.5.5-8.5 5-13S14 .5 16.5 3z"/><path d="M5 19 17 5"/>',
+    '<path d="M2 16c2.5-6 8-9.5 12.5-7 2.5 1.5 2 5-1 5 2 2 5.5 1 8.5-1"/><path d="M2 20c3-1.3 6-1.3 9 0s6 1.3 9 0"/>'],
+  deep: [
+    '<path d="M3 14a7 4 0 0 0 7 4h6a5 4 0 0 0 0-8h-6a7 4 0 0 0-7 4z"/><path d="M11 10V7h3v3"/><circle cx="15" cy="14" r="1.3"/><path d="M21 12v4"/>',
+    '<path d="M5 12a7 7 0 0 1 14 0z"/><path d="M7 12c0 3 1 5 0 8M10.5 12c0 3 1 5.5 0 9M13.5 12c0 3-1 5.5 0 9M17 12c0 3-1 5 0 8"/>',
+    '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12 18 6"/><circle cx="15" cy="15" r="1" fill="currentColor"/>'],
+  space: [
+    '<path d="M12 2c3 2.5 4.5 6 4.5 10v5h-9v-5C7.5 8 9 4.5 12 2z"/><circle cx="12" cy="10" r="2"/><path d="M7.5 13 5 16v4l2.5-3M16.5 13l2.5 3v4l-2.5-3"/><path d="M10 20.5h4"/>',
+    '<circle cx="12" cy="12" r="5.5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.5" transform="rotate(-20 12 12)"/>',
+    '<circle cx="4" cy="17" r="1.3" fill="currentColor"/><circle cx="10" cy="11" r="1.3" fill="currentColor"/><circle cx="15" cy="14" r="1.3" fill="currentColor"/><circle cx="20" cy="5" r="1.3" fill="currentColor"/><path d="M4 17l6-6 5 3 5-9"/>'],
+};
+function tabIcon(i) {
+  const th = prefs().theme, set = TAB_ICONS[th], d = set && set[i];
+  if (!d) return null;
+  const px = /^(arcade|platform|maze|blocks)$/.test(th) ? ' shape-rendering="crispEdges"' : "";
+  return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ticon"${px}>${d}</svg>`;
+}
 function tabTo(v) { if (route.v === v) { window.scrollTo({ top: 0, behavior: "smooth" }); return; } go({ v }); }
 function updateTabbar() {
   const show = TAB_PAGES.includes(route.v) && !document.querySelector("#lockscreen:not([hidden])");
@@ -7115,19 +7260,25 @@ function updateTabbar() {
   nav.hidden = false; nav.replaceChildren();
   const th = prefs().theme, word = tabWord();
   const act = route.v === "pack" || route.v === "packs" ? "settings" : route.v;
-  const tab = (v, icon, label) => {
-    const b = btn("tbtn" + (act === v ? " on" : ""), null, () => tabTo(v)); b.innerHTML = tico(icon); b.append(el("span", "tlab", label));
+  const tab = (v, icon, label, k) => {
+    const b = btn("tbtn" + (act === v ? " on" : ""), null, () => tabTo(v)); b.innerHTML = tabIcon(k) || tico(icon); b.append(el("span", "tlab", label));
     if (act === v) b.setAttribute("aria-current", "page"); return b;
   };
   const plus = btn("tbtn tplus", null, () => openAddSheet()); plus.setAttribute("aria-label", "Add");
   const pc = el("span", "tpc"); pc.innerHTML = tico("plus", 26); plus.append(pc, el("span", "tlab", "Add"));
   const me = gearBtn(); me.classList.add("tbtn", "tme"); if (act === "settings") { me.classList.add("on"); me.setAttribute("aria-current", "page"); }
-  me.id = "tabme"; me.setAttribute("aria-label", me.querySelector(".bkdot") ? "Me (time for a backup)" : "Me"); me.append(el("span", "tlab", "Me"));
-  nav.append(tab("home", "home", "Home"), tab("subjects", SUBJ_TAB_ICON[th] || "books", word), plus, tab("progress", "chart", "Progress"), me);
+  me.id = "tabme"; me.setAttribute("aria-label", me.querySelector(".bkdot") ? "Me and settings (time for a backup)" : "Me and settings");
+  nav.append(tab("home", "home", "Home", 0), tab("subjects", SUBJ_TAB_ICON[th] || "books", word, 1), plus, tab("progress", "chart", "Progress", 2), me);
 }
 // ---------- Home: continue card, quick buttons, next theme ----------
 function lastStudied() {
   let best = null;
+  const pick = lsGet("md-homesid", null);
+  if (pick && subjects[pick] && !subjects[pick].archived) {
+    const p = lsGet("md-p-" + pick, null), q = lsGet("md-quiz-" + pick, null);
+    const quiz = q && !q.done && Array.isArray(q.items) ? q : null;
+    return { sid: pick, p, quiz, at: p && p.at || 0, picked: true };
+  }
   for (const sid of Object.keys(subjects)) {
     if (subjects[sid].archived) continue;
     const p = lsGet("md-p-" + sid, null), q = lsGet("md-quiz-" + sid, null);
@@ -7156,7 +7307,9 @@ function homeCards(m) {
     const q = ls.quiz, left = q ? q.items.length - q.ans.filter((a) => a && a.length).length : 0;
     if (prefs().remind) { const sk = streaks(); if (sk.cur || sk.today) { const r = el("p", "hstreak" + (sk.today ? " done" : "")); r.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4 0 7-2.8 7-7 0-4-3-6-4-9-1 2-2 3-3.5 3.5C11 7 11 4 9 2 9 6 5 9 5 14.5 5 19 8 22 12 22z"/></svg>'; r.append(sk.today ? `${sk.cur}-day streak · studied today` : `Keep your ${sk.cur}-day streak going`); c.append(r); } }
     c.append(el("p", "hlbl", q ? "Quiz in progress" : ls.at ? "Continue where you left off" : "Start studying"));
-    c.append(el("p", "hname", s.name));
+    const nm = btn("hname hpick", null, () => openSubjectPicker()); nm.append(el("span", null, s.name));
+    const cv = el("span", "hpickc"); cv.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>'; nm.append(cv);
+    nm.setAttribute("aria-label", `${s.name}. Change subject`); c.append(nm);
     c.append(el("p", "hsub", q ? `${left} question${left === 1 ? "" : "s"} left in your quiz` : `${pct}% mastered`));
     const bar = el("div", "hbar"); const f = el("i"); f.style.width = Math.max(2, q ? Math.round((q.items.length - left) / q.items.length * 100) : pct) + "%"; bar.append(f); c.append(bar);
     const go1 = btn("hgo", null, () => q ? go({ v: "quiz", sid: ls.sid }) : go({ v: "study", sid: ls.sid }));
@@ -7170,7 +7323,7 @@ function homeCards(m) {
     else qb("cards", "Study", () => go({ v: "study", sid: ls.sid }));
     m.append(row);
   }
-  const nt = nextTheme();
+  const nt = null; // the next theme lives in the Progress tab (user: no need for it on Home)
   if (nt) {
     const c = btn("hcard hnext", null, () => go({ v: "progress" }));
     const ph = el("span", "hnph");
@@ -7185,6 +7338,16 @@ function homeCards(m) {
     m.append(c);
   }
 }
+function openSubjectPicker() {
+  const ids = Object.keys(subjects).filter((x) => !subjects[x].archived).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
+  const cur = lastStudied();
+  openSheet("Study which subject?", (sh, row) => {
+    for (const sid of ids) {
+      const b = row("books", subjects[sid].name, `${subjPct(sid)}% mastered`, () => { lsSet("md-homesid", sid); closeSheet(); rerender(); });
+      if (cur && cur.sid === sid) { b.classList.add("on"); b.setAttribute("aria-current", "true"); }
+    }
+  });
+}
 // ---------- Subjects tab ----------
 function renderSubjects() {
   topbar(null, null, tabWord());
@@ -7192,30 +7355,170 @@ function renderSubjects() {
   const { arch } = subjectList(m);
   subjectsExtras(m, arch);
 }
-// ---------- Progress tab: your stats + every theme you can earn ----------
+// ---------- Progress tab: your stats + charts over time ----------
+// ================= Daily history (for the Progress charts) =================
+let histLastAt = 0;
+function histTick(ok) {
+  try {
+    const h = lsGet("md-hist", {}), k = dayKey(), now = Date.now(), d = h[k] || (h[k] = { a: 0, ok: 0, sec: 0, ms: {} });
+    d.a++; if (ok) d.ok++;
+    if (histLastAt && now - histLastAt < 5 * 60e3) d.sec = (d.sec || 0) + Math.min(120, Math.round((now - histLastAt) / 1000)); else d.sec = (d.sec || 0) + 20;
+    histLastAt = now;
+    if (SID && S && S.it) { d.ms = d.ms || {}; d.ms[SID] = Object.values(S.it).filter((x) => x.m).length; }
+    const keys = Object.keys(h).sort(); if (keys.length > 400) for (const x of keys.slice(0, keys.length - 400)) delete h[x];
+    lsSet("md-hist", h);
+  } catch (e) {}
+}
+function histSnapshot() {   // today's mastered count for every subject, so the mastered line has a starting point
+  const h = lsGet("md-hist", {}), k = dayKey(); let changed = !h[k];
+  const d = h[k] || (h[k] = { a: 0, ok: 0, sec: 0, ms: {} }); d.ms = d.ms || {};
+  for (const sid of Object.keys(subjects)) {
+    if (d.ms[sid] != null) continue;
+    const p = lsGet("md-p-" + sid, null); d.ms[sid] = p ? Object.values(p.it || {}).filter((x) => x.m).length : 0; changed = true;
+  }
+  if (changed) lsSet("md-hist", h);
+  return h;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, text) { const e = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v); if (text != null) e.textContent = text; return e; }
+function dayList(n, end) { const out = []; const base = new Date(end || Date.now()); base.setHours(12, 0, 0, 0); for (let i = n - 1; i >= 0; i--) out.push(dayKey(base.getTime() - i * 864e5)); return out; }
+function trend(a, b, unit, fmt) {   // a = this week, b = the week before
+  const s = el("span", "trend");
+  if (b == null || a == null) { s.textContent = "new"; s.classList.add("flat"); return s; }
+  const d = a - b;
+  if (!d) { s.textContent = "same"; s.classList.add("flat"); return s; }
+  s.classList.add(d > 0 ? "up" : "down");
+  s.textContent = (d > 0 ? "▲ " : "▼ ") + (fmt ? fmt(Math.abs(d)) : Math.abs(d).toLocaleString()) + (unit || "");
+  return s;
+}
+function progressCharts(m) {
+  const h = histSnapshot(), now = Date.now();
+  const d28 = dayList(28), last7 = d28.slice(21), prev7 = d28.slice(14, 21);
+  const sum = (keys, f) => keys.reduce((t, k) => t + (h[k] ? f(h[k]) : 0), 0);
+  const ans = (ks) => sum(ks, (x) => x.a || 0), okc = (ks) => sum(ks, (x) => x.ok || 0), secs = (ks) => sum(ks, (x) => x.sec || 0);
+  const studied = new Set(lsGet("md-days", []));
+  const daysIn = (ks) => ks.filter((k) => studied.has(k)).length;
+  // mastered total per day (carry each subject's last known count forward)
+  const allKeys = Object.keys(h).sort();
+  const masteredOn = (key) => { const cur = {}; for (const k of allKeys) { if (k > key) break; for (const [sid, v] of Object.entries(h[k].ms || {})) cur[sid] = v; } const vals = Object.values(cur); return vals.length ? vals.reduce((a, b) => a + b, 0) : null; };
+  const firstHist = allKeys[0];
+  const mNow = masteredOn(last7[6]), mWeekAgo = firstHist && firstHist <= prev7[6] ? masteredOn(prev7[6]) : null, m2Ago = firstHist && firstHist <= d28[13] ? masteredOn(d28[13]) : null;
+  const acc = (ks) => { const a = ans(ks); return a >= 5 ? Math.round(okc(ks) / a * 100) : null; };
+
+  // ---- This week vs last week ----
+  const cmp = el("div", "panel sp chartp"); cmp.append(el("h3", null, "This week vs last week"));
+  const g = el("div", "cmpgrid");
+  const cell = (val, label, tr) => { const c = el("div", "cmpc"); c.append(el("b", null, val), el("span", null, label), tr); g.append(c); };
+  const a1 = ans(last7), a0 = ans(prev7), hasPrev = firstHist && firstHist <= prev7[6];
+  cell(a1.toLocaleString(), "questions", trend(a1, hasPrev ? a0 : null));
+  const c1 = acc(last7), c0 = hasPrev ? acc(prev7) : null;
+  cell(c1 == null ? "–" : c1 + "%", "accuracy", trend(c1, c0, " pts"));
+  const g1 = mNow != null && mWeekAgo != null ? mNow - mWeekAgo : null, g0 = mWeekAgo != null && m2Ago != null ? mWeekAgo - m2Ago : null;
+  cell(g1 == null ? "–" : (g1 >= 0 ? "+" : "") + g1, "mastered", trend(g1, g0));
+  const t1 = Math.round(secs(last7) / 60), t0 = hasPrev ? Math.round(secs(prev7) / 60) : null;
+  cell(t1 + "m", "studied", trend(t1, t0, "m"));
+  cmp.append(g);
+  if (!hasPrev) cmp.append(el("p", "small muted chartnote", "Nion started keeping a daily history today, so last week shows up once you've studied for a week."));
+  m.append(cmp);
+
+  // ---- Questions per day: last 14 days, last week faded ----
+  const qp = el("div", "panel sp chartp"); qp.append(el("h3", null, "Questions per day"));
+  const d14 = d28.slice(14), vals = d14.map((k) => (h[k] && h[k].a) || 0), mx = Math.max(10, ...vals);
+  const W = 320, Hh = 150, padB = 22, padT = 16, bw = W / 14;
+  const sv = svgEl("svg", { viewBox: `0 0 ${W} ${Hh}`, class: "chart", role: "img", "aria-label": `Questions answered per day for the last 14 days. Last 7 days: ${a1}. The 7 days before: ${a0}.` });
+  for (let i = 0; i <= 2; i++) { const y = padT + (Hh - padB - padT) * i / 2; sv.append(svgEl("line", { x1: 0, x2: W, y1: y, y2: y, class: "grid" })); }
+  sv.append(svgEl("text", { x: 2, y: padT - 4, class: "axis" }, Math.round(mx).toLocaleString()));
+  d14.forEach((k, i) => {
+    const v = vals[i], bh = (Hh - padB - padT) * v / mx, x = i * bw + bw * .18, y = Hh - padB - bh;
+    sv.append(svgEl("rect", { x, y: v ? y : Hh - padB - 2, width: bw * .64, height: v ? Math.max(2, bh) : 2, rx: 2.5, class: i < 7 ? "cbar old" : "cbar" + (i === 13 ? " today" : "") }));
+    const dd = new Date(k + "T12:00:00"); sv.append(svgEl("text", { x: i * bw + bw / 2, y: Hh - 6, class: "axis mid" + (i === 13 ? " now" : "") }, "SMTWTFS"[dd.getDay()]));
+  });
+  sv.append(svgEl("line", { x1: 7 * bw, x2: 7 * bw, y1: padT - 6, y2: Hh - padB, class: "split" }));
+  qp.append(sv);
+  const lg = el("div", "legend"); const l1 = el("span", "lg old"), l2 = el("span", "lg"); l1.append(el("i"), "The 7 days before"); l2.append(el("i"), "Last 7 days"); lg.append(l1, l2); qp.append(lg);
+  m.append(qp);
+
+  // ---- Mastered over time: last 30 days ----
+  const mp = el("div", "panel sp chartp"); mp.append(el("h3", null, "Mastered over time"));
+  const d30 = dayList(30), pts = d30.map((k) => (!firstHist || k < firstHist) ? null : masteredOn(k));
+  const known = pts.filter((x) => x != null);
+  const sv2 = svgEl("svg", { viewBox: `0 0 ${W} ${Hh}`, class: "chart", role: "img", "aria-label": `Questions mastered over the last 30 days. Now: ${mNow == null ? 0 : mNow}.` });
+  const lo = known.length ? Math.min(...known) : 0, hi = known.length ? Math.max(...known) : 1, span = Math.max(5, hi - lo);
+  const ymin = Math.max(0, lo - span * .15), ymax = hi + span * .15;
+  for (let i = 0; i <= 2; i++) { const y = padT + (Hh - padB - padT) * i / 2; sv2.append(svgEl("line", { x1: 0, x2: W, y1: y, y2: y, class: "grid" })); }
+  const X = (i) => 6 + (W - 12) * i / 29, Y = (v) => padT + (Hh - padB - padT) * (1 - (v - ymin) / (ymax - ymin || 1));
+  let path = "", area = "", started = false, firstI = 0, lastI = 0;
+  pts.forEach((v, i) => { if (v == null) return; if (!started) { firstI = i; path += `M${X(i)},${Y(v)}`; started = true; } else path += ` L${X(i)},${Y(v)}`; lastI = i; });
+  if (started) {
+    area = path + ` L${X(lastI)},${Hh - padB} L${X(firstI)},${Hh - padB} Z`;
+    sv2.append(svgEl("path", { d: area, class: "area" }), svgEl("path", { d: path, class: "line" }));
+    sv2.append(svgEl("circle", { cx: X(lastI), cy: Y(pts[lastI]), r: 4, class: "dot" }));
+    sv2.append(svgEl("text", { x: Math.min(W - 4, X(lastI)), y: Math.max(12, Y(pts[lastI]) - 9), class: "axis end strong" }, pts[lastI].toLocaleString()));
+  }
+  sv2.append(svgEl("text", { x: 2, y: Hh - 6, class: "axis" }, "30 days ago"), svgEl("text", { x: W - 2, y: Hh - 6, class: "axis end" }, "Today"));
+  mp.append(sv2);
+  if (known.length < 2) mp.append(el("p", "small muted chartnote", "Your line grows from here as you master questions."));
+  m.append(mp);
+
+  // ---- Study calendar: last 16 weeks (uses your study days, including ones from before) ----
+  const cp = el("div", "panel sp chartp"); cp.append(el("h3", null, "Study days"));
+  const weeks = 16, cs = 17, gap = 3, today = new Date(); today.setHours(12, 0, 0, 0);
+  const startD = new Date(today.getTime() - ((weeks - 1) * 7 + today.getDay()) * 864e5);
+  const sv3 = svgEl("svg", { viewBox: `0 0 ${weeks * (cs + gap) + 14} ${7 * (cs + gap) + 4}`, class: "chart cal", role: "img" });
+  let nStudied = 0, maxA = 1;
+  for (const k of Object.keys(h)) maxA = Math.max(maxA, h[k].a || 0);
+  for (let w = 0; w < weeks; w++) for (let dd = 0; dd < 7; dd++) {
+    const t = startD.getTime() + (w * 7 + dd) * 864e5; if (t > today.getTime() + 1000) continue;
+    const k = dayKey(t), on = studied.has(k); if (on) nStudied++;
+    const a = h[k] ? h[k].a || 0 : 0, lvl = !on ? 0 : a ? 1 + Math.min(3, Math.floor(a / maxA * 3.999)) : 2;
+    sv3.append(svgEl("rect", { x: 14 + w * (cs + gap), y: 2 + dd * (cs + gap), width: cs, height: cs, rx: 4, class: "cell l" + lvl + (k === dayKey() ? " now" : "") }));
+  }
+  ["S", "", "T", "", "T", "", "S"].forEach((t, i) => t && sv3.append(svgEl("text", { x: 0, y: 2 + i * (cs + gap) + cs - 4, class: "axis" }, t)));
+  sv3.setAttribute("aria-label", `You studied on ${nStudied} days in the last ${weeks} weeks.`);
+  cp.append(sv3, el("p", "small muted chartnote", `${nStudied} study day${nStudied === 1 ? "" : "s"} in the last ${weeks} weeks · darker = more questions`));
+  m.append(cp);
+}
+
 function renderProgress() {
   topbar(null, null, "Progress");
-  checkPacks(true);
   const m = $("main"); m.replaceChildren();
   const pp = el("div", "panel sp prof"); pp.append(el("h3", null, "Your progress"));
   const s = streaks(), st = accountStats(), acct = el("div", "acct");
   const stat = (v, l) => { const d = el("div", "astat"); d.append(el("b", null, String(v)), el("span", null, l)); acct.append(d); };
   stat(s.cur, "day streak"); stat(s.best, "best streak"); stat(st.answered, "answered"); stat(st.acc == null ? "–" : st.acc + "%", "accuracy"); stat(st.mastered, "mastered"); stat(st.subjects, st.subjects === 1 ? "subject" : "subjects");
   pp.append(acct); m.append(pp);
-  const all = PACKS.flatMap((pk) => pk.themes), got = all.filter((x) => themeOpen(x.id)).length;
-  const hh = el("div", "pthead"); hh.append(el("h2", null, "Your themes"), el("span", null, `${got} of ${all.length} earned`)); m.append(hh);
-  for (const pk of PACKS) {
-    const box = el("div", "panel sp packpage ppk"); box.id = "ppack-" + pk.id;
-    const n = pk.themes.filter((x) => themeOpen(x.id)).length;
-    box.append(el("h3", null, `${pk.name} · ${n} of ${pk.themes.length}`), packGrid(pk));
-    m.append(box);
+  progressCharts(m);
+  const sids = Object.keys(subjects).filter((x) => !subjects[x].archived).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
+  if (sids.length) {
+    const bs = el("div", "panel sp bysubj"); bs.append(el("h3", null, "By subject"));
+    for (const sid of sids) {
+      const sp = lsGet("md-p-" + sid, null), total = subjects[sid].count || 0;
+      const mastered = sp ? Object.values(sp.it || {}).filter((x) => x.m).length : 0, pct = total ? Math.min(100, Math.round(mastered / total * 100)) : 0;
+      const r = btn("bsrow", null, () => go({ v: "subject", sid }));
+      const top = el("span", "bstop"); top.append(el("b", null, subjects[sid].name), el("span", null, pct + "%"));
+      const bar = el("span", "hbar"); const f = el("i"); f.style.width = Math.max(2, pct) + "%"; bar.append(f);
+      r.append(top, bar, el("span", "bsmeta", `${mastered.toLocaleString()} of ${total.toLocaleString()} mastered`));
+      bs.append(r);
+    }
+    m.append(bs);
   }
-  const t = tpk(), ids = all.filter((x) => isNew(x.id)).map((x) => x.id);
-  if (ids.length) lsSet("md-tpk", { ...t, seen: [...new Set([...t.seen, ...ids])] });
+  // Themes are picked (and their progress shown) in Settings → Appearance, not here.
 }
 // ---------- The + button: everything you can add ----------
 function closeSheet() { const o = document.getElementById("addsheet"); if (o) { o.classList.add("out"); setTimeout(() => o.remove(), 220); } document.removeEventListener("keydown", sheetKey); }
 function sheetKey(e) { if (e.key === "Escape") closeSheet(); }
+function openSheet(title, fill) {
+  let o = document.getElementById("addsheet");
+  if (!o) { o = el("div", "sheetwrap"); o.id = "addsheet"; document.body.append(o); document.addEventListener("keydown", sheetKey); }
+  o.replaceChildren();
+  const bg = btn("sheetbg", null, closeSheet); bg.setAttribute("aria-label", "Close"); bg.tabIndex = -1;
+  const sh = el("div", "sheet"); sh.setAttribute("role", "dialog"); sh.setAttribute("aria-modal", "true"); sh.setAttribute("aria-label", title);
+  sh.append(el("span", "grab"), el("h2", null, title));
+  const row = (icon, t, sub, fn) => { const b = btn("sheetrow", null, fn); const i = el("span", "sri"); i.innerHTML = tico(icon, 22); const tx = el("span", "srt"); tx.append(el("b", null, t), el("span", null, sub)); const c = el("span", "src"); c.innerHTML = tico("chev", 18); b.append(i, tx, c); sh.append(b); return b; };
+  fill(sh, row);
+  sh.append(btn("sheetclose", "Close", closeSheet));
+  o.append(bg, sh); requestAnimationFrame(() => { o.classList.add("in"); const f = sh.querySelector(".sheetrow.on") || sh.querySelector(".sheetrow"); if (f) f.focus({ preventScroll: true }); });
+}
 function openAddSheet(step) {
   let o = document.getElementById("addsheet");
   if (!o) { o = el("div", "sheetwrap"); o.id = "addsheet"; document.body.append(o); document.addEventListener("keydown", sheetKey); }
@@ -7253,7 +7556,7 @@ function showUnlock(list) {
   const close = () => { o.classList.add("out"); setTimeout(() => o.remove(), 250); };
   const seen = () => { const t = tpk(); lsSet("md-tpk", { ...t, seen: [...new Set([...t.seen, ...list])] }); };
   const tryit = btn("ulgo", "Try it now", () => { seen(); setPref("theme", id); close(); rerender(); });
-  const later = btn("ullater", list.length > 1 ? "See them in Progress" : "Maybe later", () => { close(); if (list.length > 1) go({ v: "progress" }); });
+  const later = btn("ullater", list.length > 1 ? "See them in Settings" : "Maybe later", () => { close(); if (list.length > 1) go({ v: "pack", id: pk.id }); });
   box.append(tryit, later); o.append(box); document.body.append(o);
   requestAnimationFrame(() => { o.classList.add("in"); tryit.focus({ preventScroll: true }); });
 }
@@ -7273,8 +7576,9 @@ function renderHome() {
   if (buddyOn()) m.append(buddyCard()); else if (!lastStudied()) { const rb = reminderBanner(); if (rb) m.append(rb); }
   if (pendingRestore) m.append(restoreConfirm());
   homeCards(m);
-  const { ids, arch } = subjectList(m);
-  if (!ids.length) subjectsExtras(m, arch);
+  // Home = "what do I do now". The subjects themselves live in the Subjects tab.
+  const ids = Object.keys(subjects).filter((x) => !subjects[x].archived);
+  if (!ids.length) { const arch = Object.keys(subjects).filter((x) => subjects[x].archived); subjectsExtras(m, arch); }
 }
 // The themed subject cards (used on Home and on the Subjects tab)
 function subjectList(m) {
@@ -8334,7 +8638,7 @@ function cbInsert(R, id, lo, hi) {
 function hintRecord(id) {
   logActivity(); const s = S.it[id] || (S.it[id] = { c: 0, due: null, ok: 0, bad: 0 }); S.n++;
   if (s.str == null) s.str = s.m ? 3 : Math.min(s.c || 0, 2);
-  s.str = Math.max(0, s.str - 1); s.m = 0; s.next = Date.now() + DAY_MS; s.due = null; S.at = Date.now(); persist();
+  s.str = Math.max(0, s.str - 1); s.m = 0; s.next = Date.now() + DAY_MS; s.due = null; S.at = Date.now(); persist(); histTick(false);
 }
 function studyRecord(c, ok) {
   logActivity(); const id = c.id; const s = S.it[id] || (S.it[id] = { c: 0, due: null, ok: 0, bad: 0 }); S.n++;
@@ -8346,7 +8650,7 @@ function studyRecord(c, ok) {
     else { s.m = 0; s.next = now + DAY_MS; }
   } else if (ok) { s.m = 0; s.next = now + DAY_MS; }            // right with a hint: no circle, comes back
   else { s.bad++; s.c = 0; s.str = 0; s.m = 0; s.next = now + DAY_MS; }   // a miss empties the circles
-  s.due = null; S.at = now; persist();
+  s.due = null; S.at = now; persist(); histTick(ok);
 }
 const hasRecall = (it) => !!(it && (it.ty || it.ord || it.mt));
 function runAfter(c, ok) {
