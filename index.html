@@ -4089,6 +4089,44 @@ html.tabroot .top .back { display: none; }
 /* Framed themes (Retro Arcade, Deep Space, Cozy Café) add room for the clock above their frame; under a top bar that room is not needed */
 html:is([data-theme="arcade"], [data-theme="space"], [data-theme="cafe"]) .top:not([hidden]) ~ main { margin-top: 10px !important; }
 @media (prefers-reduced-motion: reduce) { .tabbar .tbtn { transition: none; } }
+/* ===== Courses: the "Course ▾" dropdown, the grouping suggestion, the course editor ===== */
+main > .crschip { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 14px; min-height: 54px; text-align: left; cursor: pointer; font: inherit; border-radius: 16px; }
+.crschip .crsi, .crssug .crsi { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(var(--accent-rgb), .16); color: var(--accent); }
+.crschip .crstx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.crschip .crsl { font: 700 10.5px/1.2 var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.crschip .crsn { font: 700 17px/1.2 var(--f-display); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crschip .crsdn { flex: none; color: var(--accent); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(var(--accent-rgb), .4); }
+.crschip:focus-visible, .crssug button:focus-visible, .crsck:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+main > .crschip + .hcont, main > .crschip + .crssug, main > .crschip + .home-h { margin-top: 10px; }
+main > .crssug { display: flex; gap: 12px; padding: 14px 16px; margin-top: 10px; }
+.crssug .crstx { flex: 1; min-width: 0; }
+.crssug .crsq { margin: 4px 0 10px; font: 400 14.5px/1.4 var(--f-body); color: var(--ink); }
+.crsbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.crsyes, .crsno { min-height: 42px; padding: 0 16px; border-radius: 12px; font: 800 14px/1 var(--f-body); cursor: pointer; }
+.crsyes { border: 0; background: var(--accent); color: var(--bg); }
+.crsno { border: 1px solid var(--line); background: transparent; color: var(--ink); }
+html:is([data-theme="medical"], [data-theme="beach"]) .crsyes { color: #fff; }
+main > .crsempty { padding: 14px 16px; margin-top: 10px; font: 400 14.5px/1.4 var(--f-body); color: var(--muted); }
+main > .home-h.crsg { margin-top: 22px !important; }
+/* Themes write their own heading ("YOUR TAPES"); a course group shows the course name in that same style */
+html:is([data-theme="night"], [data-theme="apothecary"], [data-theme="platform"], [data-theme="maze"], [data-theme="rainy"], [data-theme="library"], [data-theme="blocks"], [data-theme="beach"], [data-theme="deep"], [data-theme="zen"], [data-theme="cemetery"], [data-theme="clown"]) main > .home-h[data-crs]::before { content: attr(data-crs) !important; text-transform: uppercase; white-space: normal !important; line-height: 1.3 !important; min-width: 0; flex: 1 1 auto; padding-right: 10px; }
+.sheet .crslab { display: block; margin: 12px 2px 6px; font: 700 11px/1.3 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.sheet .crsin { width: 100%; box-sizing: border-box; height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--ink); font: 700 17px/1 var(--f-body); }
+.sheet .crsin:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sheet .crslist { display: flex; flex-direction: column; gap: 6px; max-height: 42vh; overflow: auto; }
+.sheet .crsck { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 50px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.sheet .crsck.on { border-color: rgba(var(--accent-rgb), .7); background: rgba(var(--accent-rgb), .12); }
+.crsck .crsbox { flex: none; width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--muted); display: grid; place-items: center; color: transparent; }
+.crsck.on .crsbox { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.crsck .crsct { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.crsck .crsct b { font: 700 15px/1.25 var(--f-body); overflow-wrap: anywhere; }
+.crsck .crsct span { font: 400 12.5px/1.2 var(--f-body); color: var(--muted); }
+.sheet .crssave { width: 100%; margin-top: 14px; height: 50px; font-size: 16px; }
+.sheet .crsdel { width: 100%; margin-top: 8px; }
+html[data-theme="platform"] .crsyes { background: #e63946; color: #fff; border: 3px solid #000; border-radius: 0; box-shadow: 3px 3px 0 #000; }
+html[data-theme="platform"] .crschip .crsn, html[data-theme="platform"] .crssug .crsq { color: #111; }
+html[data-theme="platform"] .crssug .crsno { color: #111; border: 3px solid #000; border-radius: 0; }
+html:is([data-theme="platform"], [data-theme="maze"], [data-theme="arcade"], [data-theme="blocks"]) .crschip .crsn { font-size: 13px; line-height: 1.4; }
 
 /* ===== Home: continue card, quick buttons, next theme (frosted, over the scene) ===== */
 .hcard { background: color-mix(in srgb, var(--bg) 52%, transparent); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
@@ -7174,6 +7212,10 @@ const TI = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   chev: '<path d="m9 6 6 6-6 6"/>',
+  folder: '<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/>',
+  layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7"/>',
   back: '<path d="m15 6-6 6 6 6"/>',
 };
 const tico = (k, sz = 24) => `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TI[k]}</svg>`;
@@ -7292,13 +7334,13 @@ function updateTabbar() {
 function lastStudied() {
   let best = null;
   const pick = lsGet("md-homesid", null);
-  if (pick && subjects[pick] && !subjects[pick].archived) {
+  if (pick && subjects[pick] && !subjects[pick].archived && inCourse(pick)) {
     const p = lsGet("md-p-" + pick, null), q = lsGet("md-quiz-" + pick, null);
     const quiz = q && !q.done && Array.isArray(q.items) ? q : null;
     return { sid: pick, p, quiz, at: p && p.at || 0, picked: true };
   }
   for (const sid of Object.keys(subjects)) {
-    if (subjects[sid].archived) continue;
+    if (subjects[sid].archived || !inCourse(sid)) continue;
     const p = lsGet("md-p-" + sid, null), q = lsGet("md-quiz-" + sid, null);
     const at = Math.max(p && p.at || 0, q && !q.done && q.at || 0);
     const quiz = q && !q.done && Array.isArray(q.items) ? q : null;
@@ -7357,9 +7399,9 @@ function homeCards(m) {
   }
 }
 function openSubjectPicker() {
-  const ids = Object.keys(subjects).filter((x) => !subjects[x].archived).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
-  const cur = lastStudied();
-  openSheet("Study which subject?", (sh, row) => {
+  const ids = Object.keys(subjects).filter((x) => !subjects[x].archived && inCourse(x)).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
+  const cur = lastStudied(), ck = curCourse();
+  openSheet(ck === NO_COURSE ? "Study which subject?" : ck ? `Study which ${courseName(ck)} subject?` : "Study which subject?", (sh, row) => {
     for (const sid of ids) {
       const b = row("books", subjects[sid].name, `${subjPct(sid)}% mastered`, () => { lsSet("md-homesid", sid); closeSheet(); rerender(); });
       if (cur && cur.sid === sid) { b.classList.add("on"); b.setAttribute("aria-current", "true"); }
@@ -7370,8 +7412,130 @@ function openSubjectPicker() {
 function renderSubjects() {
   topbar(null, null, tabWord());
   const m = $("main"); m.replaceChildren();
-  const { arch } = subjectList(m);
+  const live = Object.keys(subjects).filter((x) => !subjects[x].archived).sort(byOrd), c = courses(), ck = curCourse();
+  if (live.length >= 2 || Object.keys(c.list).length) courseChip(m);
+  courseSuggest(m);
+  let arch;
+  if (ck) arch = subjectList(m, { ids: courseIds(ck), title: courseName(ck) }).arch;
+  else {
+    const cs = sortedCourses().filter((k) => courseIds(k).length);
+    if (!cs.length) arch = subjectList(m).arch;
+    else {
+      cs.forEach((k, i) => { arch = subjectList(m, { ids: courseIds(k), title: c.list[k].name, more: i > 0 }).arch; });
+      const loose = live.filter((x) => !courseOf(x));
+      if (loose.length) subjectList(m, { ids: loose, title: "Other subjects", more: true });
+    }
+  }
   subjectsExtras(m, arch);
+}
+// ---------- Courses: group subjects (e.g. HSC003 Midterm + HSC003 Final) ----------
+// md-courses = { list: {cid: {name, order}}, of: {sid: cid}, no: [course codes the user said "not now" to] }
+// md-course = the course picked in the dropdown (null = all courses). One course per subject.
+const byOrd = (a, b) => (subjects[a].order || 0) - (subjects[b].order || 0);
+function courses() { const c = lsGet("md-courses", null) || {}; c.list = c.list || {}; c.of = c.of || {}; c.no = c.no || []; return c; }
+function courseOf(sid) { const c = courses(), k = c.of[sid]; return k && c.list[k] ? k : null; }
+// "_none" = the "Other subjects" choice: every subject that isn't in a course
+const NO_COURSE = "_none";
+function curCourse() { const k = lsGet("md-course", null); return k === NO_COURSE ? k : k && courses().list[k] ? k : null; }
+function courseName(k) { return k === NO_COURSE ? "Other subjects" : (courses().list[k] || {}).name || ""; }
+function inCourse(sid) { const k = curCourse(); return !k || (k === NO_COURSE ? !courseOf(sid) : courseOf(sid) === k); }
+function courseIds(k) { const c = courses(); return Object.keys(subjects).filter((x) => !subjects[x].archived && (k === NO_COURSE ? !courseOf(x) : c.of[x] === k)).sort(byOrd); }
+function sortedCourses() { const c = courses(); return Object.keys(c.list).sort((a, b) => (c.list[a].order || 0) - (c.list[b].order || 0)); }
+function setCourse(k) { lsSet("md-course", k || null); const h = lsGet("md-homesid", null); if (k && h && !inCourse(h)) lsSet("md-homesid", null); }
+function coursePct(k) { let t = 0, mm = 0; for (const sid of courseIds(k)) { const p = lsGet("md-p-" + sid, null); t += subjects[sid].count || 0; mm += p ? Object.values(p.it || {}).filter((x) => x.m).length : 0; } return t ? Math.min(100, Math.round(mm / t * 100)) : 0; }
+// "HSC003 Midterm", "HSC 0003 Final", "hsc-3 quiz" all share the code HSC3
+function courseCode(name) { const r = String(name || "").match(/^\s*([A-Za-z]{2,5})[\s-]?0*(\d{1,4})(?![\d])/); return r ? { key: r[1].toUpperCase() + r[2], show: String(name).trim().match(/^[A-Za-z]{2,5}[\s-]?\d{1,4}/)[0].replace(/[\s-]+/, (x) => x.trim() ? x : " ").toUpperCase() } : null; }
+function courseSuggest(m) {
+  const c = courses(), groups = {};
+  for (const sid of Object.keys(subjects).filter((x) => !subjects[x].archived).sort(byOrd)) {
+    if (courseOf(sid)) continue;
+    const cc = courseCode(subjects[sid].name); if (!cc || c.no.includes(cc.key)) continue;
+    (groups[cc.key] = groups[cc.key] || { show: cc.show, ids: [] }).ids.push(sid);
+  }
+  for (const key of Object.keys(groups)) {
+    const g = groups[key];
+    const into = Object.keys(c.list).find((k) => { const x = courseCode(c.list[k].name); return x && x.key === key; });
+    if (!into && g.ids.length < 2) continue;
+    const names = g.ids.map((x) => subjects[x].name), list = names.length === 1 ? names[0] : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    const card = el("div", "hcard crssug"); const ic = el("span", "crsi"); ic.innerHTML = tico("layers", 22);
+    const tx = el("div", "crstx"); tx.append(el("p", "hlbl", into ? "Add to a course?" : "Make a course?"), el("p", "crsq", into ? `${list} look${names.length === 1 ? "s" : ""} like part of ${c.list[into].name}.` : `${list} look like the same course.`));
+    const bs = el("div", "crsbtns");
+    bs.append(btn("crsyes", into ? `Add to ${c.list[into].name}` : `Group into ${g.show}`, () => {
+      const cc = courses(); let k = into;
+      if (!k) { k = "c" + Date.now().toString(36); cc.list[k] = { name: g.show, order: Date.now() }; }
+      for (const sid of g.ids) cc.of[sid] = k; lsSet("md-courses", cc); toast(`Grouped into ${cc.list[k].name}.`); rerender();
+    }), btn("crsno", "Not now", () => { const cc = courses(); cc.no.push(key); lsSet("md-courses", cc); rerender(); }));
+    tx.append(bs); card.append(ic, tx); m.append(card);
+    return; // one suggestion at a time
+  }
+}
+// The dropdown: "Course: HSC003 ▾" (Home + Subjects tab share the same pick)
+function courseChip(m) {
+  const k = curCourse(), c = courses();
+  const b = btn("hcard crschip", null, () => openCoursePicker());
+  const ic = el("span", "crsi"); ic.innerHTML = tico("folder", 20);
+  const tx = el("span", "crstx"); tx.append(el("span", "crsl", "Course"), el("span", "crsn", k ? courseName(k) : "All courses"));
+  const dn = el("span", "crsdn"); dn.innerHTML = tico("down", 18);
+  b.append(ic, tx, dn); b.setAttribute("aria-label", `Course: ${k ? courseName(k) : "All courses"}. Change course`);
+  m.append(b);
+}
+function openCoursePicker() {
+  const k = curCourse(), c = courses(), all = Object.keys(subjects).filter((x) => !subjects[x].archived);
+  openSheet("Study which course?", (sh, row) => {
+    const a = row("books", "All courses", `Every subject (${all.length})`, () => { setCourse(null); closeSheet(); rerender(); }); if (!k) a.classList.add("on");
+    for (const id of sortedCourses()) {
+      const n = courseIds(id).length;
+      const r = row("folder", c.list[id].name, `${n} subject${n === 1 ? "" : "s"} · ${coursePct(id)}% mastered`, () => { setCourse(id); closeSheet(); rerender(); });
+      if (k === id) { r.classList.add("on"); r.setAttribute("aria-current", "true"); }
+    }
+    if (Object.keys(c.list).length) {
+      const n = courseIds(NO_COURSE).length;
+      const o = row("books", "Other subjects", n ? `${n} subject${n === 1 ? "" : "s"} not in a course` : "Every subject is in a course", () => { setCourse(NO_COURSE); closeSheet(); rerender(); });
+      if (k === NO_COURSE) { o.classList.add("on"); o.setAttribute("aria-current", "true"); }
+    }
+    row("plus", "Make a course", "Name it and pick its subjects", () => openCourseEdit(null));
+    const ek = k && k !== NO_COURSE ? k : null;
+    if (Object.keys(c.list).length) row("pen", ek ? `Edit ${c.list[ek].name}` : "Edit courses", ek ? "Rename it, add or remove subjects" : "Rename, add or remove subjects, or remove a course", () => ek ? openCourseEdit(ek) : openCourseList());
+  });
+}
+function openCourseList() {
+  const c = courses();
+  openSheet("Edit which course?", (sh, row) => { for (const id of sortedCourses()) { const n = courseIds(id).length; row("folder", c.list[id].name, `${n} subject${n === 1 ? "" : "s"}`, () => openCourseEdit(id)); } });
+}
+function openCourseEdit(cid) {
+  const c = courses(), ids = Object.keys(subjects).filter((x) => !subjects[x].archived).sort(byOrd);
+  const pick = new Set(cid ? ids.filter((x) => c.of[x] === cid) : []);
+  let delArm = false;
+  openSheet(cid ? `Edit ${c.list[cid].name}` : "Make a course", (sh) => {
+    const lb = el("label", "crslab", "Course name"); const inp = el("input", "crsin"); inp.type = "text"; inp.maxLength = 40; inp.placeholder = "e.g. HSC003"; inp.value = cid ? c.list[cid].name : "";
+    inp.setAttribute("autocapitalize", "characters"); inp.id = "crsname"; lb.htmlFor = "crsname"; sh.append(lb, inp);
+    sh.append(el("p", "crslab", "Subjects in this course"));
+    const box = el("div", "crslist"); sh.append(box);
+    for (const sid of ids) {
+      const other = c.of[sid] && c.of[sid] !== cid && c.list[c.of[sid]] ? c.list[c.of[sid]].name : null;
+      const r = btn("crsck", null, () => { pick.has(sid) ? pick.delete(sid) : pick.add(sid); paint(); });
+      const bx = el("span", "crsbox"); bx.innerHTML = tico("check", 16);
+      const t = el("span", "crsct"); t.append(el("b", null, subjects[sid].name)); if (other) t.append(el("span", null, `Now in ${other} (will move)`));
+      r.append(bx, t); r.setAttribute("role", "checkbox"); box.append(r);
+      const paint = () => { const on = pick.has(sid); r.classList.toggle("on", on); r.setAttribute("aria-checked", String(on)); }; r._paint = paint; paint();
+    }
+    const paint = () => box.querySelectorAll(".crsck").forEach((r) => r._paint());
+    if (!cid) { const g = ids.filter((x) => !c.of[x]).map((x) => courseCode(subjects[x].name)).find(Boolean); if (g) inp.placeholder = "e.g. " + g.show; }
+    const save = btn("crsyes crssave", cid ? "Save" : "Make course", () => {
+      const name = inp.value.trim(); if (!name) { inp.focus(); toast("Give the course a name."); return; }
+      const cc = courses(); const k = cid || "c" + Date.now().toString(36);
+      cc.list[k] = { ...(cc.list[k] || { order: Date.now() }), name };
+      for (const sid of Object.keys(cc.of)) if (cc.of[sid] === k && !pick.has(sid)) delete cc.of[sid];
+      for (const sid of pick) cc.of[sid] = k;
+      lsSet("md-courses", cc); if (!cid) setCourse(k); closeSheet(); toast(cid ? "Course saved." : `Made ${name}.`); rerender();
+    });
+    sh.append(save);
+    if (cid) { const del = btn("crsno crsdel", "Remove course", () => {
+      if (!delArm) { delArm = true; del.textContent = "Tap again to remove (subjects stay)"; return; }
+      const cc = courses(); delete cc.list[cid]; for (const sid of Object.keys(cc.of)) if (cc.of[sid] === cid) delete cc.of[sid]; lsSet("md-courses", cc);
+      if (lsGet("md-course", null) === cid) lsSet("md-course", null); closeSheet(); toast("Course removed. Its subjects are still here."); rerender();
+    }); sh.append(del); }
+  });
 }
 // ---------- Progress tab: your stats + charts over time ----------
 // ================= Daily history (for the Progress charts) =================
@@ -7593,17 +7757,20 @@ function renderHome() {
   m.append(hero, medArt());
   if (buddyOn()) m.append(buddyCard()); else if (!lastStudied()) { const rb = reminderBanner(); if (rb) m.append(rb); }
   if (pendingRestore) m.append(restoreConfirm());
+  if (Object.keys(courses().list).length) courseChip(m);
   homeCards(m);
+  if (curCourse() && !lastStudied()) m.append(el("div", "hcard crsempty", curCourse() === NO_COURSE ? "Every subject is in a course. Tap above to pick one." : "No subjects in this course yet. Tap the course above to add some."));
   // Home = "what do I do now". The subjects themselves live in the Subjects tab.
   const ids = Object.keys(subjects).filter((x) => !subjects[x].archived);
   if (!ids.length) { const arch = Object.keys(subjects).filter((x) => subjects[x].archived); subjectsExtras(m, arch); }
 }
 // The themed subject cards (used on Home and on the Subjects tab)
-function subjectList(m) {
+function subjectList(m, opt) {
   const all = Object.keys(subjects).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
-  const ids = all.filter((x) => !subjects[x].archived), arch = all.filter((x) => subjects[x].archived);
-  const hh = el("div", "home-h"); hh.append(el("h2", null, "Your subjects")); if (ids.length) hh.append(el("span", "n", String(ids.length).padStart(2, "0"))); m.append(hh);
-  if (!ids.length) m.append(el("div", "panel empty", arch.length ? "All your subjects are archived. Open Archived below to bring one back." : libraryState === "loading" || libraryState === "idle" ? "Tuning in your subjects…" : "No subjects yet. Add one below."));
+  const ids = opt && opt.ids ? opt.ids : all.filter((x) => !subjects[x].archived), arch = all.filter((x) => subjects[x].archived);
+  const hh = el("div", "home-h" + (opt && opt.more ? " crsg" : "")); hh.append(el("h2", null, opt && opt.title || "Your subjects")); if (opt && opt.title) hh.dataset.crs = opt.title; if (ids.length) hh.append(el("span", "n", String(ids.length).padStart(2, "0"))); m.append(hh);
+  if (!ids.length && opt && opt.ids) m.append(el("div", "panel empty", curCourse() === NO_COURSE ? "Every subject is in a course. Tap the course above to pick one." : "No subjects in this course yet. Tap the course above to add some."));
+  else if (!ids.length) m.append(el("div", "panel empty", arch.length ? "All your subjects are archived. Open Archived below to bring one back." : libraryState === "loading" || libraryState === "idle" ? "Tuning in your subjects…" : "No subjects yet. Add one below."));
   for (const sid of ids) {
     const s = subjects[sid]; const b = el("button", "subj"); b.type = "button";
     const p = lsGet("md-p-" + sid, null);
