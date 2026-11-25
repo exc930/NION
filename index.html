@@ -2424,6 +2424,7 @@ html[data-theme="night"] .thcnt { font-family: "VT323", monospace; font-size: 1r
 .toast { left: 12px; right: 12px; transform: none; margin: 0 auto; max-width: 520px; padding: 0; border-radius: 10px; overflow: hidden; text-align: left; font-size: .92rem; line-height: 1.4;
   bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 90; border: 1.5px solid var(--tst, var(--accent)); box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
 .toast[hidden] { display: none !important; }
+.toast, .ulbox, .lightbox { touch-action: none; } .sheet { overscroll-behavior: contain; }
 .toast.in { animation: tstIn .28s ease-out; }
 @keyframes tstIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .toast.in { animation: none; } }
@@ -4106,6 +4107,9 @@ main > .crssug { display: flex; gap: 12px; padding: 14px 16px; margin-top: 10px;
 .crsyes { border: 0; background: var(--accent); color: var(--bg); }
 .crsno { border: 1px solid var(--line); background: transparent; color: var(--ink); }
 html:is([data-theme="medical"], [data-theme="beach"]) .crsyes { color: #fff; }
+.hcont .hover { display: block; margin: 10px auto 0; min-height: 36px; padding: 6px 12px; border: 0; background: transparent; color: var(--muted); font: 700 13.5px/1.2 var(--f-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.hcont .hover.arm { color: var(--accent); }
+.hcont .hover:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
 main > .crsempty { padding: 14px 16px; margin-top: 10px; font: 400 14.5px/1.4 var(--f-body); color: var(--muted); }
 main > .home-h.crsg { margin-top: 22px !important; }
 /* Themes write their own heading ("YOUR TAPES"); a course group shows the course name in that same style */
@@ -4954,6 +4958,51 @@ let toastT; function toast(msg) {
   t.append(hd, bd); t.hidden = false; t.classList.remove("in"); void t.offsetWidth; t.classList.add("in");
   clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 4200);
 }
+// ---------- Swipe away anything that pops up (user, Nov 24): notices, sheets, the theme-unlocked reveal, zoomed pictures ----------
+// (The passcode lock screen is NOT swipeable on purpose.)
+function swipeAway(node, close, o = {}) {
+  const dirs = o.dirs || ["down"]; let st = null, moved = false;
+  const reset = (anim) => { node.style.transition = anim ? "transform .22s ease, opacity .22s ease" : ""; node.style.transform = ""; node.style.opacity = ""; };
+  const scrolled = (t) => { for (let e = t; e && e !== document.body; e = e.parentElement) { if (e.scrollTop > 0 && e.scrollHeight > e.clientHeight + 2) return true; if (e === node) break; } return false; };
+  const begin = (x, y, t) => { moved = false; st = null; if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return; st = { x, y, t: performance.now(), ax: null, d: 0, sc: scrolled(t) }; };
+  const move = (x, y, e) => {
+    if (!st) return; const dx = x - st.x, dy = y - st.y;
+    if (!st.ax) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      st.ax = Math.abs(dy) >= Math.abs(dx) ? (dy > 0 ? "down" : "up") : "side";
+      if (!dirs.includes(st.ax) || (st.ax === "down" && st.sc)) { st = null; return; }
+      node.style.transition = "none"; moved = true; if (o.hold) o.hold();
+    }
+    if (e && e.cancelable) e.preventDefault();
+    const raw = st.ax === "side" ? dx : dy, d = st.ax === "down" ? Math.max(0, raw) : st.ax === "up" ? Math.min(0, raw) : raw;
+    node.style.transform = (o.base || "") + (st.ax === "side" ? `translateX(${d}px)` : `translateY(${d}px)`);
+    if (o.fade) node.style.opacity = String(Math.max(.15, 1 - Math.abs(d) / 240));
+    st.d = d;
+  };
+  const end = () => {
+    const s0 = st; st = null; if (!s0 || !s0.ax) return;
+    const size = s0.ax === "side" ? node.offsetWidth : node.offsetHeight, v = Math.abs(s0.d) / Math.max(1, performance.now() - s0.t);
+    if (Math.abs(s0.d) > Math.min(90, size * .3) || (v > .5 && Math.abs(s0.d) > 24)) {
+      const sg = Math.sign(s0.d) || 1;
+      node.style.transition = "transform .2s ease-in, opacity .2s ease-in";
+      node.style.transform = (o.base || "") + (s0.ax === "side" ? `translateX(${sg * innerWidth}px)` : `translateY(${sg * (size + 80)}px)`); if (o.fade) node.style.opacity = "0";
+      setTimeout(() => { close(); if (o.reuse) reset(false); }, 190);
+    } else { reset(true); if (o.release) o.release(); }
+  };
+  node.addEventListener("touchstart", (e) => { if (e.touches.length === 1) begin(e.touches[0].clientX, e.touches[0].clientY, e.target); else st = null; }, { passive: true });
+  node.addEventListener("touchmove", (e) => { if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY, e); }, { passive: false });
+  node.addEventListener("touchend", end);
+  node.addEventListener("touchcancel", () => { if (st && st.ax) reset(true); st = null; });
+  node.addEventListener("pointerdown", (e) => { // mouse / trackpad drag works too
+    if (e.pointerType !== "mouse" || e.button) return; begin(e.clientX, e.clientY, e.target);
+    const mv = (ev) => move(ev.clientX, ev.clientY, null), up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); end(); };
+    addEventListener("pointermove", mv); addEventListener("pointerup", up);
+  });
+  node.addEventListener("click", (e) => { if (moved) { moved = false; e.stopPropagation(); e.preventDefault(); } }, true);
+}
+{ const t = document.getElementById("toast");
+  if (t) swipeAway(t, () => { clearTimeout(toastT); t.hidden = true; }, { dirs: ["down", "side"], fade: true, reuse: true,
+    hold: () => clearTimeout(toastT), release: () => { clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 2500); } }); }
 
 // ================= Store (everything lives on this phone) =================
 const IDB = (() => {
@@ -7209,6 +7258,7 @@ const TI = {
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+  qfile: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M10.2 12a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4"/><path d="M12 18h.01"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   chev: '<path d="m9 6 6 6-6 6"/>',
@@ -7216,6 +7266,7 @@ const TI = {
   layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
   down: '<path d="m6 9 6 6 6-6"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7"/>',
+  refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
   back: '<path d="m15 6-6 6 6 6"/>',
 };
 const tico = (k, sz = 24) => `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TI[k]}</svg>`;
@@ -7364,23 +7415,38 @@ function homeCards(m) {
   if (ls) {
     const s = subjects[ls.sid], pct = subjPct(ls.sid);
     const c = el("div", "hcard hcont");
-    const q = ls.quiz, left = q ? q.items.length - q.ans.filter((a) => a && a.length).length : 0;
+    const q = ls.quiz, left = q ? q.items.length - q.ans.filter((a) => a && a.length).length : 0, R = q ? null : liveRun(ls.p);
     if (prefs().remind) { const sk = streaks(); if (sk.cur || sk.today) { const r = el("p", "hstreak" + (sk.today ? " done" : "")); r.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4 0 7-2.8 7-7 0-4-3-6-4-9-1 2-2 3-3.5 3.5C11 7 11 4 9 2 9 6 5 9 5 14.5 5 19 8 22 12 22z"/></svg>'; r.append(sk.today ? `${sk.cur}-day streak · studied today` : `Keep your ${sk.cur}-day streak going`); c.append(r); } }
-    c.append(el("p", "hlbl", q ? "Quiz in progress" : ls.at ? "Continue where you left off" : "Start studying"));
+    c.append(el("p", "hlbl", q ? "Quiz in progress" : R || ls.at ? "Continue where you left off" : "Start studying"));
     const nm = btn("hname hpick", null, () => openSubjectPicker()); nm.append(el("span", null, s.name));
     const cv = el("span", "hpickc"); cv.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>'; nm.append(cv);
     nm.setAttribute("aria-label", `${s.name}. Change subject`); c.append(nm);
-    c.append(el("p", "hsub", q ? `${left} question${left === 1 ? "" : "s"} left in your quiz` : `${pct}% mastered`));
-    const bar = el("div", "hbar"); const f = el("i"); f.style.width = Math.max(2, q ? Math.round((q.items.length - left) / q.items.length * 100) : pct) + "%"; bar.append(f); c.append(bar);
-    const go1 = btn("hgo", null, () => q ? go({ v: "quiz", sid: ls.sid }) : go({ v: "study", sid: ls.sid }));
-    go1.innerHTML = tico("play", 18); go1.append(q ? "Resume quiz" : ls.at ? "Resume" : "Start"); c.append(go1);
+    c.append(el("p", "hsub", q ? `Quiz · ${q.items.length - left} of ${q.items.length} answered` : R ? `${runName(R)} · ${runDoneN(R)} of ${R.ids.length} done` : `${pct}% mastered`));
+    const bar = el("div", "hbar"); const f = el("i"); f.style.width = Math.max(2, q ? Math.round((q.items.length - left) / q.items.length * 100) : R ? Math.round(runDoneN(R) / R.ids.length * 100) : pct) + "%"; bar.append(f); c.append(bar);
+    const go1 = btn("hgo", null, () => q ? go({ v: "quiz", sid: ls.sid }) : R ? resumeRun(ls.sid) : homeStudy(ls.sid));
+    go1.innerHTML = tico("play", 18); go1.append(q ? "Resume quiz" : R ? "Resume" : ls.at ? "Study" : "Start"); c.append(go1);
+    if (q || R) { // start over only when the person chooses it (2 taps)
+      let arm = false; const so = btn("hover", q ? "Start the quiz over" : "Start over", async () => {
+        if (!arm) { arm = true; so.textContent = `Tap again to start over (lose ${q ? `${q.items.length - left} of ${q.items.length}` : `${runDoneN(R)} of ${R.ids.length}`})`; so.classList.add("arm"); return; }
+        await openSubject(ls.sid);
+        if (q) startQuiz(ls.sid, q.sec);
+        else if (R.study) startStudy(ls.sid, false, R.review ? "mix" : R.mode || "mix");
+        else if (R.label === "Weak spots") { const w = weakIds(); if (w.total) startRun(ls.sid, null, w.ids, "Weak spots"); else startStudy(ls.sid, false, "mix"); }
+        else startRun(ls.sid, R.sec, R.missed || R.label ? (R.pool || [...new Set(R.ids)]) : null, R.label);
+      }); c.append(so);
+    }
     m.append(c);
     const row = el("div", "hquick");
     const qb = (icon, label, fn) => { const b = btn("hcard hq", null, fn); b.innerHTML = tico(icon, 22); b.append(el("span", null, label)); row.append(b); return b; };
-    qb("bolt", "Quiz me", async () => { await openSubject(ls.sid); startQuiz(ls.sid, null); });
-    qb("target", "Weak spots", async () => { await openSubject(ls.sid); const w = weakIds(); if (!w.total) { toast("No weak spots yet. Keep studying and Nion will collect the questions you miss."); return; } startRun(ls.sid, null, w.ids, "Weak spots"); });
+    qb("bolt", "Quiz me", () => guardStart(ls.sid, "quiz", async () => { await openSubject(ls.sid); startQuiz(ls.sid, null); }, "Start a new quiz"));
+    qb("target", "Weak spots", async () => {
+      await openSubject(ls.sid); const w = weakIds(); const Rw = liveRun(lsGet("md-p-" + ls.sid, null));
+      if (Rw && Rw.label === "Weak spots") { resumeRun(ls.sid); return; }
+      if (!w.total) { toast("No weak spots yet. Keep studying and Nion will collect the questions you miss."); return; }
+      guardStart(ls.sid, "run", () => startRun(ls.sid, null, w.ids, "Weak spots"), "Start weak spots");
+    });
     if (gameOn()) { const pb = qb("game", "Play", () => go({ v: "game", sid: ls.sid })); pb.classList.add("hplay"); row.prepend(pb); }
-    else qb("cards", "Study", () => go({ v: "study", sid: ls.sid }));
+    else qb("cards", "Study", () => homeStudy(ls.sid));
     m.append(row);
   }
   const nt = null; // the next theme lives in the Progress tab (user: no need for it on Home)
@@ -7397,6 +7463,30 @@ function homeCards(m) {
     c.setAttribute("aria-label", `Next theme: ${THEME_NAMES[nt.th.id]}. ${nt.th.goal}.`);
     m.append(c);
   }
+}
+// ---------- Resume = pick up exactly where you left off (user, Nov 23) ----------
+// A study session / weak spots / go-through-all lives in md-p-<sid>.run (survives closing the app); a quiz in md-quiz-<sid>.
+function liveRun(p) { const R = p && p.run; return R && Array.isArray(R.ids) && R.ids.length && R.i < R.ids.length ? R : null; }
+function runName(R) { return R.study ? (R.review ? "Review missed" : R.label || "Study session") : R.label || (R.missed ? "Missed questions" : "Go through all"); }
+function runDoneN(R) { return Math.min(R.i, R.ids.length); }
+function qzDoneN(q) { return q.ans.filter((a) => a && a.length).length; }
+function resumeRun(sid) { cur = null; go({ v: "study", sid, run: 1 }); }
+// Before something new replaces an unfinished quiz or session, ask: keep going, or start the new one.
+function guardStart(sid, kind, startNew, newLabel) {
+  const p = lsGet("md-p-" + sid, null), R = liveRun(p), q = lsGet("md-quiz-" + sid, null), Q = q && !q.done && Array.isArray(q.items) ? q : null;
+  const clash = kind === "quiz" ? (Q ? { t: "Quiz in progress", d: `${qzDoneN(Q)} of ${Q.items.length} answered`, go: () => go({ v: "quiz", sid }), c: "Continue the quiz" } : null)
+    : (R ? { t: runName(R), d: `${runDoneN(R)} of ${R.ids.length} done`, go: () => resumeRun(sid), c: `Continue ${runName(R).toLowerCase()}` } : null);
+  if (!clash) { startNew(); return; }
+  openSheet("You're partway through", (sh, row) => {
+    const r1 = row("play", clash.c, `${clash.t} · ${clash.d}`, () => { closeSheet(); clash.go(); }); r1.classList.add("on");
+    row("refresh", newLabel, `Starts fresh. Your place (${clash.d}) won't be kept.`, () => { closeSheet(); startNew(); });
+  });
+}
+// Study: an unfinished study session continues; anything else unfinished asks first.
+async function homeStudy(sid) {
+  const R = liveRun(lsGet("md-p-" + sid, null));
+  if (R && R.study) { resumeRun(sid); return; }
+  guardStart(sid, "run", async () => { await openSubject(sid); startStudy(sid, false, "mix"); }, "Start a study session");
 }
 function openSubjectPicker() {
   const ids = Object.keys(subjects).filter((x) => !subjects[x].archived && inCourse(x)).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
@@ -7695,7 +7785,7 @@ function openSheet(title, fill) {
   o.replaceChildren();
   const bg = btn("sheetbg", null, closeSheet); bg.setAttribute("aria-label", "Close"); bg.tabIndex = -1;
   const sh = el("div", "sheet"); sh.setAttribute("role", "dialog"); sh.setAttribute("aria-modal", "true"); sh.setAttribute("aria-label", title);
-  sh.append(el("span", "grab"), el("h2", null, title));
+  sh.append(el("span", "grab"), el("h2", null, title)); swipeAway(sh, closeSheet, { base: "translateX(-50%) " });
   const row = (icon, t, sub, fn) => { const b = btn("sheetrow", null, fn); const i = el("span", "sri"); i.innerHTML = tico(icon, 22); const tx = el("span", "srt"); tx.append(el("b", null, t), el("span", null, sub)); const c = el("span", "src"); c.innerHTML = tico("chev", 18); b.append(i, tx, c); sh.append(b); return b; };
   fill(sh, row);
   sh.append(btn("sheetclose", "Close", closeSheet));
@@ -7707,7 +7797,7 @@ function openAddSheet(step) {
   o.replaceChildren();
   const bg = btn("sheetbg", null, closeSheet); bg.setAttribute("aria-label", "Close"); bg.tabIndex = -1;
   const sh = el("div", "sheet"); sh.setAttribute("role", "dialog"); sh.setAttribute("aria-modal", "true");
-  sh.append(el("span", "grab"));
+  sh.append(el("span", "grab")); swipeAway(sh, closeSheet, { base: "translateX(-50%) " });
   const row = (icon, t, sub, fn) => { const b = btn("sheetrow", null, fn); const i = el("span", "sri"); i.innerHTML = tico(icon, 22); const tx = el("span", "srt"); tx.append(el("b", null, t), el("span", null, sub)); const c = el("span", "src"); c.innerHTML = tico("chev", 18); b.append(i, tx, c); sh.append(b); return b; };
   const ids = Object.keys(subjects).filter((x) => !subjects[x].archived).sort((a, b) => (subjects[a].order || 0) - (subjects[b].order || 0));
   if (step === "material" || step === "exam") {
@@ -7720,6 +7810,9 @@ function openAddSheet(step) {
     sh.append(el("h2", null, "Add to Nion"));
     row("pen", "New subject", "Name it and add your own questions", () => { closeSheet(); go({ v: "newsubject" }); });
     if (ids.length) row("upload", "Add material", "Notes, files, photos or screenshots become questions", () => ids.length === 1 ? (closeSheet(), go({ v: "import", sid: ids[0] })) : openAddSheet("material"));
+    { const fi = el("input"); fi.type = "file"; fi.accept = ".json,application/json"; fi.hidden = true; fi.setAttribute("aria-hidden", "true"); fi.tabIndex = -1;
+      fi.addEventListener("change", () => { const f = fi.files[0]; fi.value = ""; if (f) { closeSheet(); openFile(f); } }); sh.append(fi);
+      row("qfile", "Open a question file", "A question set Claude made from your notes", () => fi.click()); }
     row("search", "Ready-made subjects", "Browse the Nion library", () => { closeSheet(); go({ v: "subjects" }); setTimeout(() => { const a = document.querySelector("main > .addsec"); if (a) a.scrollIntoView({ behavior: "smooth", block: "start" }); }, 250); });
     if (ids.length) row("cal", "Set an exam date", "Nion counts down and plans your days", () => ids.length === 1 ? (closeSheet(), renderSubject.last = ids[0], examEdit = true, go({ v: "subject", sid: ids[0] })) : openAddSheet("exam"));
   }
@@ -7739,7 +7832,7 @@ function showUnlock(list) {
   const seen = () => { const t = tpk(); lsSet("md-tpk", { ...t, seen: [...new Set([...t.seen, ...list])] }); };
   const tryit = btn("ulgo", "Try it now", () => { seen(); setPref("theme", id); close(); rerender(); });
   const later = btn("ullater", list.length > 1 ? "See them in Settings" : "Maybe later", () => { close(); if (list.length > 1) go({ v: "pack", id: pk.id }); });
-  box.append(tryit, later); o.append(box); document.body.append(o);
+  box.append(tryit, later); o.append(box); document.body.append(o); swipeAway(box, close, { dirs: ["down"], fade: true });
   requestAnimationFrame(() => { o.classList.add("in"); tryit.focus({ preventScroll: true }); });
 }
 function renderHome() {
@@ -7959,8 +8052,8 @@ const LETTERS = "ABCDEFGH";
 const labelFor = (item) => `${secName(item.sec)}${item.gen ? " · " + GEN[item.gen].label : item.src ? " · " + item.src : ""}`;
 async function renderStudy() {
   const sid = route.sid; const s = subjects[sid]; if (!s) { go({ v: "home" }); return; }
+  if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "study") return; } // load first: after reopening the app S is empty
   topbar(s.name, () => backTo({ v: "subject", sid }), route.run ? (S.run && S.run.study ? "Study session" : (S.run && S.run.label) || "Go through all") : "Study");
-  if (SID !== sid || !S) { $("main").replaceChildren(el("p", "muted", "Loading questions…")); await openSubject(sid); if (route.v !== "study") return; }
   if (!route.run) { startStudy(sid, true); return; }
   if (route.run && !S.run) { go({ v: "subject", sid }); return; }
   if (!cur || !ITEMS.has(cur.id) || !!cur.run !== !!route.run) show(); else renderCur();
@@ -7981,8 +8074,11 @@ function show(avoid) {
   const run = RUNNING(); const id = run ? runNext() : nextId(avoid);
   if (!id) { cur = null; renderCur(); return; }
   const item = ITEMS.get(id); const s = st(id);
-  const recall = run && studyRun() && (isComeback(id) || (!!s && (s.str || 0) >= 1 && hasRecall(item)) || (!!item.first && !(s && s.lf)));
-  const q = recall ? recallQ(item, s) : build(item, !!s, s && s.lf);
+  // Resume shows the very same question (same format and answer order) after the app was closed
+  const R = run ? S.run : null, keep = R && R.cq && R.cq.id === id && R.cq.i === R.i ? R.cq.q : null;
+  const recall = !keep && run && studyRun() && (isComeback(id) || (!!s && (s.str || 0) >= 1 && hasRecall(item)) || (!!item.first && !(s && s.lf)));
+  const q = keep || (recall ? recallQ(item, s) : build(item, !!s, s && s.lf));
+  if (R && !keep) { try { R.cq = { id, i: R.i, q: JSON.parse(JSON.stringify(q)) }; persist(); } catch (e) { R.cq = null; } }
   const status = run && studyRun() ? roundStatus(id) : run ? [`${S.run.i + 1} of ${S.run.ids.length}`, ""] : !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
   cur = { id, q, answered: false, picks: new Set(), status, dots: s ? s.c : 0, run, shownAt: Date.now() };
   renderCur();
@@ -9309,7 +9405,7 @@ function imgView(q, reveal) {
     w.append(d);
   });
   const z = el("span", "zoomhint", "Tap to enlarge"); w.append(z);
-  w.addEventListener("click", () => { const lb = el("div", "lightbox"); const c = w.cloneNode(true); c.querySelector(".zoomhint").remove(); lb.append(c, el("span", "lbclose", "Tap anywhere to close")); lb.addEventListener("click", () => lb.remove()); document.body.append(lb); });
+  w.addEventListener("click", () => { const lb = el("div", "lightbox"); const c = w.cloneNode(true); c.querySelector(".zoomhint").remove(); lb.append(c, el("span", "lbclose", "Tap or swipe to close")); lb.addEventListener("click", () => lb.remove()); swipeAway(lb, () => lb.remove(), { dirs: ["down", "up"], fade: true }); document.body.append(lb); });
   return w;
 }
 
