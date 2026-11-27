@@ -4781,7 +4781,7 @@ function mergeProgress(a, b) {
   }
   const byId = (l) => { const m = new Map(); for (const e of l || []) m.set(e.id || JSON.stringify(e), e); return m; };
   const extra = [...new Map([...byId(O.extra), ...byId(N.extra)]).values()];
-  const quizzes = [...new Map([...(O.quizzes || []), ...(N.quizzes || [])].map((q) => [q.at, q])).values()].sort((p, q) => p.at - q.at).slice(-50);
+  const quizzes = [...new Map([...(O.quizzes || []), ...(N.quizzes || [])].map((q) => [q.at, q])).values()].sort((p, q) => p.at - q.at).slice(-400);
   const runOf = (s) => s.run || null; const ra = runOf(N), rb = runOf(O);
   const run = !ra ? rb : !rb ? ra : ((rb.at || 0) > (ra.at || 0) || ((rb.at || 0) === (ra.at || 0) && (rb.i || 0) > (ra.i || 0)) ? rb : ra);
   const out = { ...N, n, it, extra, at: Math.max(a.at || 0, b.at || 0) };
@@ -5435,6 +5435,7 @@ function accountStats() {
   for (const sid of Object.keys(subjects)) {
     const p = lsGet("md-p-" + sid, null); if (!p) continue;
     for (const x of Object.values(p.it || {})) { ok += x.ok || 0; bad += x.bad || 0; if (x.m) mastered++; }
+    for (const q of p.quizzes || []) { const a = q.a != null ? q.a : q.n || 0, c = Math.min(q.correct || 0, a); ok += c; bad += a - c; } // quiz answers count too
     if (!subjects[sid].archived && (p.at || 0) > lastAt) { lastAt = p.at; last = sid; }
   }
   return { answered: ok + bad, acc: ok + bad ? Math.round(ok / (ok + bad) * 100) : null, mastered, subjects: Object.keys(subjects).length, last };
@@ -7663,15 +7664,27 @@ function trend(a, b, unit, fmt) {   // a = this week, b = the week before
   s.textContent = (d > 0 ? "▲ " : "▼ ") + (fmt ? fmt(Math.abs(d)) : Math.abs(d).toLocaleString()) + (unit || "");
   return s;
 }
+// Daily history (md-hist, kept since v51) + every saved quiz on the day it was taken
+function histWithQuizzes(h0) {
+  const h = JSON.parse(JSON.stringify(h0 || {}));
+  for (const sid of Object.keys(subjects)) {
+    const p = lsGet("md-p-" + sid, null);
+    for (const q of (p && p.quizzes) || []) {
+      if (!q.at) continue; const k = dayKey(q.at), d = h[k] || (h[k] = { a: 0, ok: 0, sec: 0, ms: {} });
+      const a = q.a != null ? q.a : q.n || 0; d.a = (d.a || 0) + a; d.ok = (d.ok || 0) + Math.min(q.correct || 0, a); d.sec = (d.sec || 0) + Math.min(7200, Math.round((q.ms || 0) / 1000));
+    }
+  }
+  return h;
+}
 function progressCharts(m) {
-  const h = histSnapshot(), now = Date.now();
+  const h0 = histSnapshot(), h = histWithQuizzes(h0), now = Date.now(), trackStart = Object.keys(h0).sort()[0] || dayKey();
   const d28 = dayList(28), last7 = d28.slice(21), prev7 = d28.slice(14, 21);
   const sum = (keys, f) => keys.reduce((t, k) => t + (h[k] ? f(h[k]) : 0), 0);
   const ans = (ks) => sum(ks, (x) => x.a || 0), okc = (ks) => sum(ks, (x) => x.ok || 0), secs = (ks) => sum(ks, (x) => x.sec || 0);
   const studied = new Set(lsGet("md-days", []));
   const daysIn = (ks) => ks.filter((k) => studied.has(k)).length;
   // mastered total per day (carry each subject's last known count forward)
-  const allKeys = Object.keys(h).sort();
+  const allKeys = Object.keys(h0).sort();
   const masteredOn = (key) => { const cur = {}; for (const k of allKeys) { if (k > key) break; for (const [sid, v] of Object.entries(h[k].ms || {})) cur[sid] = v; } const vals = Object.values(cur); return vals.length ? vals.reduce((a, b) => a + b, 0) : null; };
   const firstHist = allKeys[0];
   const mNow = masteredOn(last7[6]), mWeekAgo = firstHist && firstHist <= prev7[6] ? masteredOn(prev7[6]) : null, m2Ago = firstHist && firstHist <= d28[13] ? masteredOn(d28[13]) : null;
@@ -7681,7 +7694,7 @@ function progressCharts(m) {
   const cmp = el("div", "panel sp chartp"); cmp.append(el("h3", null, "This week vs last week"));
   const g = el("div", "cmpgrid");
   const cell = (val, label, tr) => { const c = el("div", "cmpc"); c.append(el("b", null, val), el("span", null, label), tr); g.append(c); };
-  const a1 = ans(last7), a0 = ans(prev7), hasPrev = firstHist && firstHist <= prev7[6];
+  const a1 = ans(last7), a0 = ans(prev7), hasPrev = trackStart <= prev7[0];
   cell(a1.toLocaleString(), "questions", trend(a1, hasPrev ? a0 : null));
   const c1 = acc(last7), c0 = hasPrev ? acc(prev7) : null;
   cell(c1 == null ? "–" : c1 + "%", "accuracy", trend(c1, c0, " pts"));
@@ -7690,7 +7703,8 @@ function progressCharts(m) {
   const t1 = Math.round(secs(last7) / 60), t0 = hasPrev ? Math.round(secs(prev7) / 60) : null;
   cell(t1 + "m", "studied", trend(t1, t0, "m"));
   cmp.append(g);
-  if (!hasPrev) cmp.append(el("p", "small muted chartnote", "Nion started keeping a daily history today, so last week shows up once you've studied for a week."));
+  const tsDate = new Date(trackStart + "T12:00:00").toLocaleDateString([], { month: "short", day: "numeric" });
+  if (!hasPrev) cmp.append(el("p", "small muted chartnote", `Day-by-day practice counts started ${tsDate}, when the charts were added, so last week isn't complete yet. Quizzes from before are included.`));
   m.append(cmp);
 
   // ---- Questions per day: last 14 days, last week faded ----
@@ -7707,6 +7721,7 @@ function progressCharts(m) {
   });
   sv.append(svgEl("line", { x1: 7 * bw, x2: 7 * bw, y1: padT - 6, y2: Hh - padB, class: "split" }));
   qp.append(sv);
+  if (trackStart > d14[0]) qp.append(el("p", "small muted chartnote", `Practice before ${tsDate} wasn't counted day by day (only quizzes show). Your totals at the top include everything you've ever answered.`));
   const lg = el("div", "legend"); const l1 = el("span", "lg old"), l2 = el("span", "lg"); l1.append(el("i"), "The 7 days before"); l2.append(el("i"), "Last 7 days"); lg.append(l1, l2); qp.append(lg);
   m.append(qp);
 
@@ -8076,7 +8091,7 @@ function show(avoid) {
   const item = ITEMS.get(id); const s = st(id);
   // Resume shows the very same question (same format and answer order) after the app was closed
   const R = run ? S.run : null, keep = R && R.cq && R.cq.id === id && R.cq.i === R.i ? R.cq.q : null;
-  const recall = !keep && run && studyRun() && (isComeback(id) || (!!s && (s.str || 0) >= 1 && hasRecall(item)) || (!!item.first && !(s && s.lf)));
+  const recall = !keep && run && studyRun() && (isComeback(id) || (!!s && (s.str || 0) >= 1 && hasRecall(item)) || (!!item.first && recallOK(item.first) && !(s && s.lf)));
   const q = keep || (recall ? recallQ(item, s) : build(item, !!s, s && s.lf));
   if (R && !keep) { try { R.cq = { id, i: R.i, q: JSON.parse(JSON.stringify(q)) }; persist(); } catch (e) { R.cq = null; } }
   const status = run && studyRun() ? roundStatus(id) : run ? [`${S.run.i + 1} of ${S.run.ids.length}`, ""] : !s ? ["New", ""] : s.due != null && s.c === 0 ? ["Retry after a miss", "retry"] : [`Review · ${s.c} of ${MAX}`, "review"];
@@ -8828,11 +8843,14 @@ function startReview(R) {
   S.run = { ids: shuffle(ids), i: 0, ok: 0, miss: [], sec: null, missed: false, label: "Review missed", pool: null, study: 1, review: 1, first: { ok: R.ok, n: R.ids.length }, at: Date.now() };
   persist(); cur = null; rerender();
 }
+// Terminology subjects (user, Nov 25) keep "type the term / word part" questions even when typing is switched off.
+const termSubject = (sid) => { const id = sid || SID, x = subjects[id]; return !!x && (/terminolog/i.test(x.name || "") || /medterm|terminolog/i.test(String(id))); };
+const recallOK = (f) => f === "ty" ? fmtOn("type") || fmtOn("fb") || termSubject() : f === "ord" ? fmtOn("ord") : f === "mt" ? fmtOn("match") : true;
 function recallQ(item, s) {
-  const opts = []; if (item.ty) opts.push("ty"); if (item.ord) opts.push("ord"); if (item.mt) opts.push("mt"); if (item.sq) opts.push("mc");
+  const opts = []; if (item.ty && recallOK("ty")) opts.push("ty"); if (item.ord && recallOK("ord")) opts.push("ord"); if (item.mt && recallOK("mt")) opts.push("mt"); if (item.sq) opts.push("mc");
   const last = s && s.lf, lastK = ["ty", "ord", "mt"].includes(last) ? last : last ? "mc" : null;
   let ch = opts.filter((x) => x !== lastK); if (!ch.length) ch = opts;
-  const f = item.first && !last ? item.first : ch.length ? ch[ri(0, ch.length - 1)] : null;
+  const f = item.first && !last && recallOK(item.first) ? item.first : ch.length ? ch[ri(0, ch.length - 1)] : null;
   if (f === "ty") { const [stem, acc, ex] = item.ty; return { f, tag: ["From memory", "recall"], fmt: "type", stem, ex: ex || item.ex || "", parts: ["", ""], blanks: [acc] }; }
   if (f === "ord") { const o = item.ord; return { f, tag: ["From memory", "recall"], fmt: "ord", stem: o.q, items: o.items.slice(), shown: shuffledIdx(o.items.length), ex: o.ex || item.ex || "" }; }
   if (f === "mt") { const m = item.mt; return { f, tag: ["From memory", "recall"], fmt: "match", stem: m.q, pairs: m.pairs.map((p) => p.slice()), lorder: shuffle([...m.pairs.keys()]), rorder: shuffledIdx(m.pairs.length), ex: m.ex || item.ex || "" }; }
@@ -8933,7 +8951,7 @@ function studyRecord(c, ok) {
   else { s.bad++; s.c = 0; s.str = 0; s.m = 0; s.next = now + DAY_MS; }   // a miss empties the circles
   s.due = null; S.at = now; persist(); histTick(ok);
 }
-const hasRecall = (it) => !!(it && (it.ty || it.ord || it.mt));
+const hasRecall = (it) => !!(it && ((it.ty && recallOK("ty")) || (it.ord && recallOK("ord")) || (it.mt && recallOK("mt"))));
 function runAfter(c, ok) {
   const R = S.run; const id = c.id; R.i++;
   if (!R.study || !R.seen) { if (ok) R.ok++; else R.miss.push(id); persist(); c.note = ""; return; }
@@ -9751,7 +9769,7 @@ function finishQuiz() {
   });
   QZ.result = { at: Date.now(), n: QZ.items.length, correct, ms, sec: QZ.sec, bySec, answered: QZ.ans.filter((a) => a.length).length };
   QZ.done = true; qzConfirm = false; qzFilter = correct === QZ.items.length ? "all" : "missed"; saveQZ();
-  S.quizzes = [...(S.quizzes || []), { at: QZ.result.at, n: QZ.result.n, correct, ms, sec: QZ.sec }].slice(-20); persist(true);
+  S.quizzes = [...(S.quizzes || []), { at: QZ.result.at, n: QZ.result.n, a: QZ.result.answered, correct, ms, sec: QZ.sec }].slice(-400); persist(true); // kept for stats + charts
   try { lsSet("md-qzdone", Math.max((lsGet("md-qzdone", 0) || 0) + 1, quizzesDone())); if (QZ.result.n >= 10 && correct === QZ.result.n) lsSet("md-qzperfect", Math.max((lsGet("md-qzperfect", 0) || 0) + 1, perfectQuizzes())); } catch (e) {}
   renderQuiz(); window.scrollTo(0, 0);
 }
